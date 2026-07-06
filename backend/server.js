@@ -38,7 +38,16 @@ app.use((req, res, next) => {
 
 app.use(express.static(frontendPath, {
     extensions: ['html'],
-    maxAge: isProduction ? '1h' : 0
+    maxAge: isProduction ? '1h' : 0,
+    setHeaders: (res, filePath) => {
+        const fileName = path.basename(filePath);
+        if (fileName === 'sw.js' || fileName === 'manifest.webmanifest') {
+            res.setHeader('Cache-Control', 'no-cache');
+        }
+        if (fileName === 'manifest.webmanifest') {
+            res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+        }
+    }
 }));
 
 // Routes

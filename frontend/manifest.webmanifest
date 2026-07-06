@@ -1,0 +1,49 @@
+{
+  "name": "BIBLIOTECH",
+  "short_name": "BIBLIOTECH",
+  "description": "Мобильный каталог библиотеки с общей базой книг, комментариев и статистики.",
+  "lang": "ru",
+  "start_url": "/home.html?source=pwa",
+  "scope": "/",
+  "id": "/?app=bibliotech",
+  "display": "standalone",
+  "display_override": ["standalone", "browser"],
+  "orientation": "portrait-primary",
+  "background_color": "#15091f",
+  "theme_color": "#2f7d5a",
+  "categories": ["education", "books", "productivity"],
+  "icons": [
+    {
+      "src": "/img/appicon.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/appicon-light.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/appicon-dark.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Каталог",
+      "short_name": "Каталог",
+      "url": "/home.html?source=pwa-shortcut",
+      "icons": [{ "src": "/img/appicon.png", "sizes": "256x256" }]
+    },
+    {
+      "name": "Статистика",
+      "short_name": "Статистика",
+      "url": "/stats.html?source=pwa-shortcut",
+      "icons": [{ "src": "/img/appicon-ocean.png", "sizes": "256x256" }]
+    }
+  ]
+}

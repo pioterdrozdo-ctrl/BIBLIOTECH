@@ -173,6 +173,10 @@ html {
     -webkit-text-size-adjust: 100%;
 }
 
+html.pwa-standalone {
+    overscroll-behavior-y: contain;
+}
+
 body {
     margin: 0;
     min-height: 100vh;
@@ -232,6 +236,16 @@ header {
     background: color-mix(in srgb, var(--surface) 88%, transparent);
     border-bottom: 1px solid var(--border);
     backdrop-filter: blur(18px);
+}
+
+@supports (padding-top: env(safe-area-inset-top)) {
+    html.pwa-standalone header {
+        padding-top: env(safe-area-inset-top);
+    }
+
+    html.pwa-standalone footer {
+        padding-bottom: max(86px, calc(70px + env(safe-area-inset-bottom)));
+    }
 }
 
 .header-inner {

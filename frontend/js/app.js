@@ -126,6 +126,16 @@ function applyAuthTheme(theme) {
     const allowed = ['light', 'dark', 'forest', 'ocean', 'sunset', 'violet', 'coffee', 'mono'];
     const normalized = allowed.includes(theme) ? theme : 'light';
     const darkThemes = ['dark', 'forest', 'ocean', 'violet', 'mono'];
+    const themeColors = {
+        light: '#f5f2ec',
+        dark: '#0d1512',
+        forest: '#071b13',
+        ocean: '#071724',
+        sunset: '#fff3e3',
+        violet: '#15091f',
+        coffee: '#f3e9dc',
+        mono: '#111111'
+    };
     document.documentElement.classList.remove(...allowed.map(t => 'theme-' + t), 'dark-theme');
     document.body.classList.remove(...allowed.map(t => 'theme-' + t), 'dark-theme');
     document.documentElement.classList.add('theme-' + normalized);
@@ -137,6 +147,13 @@ function applyAuthTheme(theme) {
         document.documentElement.classList.add('dark-theme');
         document.body.classList.add('dark-theme');
     }
+    let metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (!metaTheme) {
+        metaTheme = document.createElement('meta');
+        metaTheme.name = 'theme-color';
+        document.head.appendChild(metaTheme);
+    }
+    metaTheme.content = themeColors[normalized] || themeColors.light;
 }
 
 function setupAuthTheme() {

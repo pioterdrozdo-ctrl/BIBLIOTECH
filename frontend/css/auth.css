@@ -149,6 +149,10 @@ html {
     -webkit-text-size-adjust: 100%;
 }
 
+html.pwa-standalone {
+    overscroll-behavior-y: contain;
+}
+
 body.auth-page {
     min-height: 100vh;
     margin: 0;
@@ -162,6 +166,13 @@ body.auth-page {
         linear-gradient(135deg, var(--bg), var(--bg-lift));
     color: var(--text);
     font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@supports (padding: max(0px)) {
+    html.pwa-standalone body.auth-page {
+        padding-top: max(clamp(18px, 4vw, 42px), env(safe-area-inset-top));
+        padding-bottom: max(clamp(18px, 4vw, 42px), env(safe-area-inset-bottom));
+    }
 }
 
 body.auth-page::before {
