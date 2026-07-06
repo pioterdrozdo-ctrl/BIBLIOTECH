@@ -2,7 +2,26 @@ const express = require('express');
 const pool = require('../db/pool');
 const { authMiddleware } = require('../middleware/auth');
 const localStore = require('../services/localStore');
+const { buildBookQrCode, buildBookQrPayload, normalizeBookQrFields } = require('../utils/bookQr');
 const router = express.Router();
+
+function mapBookResponse(book) {
+    const qrFields = normalizeBookQrFields(book);
+    return {
+        ...book,
+        ...qrFields,
+        coverDataURL: book.cover_data_url || book.coverDataURL || null
+    };
+}
+
+async function ensureBookQrCode(bookId) {
+    const qrCode = buildBookQrCode(bookId);
+    const result = await pool.query(
+        'UPDATE books SET qr_code = $1 WHERE id = $2 RETURNING *',
+        [qrCode, bookId]
+    );
+    return result.rows[0];
+}
 
 // Получить все книги с фильтрацией
 router.get('/', async (req, res) => {
@@ -22,7 +41,7 @@ router.get('/', async (req, res) => {
 
     // Поиск
     if (search && search.trim()) {
-        conditions.push(`(b.title ILIKE $${paramCounter} OR b.author ILIKE $${paramCounter} OR b.description ILIKE $${paramCounter})`);
+        conditions.push(`(b.title ILIKE $${paramCounter} OR b.author ILIKE $${paramCounter} OR b.description ILIKE $${paramCounter} OR b.qr_code ILIKE $${paramCounter})`);
         params.push(`%${search}%`);
         paramCounter++;
     }
@@ -76,10 +95,7 @@ router.get('/', async (req, res) => {
 
     try {
         const result = await pool.query(query, params);
-        res.json(result.rows.map(book => ({
-            ...book,
-            coverDataURL: book.cover_data_url
-        })));
+        res.json(result.rows.map(mapBookResponse));
     } catch (error) {
         console.warn('[DB fallback] GET /api/books:', error.message);
         res.json(localStore.getBooks(req.query));
@@ -100,10 +116,9 @@ router.get('/:id', async (req, res) => {
         );
 
         const book = bookResult.rows[0];
-        book.coverDataURL = book.cover_data_url;
         book.comments = commentsResult.rows;
 
-        res.json(book);
+        res.json(mapBookResponse(book));
     } catch (error) {
         const book = localStore.getBook(req.params.id);
         if (!book) return res.status(404).json({ error: 'Book not found' });
@@ -126,7 +141,8 @@ router.post('/', authMiddleware, async (req, res) => {
             [title, author, description || '', coverDataURL || null, copies || 1, available !== false, req.user.id]
         );
 
-        res.status(201).json({ ...result.rows[0], coverDataURL: result.rows[0].cover_data_url, comments: [] });
+        const created = await ensureBookQrCode(result.rows[0].id);
+        res.status(201).json(mapBookResponse({ ...created, comments: [] }));
     } catch (error) {
         try {
             res.status(201).json(localStore.addBook(req.user, req.body));
@@ -157,7 +173,12 @@ router.put('/:id', authMiddleware, async (req, res) => {
             return res.status(404).json({ error: 'Book not found' });
         }
 
-        res.json({ ...result.rows[0], coverDataURL: result.rows[0].cover_data_url });
+        let book = result.rows[0];
+        if (!book.qr_code) {
+            book = await ensureBookQrCode(book.id);
+        }
+
+        res.json(mapBookResponse(book));
     } catch (error) {
         const book = localStore.updateBook(req.params.id, req.body);
         if (!book) return res.status(404).json({ error: 'Book not found' });

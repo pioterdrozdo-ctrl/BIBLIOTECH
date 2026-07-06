@@ -113,6 +113,11 @@ async function initDatabase() {
         const schemaPath = path.join(__dirname, 'sql', 'init.sql');
         const schemaSql = fs.readFileSync(schemaPath, 'utf8');
         await pool.query(schemaSql);
+        await pool.query(`
+            ALTER TABLE books ADD COLUMN IF NOT EXISTS qr_code VARCHAR(32);
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_books_qr_code ON books(qr_code);
+            UPDATE books SET qr_code = 'BT' || LPAD(id::text, 6, '0') WHERE qr_code IS NULL;
+        `);
         console.log('[DB] PostgreSQL schema is ready.');
     } catch (error) {
         console.warn('[DB] PostgreSQL init failed. JSON fallback remains available:', error.message);
