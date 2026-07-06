@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS books (
     cover_data_url TEXT,
     copies INTEGER DEFAULT 1,
     available BOOLEAN DEFAULT true,
+    qr_code VARCHAR(32) UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
@@ -37,6 +38,7 @@ CREATE TABLE IF NOT EXISTS comments (
 CREATE INDEX IF NOT EXISTS idx_books_title ON books(title);
 CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);
 CREATE INDEX IF NOT EXISTS idx_books_available ON books(available);
+CREATE INDEX IF NOT EXISTS idx_books_qr_code ON books(qr_code);
 CREATE INDEX IF NOT EXISTS idx_comments_book_id ON comments(book_id);
 
 -- Триггер для updated_at
@@ -70,3 +72,6 @@ INSERT INTO books (title, author, description, copies, available) VALUES
 ('Маленький принц', 'Антуан де Сент-Экзюпери', 'Философская сказка о дружбе, взрослении и ответственности.', 4, true),
 ('Война и мир', 'Лев Толстой', 'Эпический роман о семье, истории, войне и человеческом выборе.', 1, true)
 ON CONFLICT (id) DO NOTHING;
+
+-- QR-коды для демо-книг
+UPDATE books SET qr_code = 'BT' || LPAD(id::text, 6, '0') WHERE qr_code IS NULL;
