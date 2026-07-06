@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="img/appicon-light.png" type="image/png">
+    <link rel="apple-touch-icon" href="img/appicon.png">
+    <script src="js/theme-bootstrap.js"></script>
+    <title>Вход | BIBLIOTECH</title>
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="auth-page">
+    <button class="auth-theme-toggle" id="authThemeToggle" type="button" title="Тёмная тема">🌙</button>
+    <div class="auth-container">
+        <div class="auth-brand"><img src="img/appicon.png" alt="BIBLIOTECH logo"><h1>BIBLIOTECH</h1></div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('login')">Вход</button>
+            <button class="tab" onclick="switchTab('register')">Регистрация</button>
+        </div>
+
+        <div id="loginForm" class="form active">
+            <input type="text" id="loginUsername" placeholder="Имя пользователя">
+            <input type="password" id="loginPassword" placeholder="Пароль">
+            <button onclick="login()">Войти</button>
+            <button class="guest-btn" onclick="guestLogin()">Войти как гость</button>
+            <p class="demo-hint">Тестовый вход: <b>admin</b> / <b>GreenScreen</b></p>
+            <div id="loginError" class="error"></div>
+        </div>
+
+        <div id="registerForm" class="form">
+            <input type="text" id="regUsername" placeholder="Имя пользователя">
+            <input type="password" id="regPassword" placeholder="Пароль (мин. 4 символа)">
+            <button onclick="register()">Зарегистрироваться</button>
+            <div id="regError" class="error"></div>
+            <div id="regSuccess" class="success"></div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

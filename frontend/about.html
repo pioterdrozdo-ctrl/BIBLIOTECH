@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <link rel="icon" href="img/appicon-light.png" type="image/png">
+    <link rel="apple-touch-icon" href="img/appicon.png">
+    <script src="js/theme-bootstrap.js"></script>
+    <title>О нас | BIBLIOTECH</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="about-page">
+<div class="wrapper">
+    <header>
+        <div class="container">
+            <div class="header-inner">
+                <div class="NAHODKI brand-logo"><img src="img/appicon.png" alt="BIBLIOTECH logo"><span>BIBLIOTECH</span></div>
+                <div class="menu_icon" id="menuIcon">
+                    <span></span><span></span><span></span>
+                </div>
+                <nav id="navMenu">
+                    <ul>
+                        <li><a href="home.html#top">Главная</a></li>
+                        <li><a href="stats.html">Статистика</a></li>
+                        <li class="active"><a href="about.html">О нас</a></li>
+                        <li class="nav-language-item">
+                            <div class="language-switcher" id="languageSwitcher">
+                                <button class="language-current" id="langToggleBtn" type="button" aria-label="Выбрать язык">
+                                    <span class="lang-globe">🌐</span>
+                                    <span class="lang-current-code" id="langCurrentCode">RU</span>
+                                    <span class="lang-arrow">⌄</span>
+                                </button>
+                                <div id="langMenu" class="lang-menu">
+                                    <button class="lang-option active" type="button" data-lang="ru"><span>🇷🇺</span><b>Русский</b><small>RU</small></button>
+                                    <button class="lang-option" type="button" data-lang="en"><span>🇬🇧</span><b>English</b><small>EN</small></button>
+                                    <button class="lang-option" type="button" data-lang="uk"><span>🇺🇦</span><b>Українська</b><small>UK</small></button>
+                                    <button class="lang-option" type="button" data-lang="de"><span>🇩🇪</span><b>Deutsch</b><small>DE</small></button>
+                                    <button class="lang-option" type="button" data-lang="kk"><span>🇰🇿</span><b>Қазақша</b><small>KK</small></button>
+                                    <button class="lang-option" type="button" data-lang="es"><span>🇪🇸</span><b>Español</b><small>ES</small></button>
+                                    <button class="lang-option" type="button" data-lang="zh"><span>🇨🇳</span><b>中文</b><small>ZH</small></button>
+                                </div>
+                            </div>
+                        </li>
+                        <li><button class="user-pill profile-pill" id="currentUserPill" type="button">Профиль</button></li>
+                        <li class="btn"><a href="#" id="logoutBtn">Выйти</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="about-main">
+        <section class="about-hero-page">
+            <div class="container about-hero-grid">
+                <div class="about-hero-text">
+                    <span class="eyebrow">BIBLIOTECH</span>
+                    <h1>Электронная библиотека для удобной работы с книгами</h1>
+                    <p>BIBLIOTECH помогает хранить каталог, быстро находить книги по названию, автору и описанию, отслеживать доступность экземпляров и собирать комментарии читателей.</p>
+                    <div class="about-actions">
+                        <a class="about-link-btn" href="home.html#catalog">Открыть каталог</a>
+                        <a class="about-secondary-btn" href="stats.html">Посмотреть статистику</a>
+                    </div>
+                </div>
+                <div class="about-logo-showcase" aria-label="Логотип BIBLIOTECH">
+                    <div class="logo-halo"></div>
+                    <img src="img/appicon.png" alt="Цветной логотип BIBLIOTECH">
+                    <span>поиск · авторы · отзывы</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="about-values-section">
+            <div class="container">
+                <div class="section-heading">
+                    <span class="eyebrow">Возможности</span>
+                    <h2>Что умеет система</h2>
+                    <p>Проект сделан так, чтобы им было удобно пользоваться без сложной настройки.</p>
+                </div>
+                <div class="about-values-grid">
+                    <article class="reader-card">
+                        <div class="reader-icon">🔎</div>
+                        <h3>Умный поиск</h3>
+                        <p>Поиск работает по названию, автору, описанию и комментариям, а также лучше переносит неточные запросы.</p>
+                    </article>
+                    <article class="reader-card">
+                        <div class="reader-icon">📚</div>
+                        <h3>Каталог книг</h3>
+                        <p>Можно добавлять книги, указывать автора, описание, обложку, наличие и количество экземпляров.</p>
+                    </article>
+                    <article class="reader-card">
+                        <div class="reader-icon">💬</div>
+                        <h3>Комментарии</h3>
+                        <p>К каждой книге можно оставлять заметки и отзывы, чтобы каталог был живым и полезным.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="about-contact-section">
+            <div class="container">
+                <div class="about-panel about-page-panel">
+                    <div>
+                        <span class="eyebrow">Связь</span>
+                        <h2>Контакты проекта</h2>
+                        <p>По всем вопросам, предложениям, замечаниям и идеям по развитию BIBLIOTECH обращайтесь в Telegram.</p>
+                    </div>
+                    <div class="contact-card contact-card-big">
+                        <h3>📩 Telegram</h3>
+                        <p>Ответственные за проект:</p>
+                        <div class="tg-links">
+                            <span>@AndreyDorozhkin</span>
+                            <span>@ks_221b</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+<!-- Модальное окно профиля -->
+<div id="profileModal" class="modal profile-modal">
+    <div class="modal-content profile-modal-content">
+        <button class="profile-close-btn" id="closeProfileModalBtn" type="button">×</button>
+        <div class="profile-modal-top">
+            <div class="profile-avatar" id="profileAvatar">👤</div>
+            <div>
+                <p class="profile-kicker">Профиль читателя</p>
+                <h2 id="profileName">Пользователь</h2>
+                <span id="profileModeBadge" class="profile-mode-badge">Аккаунт</span>
+            </div>
+        </div>
+        <div class="profile-grid">
+            <div class="profile-stat-card"><b id="profileBooksCount">0</b><span>книг в каталоге</span></div>
+            <div class="profile-stat-card"><b id="profileAvailableCount">0</b><span>в наличии</span></div>
+            <div class="profile-stat-card"><b id="profileCommentsCount">0</b><span>комментариев</span></div>
+        </div>
+        <div class="avatar-settings">
+            <div>
+                <h3>Аватар профиля</h3>
+                <p>Загрузите свою картинку или выберите готовый стиль.</p>
+            </div>
+            <label class="avatar-upload-btn" for="profileAvatarInput">📷 Загрузить</label>
+            <input id="profileAvatarInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+            <div class="avatar-preset-grid" id="avatarPresetGrid">
+                <button type="button" data-avatar="👤">👤</button>
+                <button type="button" data-avatar="📚">📚</button>
+                <button type="button" data-avatar="🦉">🦉</button>
+                <button type="button" data-avatar="🧠">🧠</button>
+                <button type="button" data-avatar="🌿">🌿</button>
+                <button type="button" data-avatar="⭐">⭐</button>
+            </div>
+        </div>
+
+        <div class="theme-settings mega-theme-settings">
+            <div class="theme-settings-head">
+                <div>
+                    <h3>Оформление сайта</h3>
+                    <p>Выберите не просто светлую или тёмную тему, а полноценное настроение интерфейса.</p>
+                </div>
+                <span class="theme-settings-badge">8 тем</span>
+            </div>
+            <div class="theme-preset-grid" id="themePresetGrid">
+                <button type="button" class="theme-preset" data-theme="light">
+                    <span class="theme-preview theme-preview-light"></span>
+                    <b>Светлая</b><small>чистая классика</small>
+                </button>
+                <button type="button" class="theme-preset" data-theme="dark">
+                    <span class="theme-preview theme-preview-dark"></span>
+                    <b>Тёмная</b><small>ночная библиотека</small>
+                </button>
+                <button type="button" class="theme-preset" data-theme="forest">
+                    <span class="theme-preview theme-preview-forest"></span>
+                    <b>Лесная</b><small>зелёный неон</small>
+                </button>
+                <button type="button" class="theme-preset" data-theme="ocean">
+                    <span class="theme-preview theme-preview-ocean"></span>
+                    <b>Океан</b><small>сине-бирюзовая</small>
+                </button>
+                <button type="button" class="theme-preset" data-theme="sunset">
+                    <span class="theme-preview theme-preview-sunset"></span>
+                    <b>Закат</b><small>оранжево-розовая</small>
+                </button>
+                <button type="button" class="theme-preset" data-theme="violet">
+                    <span class="theme-preview theme-preview-violet"></span>
+                    <b>Фиолетовая</b><small>кибер-лаванда</small>
+                </button>
+                <button type="button" class="theme-preset" data-theme="coffee">
+                    <span class="theme-preview theme-preview-coffee"></span>
+                    <b>Кофейная</b><small>уют и бумага</small>
+                </button>
+                <button type="button" class="theme-preset" data-theme="mono">
+                    <span class="theme-preview theme-preview-mono"></span>
+                    <b>Монохром</b><small>минимализм</small>
+                </button>
+            </div>
+        </div>
+        <div class="profile-actions">
+            <button id="profileGoStatsBtn" type="button">📊 Открыть статистику</button>
+            <button id="profileLogoutBtn" type="button">🚪 Выйти</button>
+        </div>
+    </div>
+</div>
+
+    <footer>🌿 BIBLIOTECH — удобный каталог для книг, авторов и читателей.</footer>
+    <button class="floating-theme-toggle" id="floatingThemeToggle" title="Тёмная тема">🌙</button>
+</div>
+<script>
+(function () {
+    const rawSession = localStorage.getItem('bibliotech_current_user');
+    if (!rawSession) window.location.href = 'index.html';
+
+    try {
+        const session = JSON.parse(rawSession);
+        const pill = document.getElementById('currentUserPill');
+        if (pill) pill.textContent = session.guest ? '👀 Гостевой режим' : '👤 ' + (session.username || 'Пользователь');
+        if (session.guest) document.body.classList.add('guest-mode');
+    } catch (e) {}
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function (event) {
+            event.preventDefault();
+            localStorage.removeItem('bibliotech_current_user');
+            window.location.href = 'index.html';
+        });
+    }
+})();
+</script>
+<script src="js/script.js"></script>
+</body>
+</html>
