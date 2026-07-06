@@ -1,12 +1,18 @@
 const fs = require('fs');
 const path = require('path');
 const { hashPassword, verifyPassword } = require('../utils/passwords');
+const { buildBookQrCode, buildBookQrPayload, normalizeBookQrFields } = require('../utils/bookQr');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const STORE_FILE = path.join(DATA_DIR, 'store.json');
 
 function now() {
     return new Date().toISOString();
+}
+
+function withQrFields(book) {
+    const qrFields = normalizeBookQrFields(book);
+    return { ...book, ...qrFields };
 }
 
 function seedBooks() {
@@ -84,7 +90,7 @@ function seedBooks() {
             created_at: created,
             updated_at: created
         }
-    ];
+    ].map(withQrFields);
 }
 
 function createInitialStore() {
@@ -141,8 +147,10 @@ function nextId(store, key) {
 }
 
 function normalizeBook(book, comments = []) {
+    const qrFields = normalizeBookQrFields(book);
     return {
         ...book,
+        ...qrFields,
         coverDataURL: book.coverDataURL || book.cover_data_url || null,
         cover_data_url: book.coverDataURL || book.cover_data_url || null,
         comments: comments.map(comment => ({
@@ -172,6 +180,8 @@ function getBooks({ filter, sort, search, minCopies } = {}) {
                 book.title,
                 book.author,
                 book.description,
+                book.qrCode,
+                book.qr_code,
                 ...(book.comments || []).map(comment => comment.text)
             ].join(' ').toLowerCase();
             return haystack.includes(query);
@@ -240,8 +250,9 @@ function authenticateUser(username, password) {
 function addBook(user, data) {
     const store = readStore();
     const copies = Math.max(0, Number(data.copies ?? 1));
-    const book = {
-        id: nextId(store, 'books'),
+    const bookId = nextId(store, 'books');
+    const book = withQrFields({
+        id: bookId,
         title: String(data.title || '').trim(),
         author: String(data.author || '').trim(),
         description: String(data.description || '').trim(),
@@ -251,7 +262,7 @@ function addBook(user, data) {
         user_id: user.id,
         created_at: now(),
         updated_at: now()
-    };
+    });
     store.books.unshift(book);
     writeStore(store);
     return normalizeBook(book, []);
