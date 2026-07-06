@@ -885,6 +885,189 @@ function setupQrScanner() {
     document.getElementById('qrManualInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') applyQrResult(e.target.value); });
 }
 
+let qrScanCanvas = null;
+let qrScanContext = null;
+let qrLastScanAt = 0;
+
+function setQrStatus(message) {
+    const status = document.getElementById('qrStatus');
+    if (status) status.textContent = message;
+}
+
+function setQrPlaceholderVisible(isVisible) {
+    document.getElementById('qrCameraPlaceholder')?.classList.toggle('hidden', !isVisible);
+}
+
+async function createNativeQrDetector() {
+    if (!('BarcodeDetector' in window)) return null;
+
+    try {
+        if (typeof BarcodeDetector.getSupportedFormats === 'function') {
+            const formats = await BarcodeDetector.getSupportedFormats();
+            if (!formats.includes('qr_code')) return null;
+        }
+        return new BarcodeDetector({ formats: ['qr_code'] });
+    } catch {
+        return null;
+    }
+}
+
+async function requestQrCameraStream() {
+    if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error('unsupported-camera');
+    }
+
+    const mainConstraints = {
+        audio: false,
+        video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+        }
+    };
+
+    try {
+        return await navigator.mediaDevices.getUserMedia(mainConstraints);
+    } catch (error) {
+        if (error?.name === 'NotAllowedError' || error?.name === 'SecurityError') throw error;
+        return navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+    }
+}
+
+function readQrWithJsQr(video) {
+    if (typeof window.jsQR !== 'function') return '';
+    if (!video.videoWidth || !video.videoHeight) return '';
+
+    const maxEdge = 900;
+    const scale = Math.min(1, maxEdge / Math.max(video.videoWidth, video.videoHeight));
+    const width = Math.max(1, Math.floor(video.videoWidth * scale));
+    const height = Math.max(1, Math.floor(video.videoHeight * scale));
+
+    if (!qrScanCanvas) qrScanCanvas = document.createElement('canvas');
+    qrScanCanvas.width = width;
+    qrScanCanvas.height = height;
+    qrScanContext = qrScanCanvas.getContext('2d', { willReadFrequently: true }) || qrScanCanvas.getContext('2d');
+    if (!qrScanContext) return '';
+
+    qrScanContext.drawImage(video, 0, 0, width, height);
+    const imageData = qrScanContext.getImageData(0, 0, width, height);
+    const code = window.jsQR(imageData.data, width, height, { inversionAttempts: 'attemptBoth' });
+    return code?.data || '';
+}
+
+async function readQrFrame(video, nativeDetector) {
+    if (nativeDetector) {
+        try {
+            const codes = await nativeDetector.detect(video);
+            if (codes?.length) return codes[0].rawValue || '';
+        } catch {}
+    }
+
+    return readQrWithJsQr(video);
+}
+
+async function waitForVideoFrame(video) {
+    if (video.readyState >= 2 && video.videoWidth) return;
+
+    await new Promise(resolve => {
+        const done = () => {
+            video.removeEventListener('loadedmetadata', done);
+            video.removeEventListener('canplay', done);
+            resolve();
+        };
+        video.addEventListener('loadedmetadata', done, { once: true });
+        video.addEventListener('canplay', done, { once: true });
+        setTimeout(done, 1200);
+    });
+}
+
+function explainQrCameraError(error) {
+    if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        return 'На iPhone камера работает только через HTTPS. Откройте сайт по ссылке Render или через защищенный туннель.';
+    }
+
+    if (error?.name === 'NotAllowedError') {
+        return 'iPhone не дал доступ к камере. Нажмите Aa в адресной строке Safari, откройте настройки сайта и разрешите камеру.';
+    }
+
+    if (error?.name === 'NotFoundError' || error?.message === 'unsupported-camera') {
+        return 'Камера не найдена или браузер ее не поддерживает. Можно вставить текст QR вручную ниже.';
+    }
+
+    return 'Камеру не удалось включить. Проверьте разрешение камеры и откройте сайт через HTTPS.';
+}
+
+startQrScanner = async function startQrScanner() {
+    const video = document.getElementById('qrVideo');
+    if (!video) return;
+
+    stopQrScanner();
+
+    if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        setQrStatus('На iPhone камера работает только через HTTPS. Откройте сайт по ссылке Render.');
+        return;
+    }
+
+    try {
+        setQrStatus('Запрашиваю доступ к камере...');
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+        video.muted = true;
+
+        qrStream = await requestQrCameraStream();
+        video.srcObject = qrStream;
+        await video.play();
+        await waitForVideoFrame(video);
+
+        setQrPlaceholderVisible(false);
+        const nativeDetector = await createNativeQrDetector();
+        setQrStatus(nativeDetector ? 'Камера включена. Наведите рамку на QR-код.' : 'Камера включена. iPhone-режим распознавания QR активен.');
+
+        const scan = async (time = performance.now()) => {
+            if (!qrStream) return;
+
+            if (time - qrLastScanAt > 180) {
+                qrLastScanAt = time;
+                const value = await readQrFrame(video, nativeDetector);
+                if (value) {
+                    applyQrResult(value);
+                    return;
+                }
+            }
+
+            qrLoopId = requestAnimationFrame(scan);
+        };
+
+        scan();
+    } catch (error) {
+        setQrPlaceholderVisible(true);
+        setQrStatus(explainQrCameraError(error));
+        notify('Не удалось включить камеру', 'error');
+    }
+};
+
+stopQrScanner = function stopQrScanner() {
+    if (qrLoopId) cancelAnimationFrame(qrLoopId);
+    qrLoopId = null;
+    qrLastScanAt = 0;
+
+    if (qrStream) qrStream.getTracks().forEach(track => track.stop());
+    qrStream = null;
+
+    const video = document.getElementById('qrVideo');
+    if (video) {
+        video.pause?.();
+        video.srcObject = null;
+    }
+
+    setQrPlaceholderVisible(true);
+};
+
+closeQrScanner = function closeQrScanner() {
+    stopQrScanner();
+    closeModal('#qrModal');
+};
+
 function setupVoiceSearch() {
     const btn = $('#voiceSearchBtn');
     const modal = $('#voiceModal');
