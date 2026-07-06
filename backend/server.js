@@ -15,6 +15,53 @@ const pool = require('./db/pool');
 const app = express();
 const frontendPath = path.join(__dirname, '..', 'frontend');
 const isProduction = process.env.NODE_ENV === 'production';
+const manifestThemes = {
+    light: { icon: '/img/appicon-light.png', themeColor: '#f5f2ec', backgroundColor: '#f5f2ec' },
+    dark: { icon: '/img/appicon-dark.png', themeColor: '#0d1512', backgroundColor: '#0d1512' },
+    forest: { icon: '/img/appicon-forest.png', themeColor: '#071b13', backgroundColor: '#071b13' },
+    ocean: { icon: '/img/appicon-ocean.png', themeColor: '#071724', backgroundColor: '#071724' },
+    sunset: { icon: '/img/appicon-sunset.png', themeColor: '#fff3e3', backgroundColor: '#fff3e3' },
+    violet: { icon: '/img/appicon-violet.png', themeColor: '#15091f', backgroundColor: '#15091f' },
+    coffee: { icon: '/img/appicon-coffee.png', themeColor: '#f3e9dc', backgroundColor: '#f3e9dc' },
+    mono: { icon: '/img/appicon-mono.png', themeColor: '#111111', backgroundColor: '#111111' }
+};
+
+function buildManifest(themeName = 'light') {
+    const theme = manifestThemes[themeName] || manifestThemes.light;
+    return {
+        name: 'BIBLIOTECH',
+        short_name: 'BIBLIOTECH',
+        description: 'Мобильный каталог библиотеки с общей базой книг, комментариев и статистики.',
+        lang: 'ru',
+        start_url: `/home.html?source=pwa&theme=${encodeURIComponent(themeName)}`,
+        scope: '/',
+        id: '/?app=bibliotech',
+        display: 'standalone',
+        display_override: ['standalone', 'browser'],
+        orientation: 'portrait-primary',
+        background_color: theme.backgroundColor,
+        theme_color: theme.themeColor,
+        categories: ['education', 'books', 'productivity'],
+        icons: [
+            { src: theme.icon, sizes: '256x256', type: 'image/png', purpose: 'any' },
+            { src: theme.icon, sizes: '256x256', type: 'image/png', purpose: 'any maskable' }
+        ],
+        shortcuts: [
+            {
+                name: 'Каталог',
+                short_name: 'Каталог',
+                url: '/home.html?source=pwa-shortcut',
+                icons: [{ src: theme.icon, sizes: '256x256', type: 'image/png' }]
+            },
+            {
+                name: 'Статистика',
+                short_name: 'Статистика',
+                url: '/stats.html?source=pwa-shortcut',
+                icons: [{ src: '/img/appicon-ocean.png', sizes: '256x256', type: 'image/png' }]
+            }
+        ]
+    };
+}
 
 // Rate limiting
 const limiter = rateLimit({
@@ -34,6 +81,14 @@ app.use(limiter);
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next();
+});
+
+app.get('/manifest.webmanifest', (req, res) => {
+    const requestedTheme = String(req.query.theme || 'light').toLowerCase();
+    const themeName = Object.prototype.hasOwnProperty.call(manifestThemes, requestedTheme) ? requestedTheme : 'light';
+    res.setHeader('Cache-Control', 'no-cache');
+    res.type('application/manifest+json; charset=utf-8');
+    res.send(JSON.stringify(buildManifest(themeName)));
 });
 
 app.use(express.static(frontendPath, {

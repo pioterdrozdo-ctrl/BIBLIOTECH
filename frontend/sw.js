@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v1';
+const CACHE_NAME = 'bibliotech-pwa-v3';
 const APP_SHELL = [
     '/',
     '/index.html',
@@ -13,6 +13,7 @@ const APP_SHELL = [
     '/js/theme-bootstrap.js',
     '/js/pwa.js',
     '/vendor/jsQR.js',
+    '/vendor/qrcode-generator.js',
     '/img/appicon.png',
     '/img/appicon-light.png',
     '/img/appicon-dark.png',

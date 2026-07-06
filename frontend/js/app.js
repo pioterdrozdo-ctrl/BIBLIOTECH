@@ -106,20 +106,35 @@ function guestLogin() {
 // Функции темы (оставляем без изменений)
 function updateThemeIcon(theme) {
     const allowed = ['light', 'dark', 'forest', 'ocean', 'sunset', 'violet', 'coffee', 'mono'];
+    const iconFiles = {
+        light: 'appicon-light.png',
+        dark: 'appicon-dark.png',
+        forest: 'appicon-forest.png',
+        ocean: 'appicon-ocean.png',
+        sunset: 'appicon-sunset.png',
+        violet: 'appicon-violet.png',
+        coffee: 'appicon-coffee.png',
+        mono: 'appicon-mono.png'
+    };
     const normalized = allowed.includes(theme) ? theme : 'light';
-    const iconPath = `img/appicon-${normalized}.png`;
-    const setLink = (rel, attr) => {
+    const iconPath = `img/${iconFiles[normalized] || iconFiles.light}`;
+    const setLink = (rel, attr, href = iconPath) => {
         let link = document.querySelector(`link[rel="${rel}"]`);
         if (!link) {
             link = document.createElement('link');
             link.rel = rel;
             document.head.appendChild(link);
         }
-        link.href = iconPath;
+        link.href = href;
         if (attr) Object.entries(attr).forEach(([k, v]) => link.setAttribute(k, v));
     };
     setLink('icon', { 'type': 'image/png' });
     setLink('apple-touch-icon');
+    setLink('manifest', {}, `/manifest.webmanifest?theme=${encodeURIComponent(normalized)}`);
+    document.querySelectorAll('.brand-logo img, .auth-brand img').forEach(img => {
+        img.src = iconPath;
+        img.removeAttribute('srcset');
+    });
 }
 
 function applyAuthTheme(theme) {
