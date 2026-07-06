@@ -243,6 +243,14 @@
                     <b class="reading-hint-title">Подсказка читателю</b>
                     <span class="reading-hint-text">Откройте описание, проверьте наличие и оставьте комментарий после прочтения.</span>
                 </div>
+                <div class="book-qr-card hidden" id="bookQrCard">
+                    <div class="book-qr-head">
+                        <b class="book-qr-title">▣ QR-код книги</b>
+                        <span class="book-qr-code" id="viewQrCode">—</span>
+                    </div>
+                    <div class="book-qr-canvas" id="viewQrCanvas" aria-label="QR-код книги"></div>
+                    <p class="book-qr-hint">Распечатайте или покажите этот код — читатель найдёт книгу через сканер.</p>
+                </div>
             </aside>
             <section class="book-detail-info-panel">
                 <div class="detail-title-row">
@@ -383,7 +391,7 @@
         <div class="qr-fallback">
             <label for="qrManualInput">Или вставьте текст из QR вручную</label>
             <div class="qr-manual-row">
-                <input id="qrManualInput" type="text" placeholder="Например: Мастер и Маргарита или bibliotech://book/1984">
+                <input id="qrManualInput" type="text" placeholder="Например: BT000001 или bibliotech://book/1">
                 <button id="applyQrTextBtn" type="button">Найти</button>
             </div>
         </div>
@@ -536,6 +544,7 @@
 })();
 </script>
 <script src="vendor/jsQR.js"></script>
+<script src="vendor/qrcode.min.js"></script>
 <script src="js/script.js"></script>
 <script src="js/pwa.js"></script>
 </body>
