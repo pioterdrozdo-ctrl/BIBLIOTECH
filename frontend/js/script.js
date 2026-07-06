@@ -1277,12 +1277,15 @@ function applyTheme(theme) {
         mono: '#0d0d0d'
     };
     document.body.classList.remove('dark-theme', 'theme-light', 'theme-dark', 'theme-forest', 'theme-ocean', 'theme-sunset', 'theme-violet', 'theme-coffee', 'theme-mono');
-    document.documentElement.classList.remove('theme-light', 'theme-dark', 'theme-forest', 'theme-ocean', 'theme-sunset', 'theme-violet', 'theme-coffee', 'theme-mono');
+    document.documentElement.classList.remove('dark-theme', 'theme-light', 'theme-dark', 'theme-forest', 'theme-ocean', 'theme-sunset', 'theme-violet', 'theme-coffee', 'theme-mono');
     document.body.classList.add(`theme-${normalized}`);
     document.documentElement.classList.add(`theme-${normalized}`);
     document.body.dataset.theme = normalized;
     document.documentElement.dataset.theme = normalized;
-    if (darkThemes.includes(normalized)) document.body.classList.add('dark-theme');
+    if (darkThemes.includes(normalized)) {
+        document.body.classList.add('dark-theme');
+        document.documentElement.classList.add('dark-theme');
+    }
     const floatingBtn = $('#floatingThemeToggle');
     if (floatingBtn) {
         floatingBtn.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';

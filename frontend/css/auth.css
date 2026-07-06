@@ -6,6 +6,7 @@
 html.theme-light,
 body.theme-light {
     --bg: #f5f2ec;
+    --bg-lift: #fbfaf6;
     --surface: rgba(255, 255, 255, 0.92);
     --surface-strong: #ffffff;
     --text: #1e2521;
@@ -14,6 +15,7 @@ body.theme-light {
     --accent: #2f7d5a;
     --accent-strong: #216245;
     --accent-soft: #e0efe6;
+    --on-accent: #ffffff;
     --gold: #c2953e;
     --danger: #b74c43;
     --ok: #267d56;
@@ -33,6 +35,7 @@ body.theme-violet,
 html.theme-mono,
 body.theme-mono {
     --bg: #0d1512;
+    --bg-lift: #121e1a;
     --surface: rgba(23, 35, 31, 0.9);
     --surface-strong: #17231f;
     --text: #edf7f1;
@@ -41,6 +44,7 @@ body.theme-mono {
     --accent: #7ad68f;
     --accent-strong: #a7ef77;
     --accent-soft: rgba(122, 214, 143, 0.13);
+    --on-accent: #07130d;
     --gold: #e0b75e;
     --danger: #ff8f86;
     --ok: #8ee3a4;
@@ -48,19 +52,57 @@ body.theme-mono {
     --focus: 0 0 0 3px rgba(122, 214, 143, 0.24);
 }
 
+html.theme-forest,
+body.theme-forest {
+    --bg: #071b13;
+    --bg-lift: #0e2a1f;
+    --surface: rgba(20, 47, 36, 0.9);
+    --surface-strong: #142f24;
+    --text: #f1fff6;
+    --muted: #b5cfbf;
+    --border: rgba(202, 255, 217, 0.15);
+    --accent: #83df93;
+    --accent-strong: #c0f275;
+    --accent-soft: rgba(131, 223, 147, 0.14);
+    --on-accent: #07130d;
+    --gold: #e6c15d;
+}
+
 html.theme-ocean,
 body.theme-ocean {
     --bg: #071724;
+    --bg-lift: #0d2434;
     --surface: rgba(18, 47, 67, 0.9);
     --surface-strong: #122f43;
     --accent: #50c8e8;
     --accent-strong: #92efd8;
     --accent-soft: rgba(80, 200, 232, 0.15);
+    --on-accent: #051821;
+}
+
+html.theme-violet,
+body.theme-violet {
+    --bg: #15091f;
+    --bg-lift: #21102f;
+    --surface: rgba(40, 24, 58, 0.91);
+    --surface-strong: #28183a;
+    --text: #fbf4ff;
+    --muted: #cfbddf;
+    --border: rgba(232, 206, 255, 0.17);
+    --accent: #b98cff;
+    --accent-strong: #f0a8ff;
+    --accent-soft: rgba(185, 140, 255, 0.16);
+    --on-accent: #16091f;
+    --gold: #f4c76a;
+    --danger: #ff8d9c;
+    --ok: #9fe7c0;
+    --shadow: 0 22px 60px rgba(8, 2, 13, 0.42);
 }
 
 html.theme-sunset,
 body.theme-sunset {
     --bg: #fff3e3;
+    --bg-lift: #fffaf3;
     --surface: rgba(255, 255, 255, 0.92);
     --surface-strong: #ffffff;
     --text: #38261d;
@@ -69,11 +111,13 @@ body.theme-sunset {
     --accent: #d96d4a;
     --accent-strong: #aa4b34;
     --accent-soft: #fae4d9;
+    --on-accent: #ffffff;
 }
 
 html.theme-coffee,
 body.theme-coffee {
     --bg: #f3e9dc;
+    --bg-lift: #fff8ee;
     --surface: rgba(255, 253, 248, 0.93);
     --surface-strong: #fffdf8;
     --text: #30231b;
@@ -82,11 +126,13 @@ body.theme-coffee {
     --accent: #8e6749;
     --accent-strong: #67462f;
     --accent-soft: #ead9c8;
+    --on-accent: #ffffff;
 }
 
 html.theme-mono,
 body.theme-mono {
     --bg: #111111;
+    --bg-lift: #181818;
     --surface: rgba(32, 32, 32, 0.92);
     --surface-strong: #202020;
     --text: #f3f3f3;
@@ -95,6 +141,7 @@ body.theme-mono {
     --accent: #f0f0f0;
     --accent-strong: #ffffff;
     --accent-soft: rgba(255, 255, 255, 0.12);
+    --on-accent: #111111;
 }
 
 html {
@@ -112,7 +159,7 @@ body.auth-page {
     background:
         radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 24rem),
         radial-gradient(circle at 88% 84%, color-mix(in srgb, var(--gold) 22%, transparent), transparent 22rem),
-        linear-gradient(135deg, var(--bg), color-mix(in srgb, var(--bg) 76%, #ffffff));
+        linear-gradient(135deg, var(--bg), var(--bg-lift));
     color: var(--text);
     font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
@@ -199,7 +246,7 @@ input {
 
 .tab.active {
     background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-    color: #ffffff;
+    color: var(--on-accent);
 }
 
 .form {
@@ -241,7 +288,7 @@ input {
     border: 0;
     border-radius: var(--radius);
     background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-    color: #ffffff;
+    color: var(--on-accent);
     cursor: pointer;
     font-weight: 850;
     transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -355,7 +402,7 @@ body.auth-page {
     background:
         radial-gradient(circle at 10% 8%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 22rem),
         radial-gradient(circle at 90% 84%, color-mix(in srgb, var(--gold) 25%, transparent), transparent 22rem),
-        linear-gradient(135deg, var(--bg), color-mix(in srgb, var(--bg) 74%, #ffffff));
+        linear-gradient(135deg, var(--bg), var(--bg-lift));
     background-size: 120% 120%, 120% 120%, auto;
     animation: authGlow 15s ease-in-out infinite;
 }
