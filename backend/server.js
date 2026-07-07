@@ -11,6 +11,8 @@ const bookRoutes = require('./routes/books');
 const commentRoutes = require('./routes/comments');
 const statsRoutes = require('./routes/stats');
 const catalogListRoutes = require('./routes/catalogList');
+const storageLocationRoutes = require('./routes/storageLocations');
+const rentalRoutes = require('./routes/rentals');
 const pool = require('./db/pool');
 
 const app = express();
@@ -27,7 +29,7 @@ const manifestThemes = {
     mono: { icon: '/img/appicon-mono.png', themeColor: '#111111', backgroundColor: '#111111' }
 };
 
-function buildManifest(themeName = 'light') {
+function buildManifest(themeName = 'forest') {
     const theme = manifestThemes[themeName] || manifestThemes.light;
     return {
         name: 'BIBLIOTECH',
@@ -85,8 +87,8 @@ app.use((req, res, next) => {
 });
 
 app.get('/manifest.webmanifest', (req, res) => {
-    const requestedTheme = String(req.query.theme || 'light').toLowerCase();
-    const themeName = Object.prototype.hasOwnProperty.call(manifestThemes, requestedTheme) ? requestedTheme : 'light';
+    const requestedTheme = String(req.query.theme || 'forest').toLowerCase();
+    const themeName = Object.prototype.hasOwnProperty.call(manifestThemes, requestedTheme) ? requestedTheme : 'forest';
     res.setHeader('Cache-Control', 'no-cache');
     res.type('application/manifest+json; charset=utf-8');
     res.send(JSON.stringify(buildManifest(themeName)));
@@ -125,6 +127,8 @@ app.use('/api/books', catalogListRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/storage-locations', storageLocationRoutes);
+app.use('/api/rentals', rentalRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -181,6 +185,7 @@ async function initDatabase() {
         await pool.query(schemaSql);
         await pool.query(`
             ALTER TABLE books ADD COLUMN IF NOT EXISTS qr_code VARCHAR(32);
+            ALTER TABLE books ADD COLUMN IF NOT EXISTS location_id INTEGER;
             CREATE UNIQUE INDEX IF NOT EXISTS idx_books_qr_code ON books(qr_code);
             UPDATE books SET qr_code = 'BT' || LPAD(id::text, 6, '0') WHERE qr_code IS NULL;
         `);

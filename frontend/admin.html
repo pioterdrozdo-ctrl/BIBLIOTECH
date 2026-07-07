@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <link rel="icon" href="img/appicon-light.png" type="image/png">
-    <link rel="apple-touch-icon" href="img/appicon.png">
+    <link rel="icon" href="img/appicon-forest.png" type="image/png">
+    <link rel="apple-touch-icon" href="img/appicon-forest.png">
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="theme-color" content="#f5f2ec">
     <meta name="mobile-web-app-capable" content="yes">
@@ -66,6 +66,58 @@
                         </tr>
                     </thead>
                     <tbody id="adminUsersTableBody">
+                        <tr><td colspan="6">Загрузка...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="container admin-users-panel admin-storage-panel">
+            <div class="admin-users-head">
+                <div>
+                    <h2>Места хранения</h2>
+                    <p id="adminLocationsSummary">Загрузка...</p>
+                </div>
+            </div>
+            <form class="admin-location-form" id="storageLocationForm">
+                <label>
+                    <span>Полка / зона</span>
+                    <input id="storageShelfInput" type="text" placeholder="ИКТ-ФВ 13" required>
+                </label>
+                <label>
+                    <span>Место</span>
+                    <input id="storagePlaceInput" type="text" placeholder="09" required>
+                </label>
+                <label>
+                    <span>Заметка</span>
+                    <input id="storageNoteInput" type="text" placeholder="Надставка">
+                </label>
+                <button type="submit">Добавить место</button>
+            </form>
+            <div class="admin-location-grid" id="adminLocationsGrid"></div>
+        </section>
+
+        <section class="container admin-users-panel admin-rentals-panel">
+            <div class="admin-users-head">
+                <div>
+                    <h2>Аренда книг</h2>
+                    <p id="adminRentalsSummary">Загрузка...</p>
+                </div>
+                <button type="button" id="refreshRentalsBtn">Обновить</button>
+            </div>
+            <div class="admin-table-shell">
+                <table class="admin-users-table admin-rentals-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Книга</th>
+                            <th>Пользователь</th>
+                            <th>Взята</th>
+                            <th>Статус</th>
+                            <th>Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminRentalsTableBody">
                         <tr><td colspan="6">Загрузка...</td></tr>
                     </tbody>
                 </table>

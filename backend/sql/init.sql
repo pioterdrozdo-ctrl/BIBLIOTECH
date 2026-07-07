@@ -20,6 +20,16 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
 );
 
 -- Таблица книг
+CREATE TABLE IF NOT EXISTS storage_locations (
+    id SERIAL PRIMARY KEY,
+    shelf_code VARCHAR(80) NOT NULL,
+    place_code VARCHAR(80) NOT NULL,
+    note VARCHAR(160),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (shelf_code, place_code, note)
+);
+
 CREATE TABLE IF NOT EXISTS books (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -29,6 +39,7 @@ CREATE TABLE IF NOT EXISTS books (
     copies INTEGER DEFAULT 1,
     available BOOLEAN DEFAULT true,
     qr_code VARCHAR(32) UNIQUE,
+    location_id INTEGER REFERENCES storage_locations(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
@@ -55,18 +66,31 @@ ALTER TABLE books ADD COLUMN IF NOT EXISTS cover_data_url TEXT;
 ALTER TABLE books ADD COLUMN IF NOT EXISTS copies INTEGER DEFAULT 1;
 ALTER TABLE books ADD COLUMN IF NOT EXISTS available BOOLEAN DEFAULT true;
 ALTER TABLE books ADD COLUMN IF NOT EXISTS qr_code VARCHAR(32);
+ALTER TABLE books ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES storage_locations(id) ON DELETE SET NULL;
 ALTER TABLE books ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE books ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;
 
 ALTER TABLE comments ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;
 ALTER TABLE comments ADD COLUMN IF NOT EXISTS username VARCHAR(50);
 
+CREATE TABLE IF NOT EXISTS book_rentals (
+    id SERIAL PRIMARY KEY,
+    book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    username VARCHAR(50),
+    rented_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    returned_at TIMESTAMP
+);
+
 -- Индексы
 CREATE INDEX IF NOT EXISTS idx_books_title ON books(title);
 CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);
 CREATE INDEX IF NOT EXISTS idx_books_available ON books(available);
 CREATE INDEX IF NOT EXISTS idx_books_qr_code ON books(qr_code);
+CREATE INDEX IF NOT EXISTS idx_books_location_id ON books(location_id);
 CREATE INDEX IF NOT EXISTS idx_comments_book_id ON comments(book_id);
+CREATE INDEX IF NOT EXISTS idx_book_rentals_book_id ON book_rentals(book_id);
+CREATE INDEX IF NOT EXISTS idx_book_rentals_user_id ON book_rentals(user_id);
 CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique_idx ON users (LOWER(email)) WHERE email IS NOT NULL;
 
 -- Триггер для updated_at
@@ -91,6 +115,11 @@ INSERT INTO users (username, email, password_hash, role)
 VALUES ('admin', 'admin@bibliotech.local', '$2b$10$CwTycUXWue0Thq9StjUM0uJ.pG9sWwB6pTfZXh7eQvJZQeUzP9iFq', 'admin')
 ON CONFLICT (username) DO NOTHING;
 
+INSERT INTO storage_locations (shelf_code, place_code, note) VALUES
+('ИКТ-ФВ 13', '09', 'Надставка'),
+('ИКТ-ФВ 13', '12', 'Надставка')
+ON CONFLICT DO NOTHING;
+
 -- Удаление старых демо-книг из ранних версий проекта.
 DELETE FROM books
 WHERE user_id IS NULL
@@ -106,3 +135,4 @@ WHERE user_id IS NULL
 
 -- QR-коды для существующих книг
 UPDATE books SET qr_code = 'BT' || LPAD(id::text, 6, '0') WHERE qr_code IS NULL;
+UPDATE books SET location_id = CASE WHEN id % 2 = 0 THEN 2 ELSE 1 END WHERE location_id IS NULL;

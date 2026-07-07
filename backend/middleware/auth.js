@@ -16,6 +16,18 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
+const optionalAuthMiddleware = (req, res, next) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+    if (!token) return next();
+
+    try {
+        req.user = jwt.verify(token, process.env.JWT_SECRET || 'bibliotech-dev-secret-change-me');
+    } catch (error) {
+        req.user = null;
+    }
+    next();
+};
+
 const isAdmin = (req, res, next) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({ error: 'Admin access required' });
@@ -23,4 +35,4 @@ const isAdmin = (req, res, next) => {
     next();
 };
 
-module.exports = { authMiddleware, isAdmin };
+module.exports = { authMiddleware, optionalAuthMiddleware, isAdmin };

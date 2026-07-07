@@ -1,6 +1,7 @@
 const express = require('express');
 const pool = require('../db/pool');
 const localStore = require('../services/localStore');
+const { optionalAuthMiddleware } = require('../middleware/auth');
 const { normalizeBookQrFields } = require('../utils/bookQr');
 
 const router = express.Router();
@@ -31,14 +32,62 @@ function isDemoBook(book) {
 
 function mapListBook(book) {
     const { cover_data_url, coverDataURL, ...bookData } = book;
+    const locationId = book.location_id || book.locationId || book.location?.id || null;
+    const location = book.location || (locationId ? {
+        id: locationId,
+        shelf_code: book.shelf_code || book.location_shelf_code || '',
+        shelfCode: book.shelf_code || book.location_shelf_code || '',
+        place_code: book.place_code || book.location_place_code || '',
+        placeCode: book.place_code || book.location_place_code || '',
+        note: book.location_note || book.note || ''
+    } : null);
+    const activeRentalsCount = Number(book.active_rentals_count || book.activeRentalsCount || 0);
+    const myRentalId = book.my_rental_id || book.myRentalId || null;
     return {
         ...bookData,
         ...normalizeBookQrFields(book),
+        location_id: locationId,
+        locationId,
+        location,
+        active_rentals_count: activeRentalsCount,
+        activeRentalsCount,
+        my_rental_id: myRentalId,
+        myRentalId,
+        rentedByMe: Boolean(myRentalId || book.rentedByMe),
         coverDataURL: null
     };
 }
 
-router.get('/', async (req, res, next) => {
+async function ensureCatalogListSchema() {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS storage_locations (
+            id SERIAL PRIMARY KEY,
+            shelf_code VARCHAR(80) NOT NULL,
+            place_code VARCHAR(80) NOT NULL,
+            note VARCHAR(160),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (shelf_code, place_code, note)
+        );
+        ALTER TABLE books ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES storage_locations(id) ON DELETE SET NULL;
+        CREATE TABLE IF NOT EXISTS book_rentals (
+            id SERIAL PRIMARY KEY,
+            book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
+            user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+            username VARCHAR(50),
+            rented_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            returned_at TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_books_location_id ON books(location_id);
+        CREATE INDEX IF NOT EXISTS idx_book_rentals_book_id ON book_rentals(book_id);
+        CREATE INDEX IF NOT EXISTS idx_book_rentals_user_id ON book_rentals(user_id);
+        INSERT INTO storage_locations (shelf_code, place_code, note)
+        VALUES ('ИКТ-ФВ 13', '09', 'Надставка'), ('ИКТ-ФВ 13', '12', 'Надставка')
+        ON CONFLICT DO NOTHING;
+    `);
+}
+
+router.get('/', optionalAuthMiddleware, async (req, res, next) => {
     const { filter, sort, search, minCopies } = req.query;
 
     let query = `
@@ -50,18 +99,25 @@ router.get('/', async (req, res, next) => {
                b.available,
                b.created_at,
                b.qr_code,
+               b.location_id,
+               l.shelf_code,
+               l.place_code,
+               l.note AS location_note,
+               (SELECT COUNT(*) FROM book_rentals br WHERE br.book_id = b.id AND br.returned_at IS NULL) AS active_rentals_count,
+               (SELECT br.id FROM book_rentals br WHERE br.book_id = b.id AND br.user_id = $1 AND br.returned_at IS NULL LIMIT 1) AS my_rental_id,
                COALESCE(json_agg(json_build_object('id', c.id, 'text', c.text, 'date', c.created_at, 'created_at', c.created_at, 'username', c.username, 'user_id', c.user_id))
                         FILTER (WHERE c.id IS NOT NULL), '[]') as comments
         FROM books b
+        LEFT JOIN storage_locations l ON l.id = b.location_id
         LEFT JOIN comments c ON b.id = c.book_id
     `;
 
     const conditions = [];
-    const params = [];
-    let paramCounter = 1;
+    const params = [req.user?.id || null];
+    let paramCounter = 2;
 
     if (search && search.trim()) {
-        conditions.push(`(b.title ILIKE $${paramCounter} OR b.author ILIKE $${paramCounter} OR b.description ILIKE $${paramCounter} OR b.qr_code ILIKE $${paramCounter})`);
+        conditions.push(`(b.title ILIKE $${paramCounter} OR b.author ILIKE $${paramCounter} OR b.description ILIKE $${paramCounter} OR b.qr_code ILIKE $${paramCounter} OR l.shelf_code ILIKE $${paramCounter} OR l.place_code ILIKE $${paramCounter} OR l.note ILIKE $${paramCounter})`);
         params.push(`%${search}%`);
         paramCounter++;
     }
@@ -75,7 +131,7 @@ router.get('/', async (req, res, next) => {
     }
 
     if (conditions.length) query += ' WHERE ' + conditions.join(' AND ');
-    query += ' GROUP BY b.id';
+    query += ' GROUP BY b.id, l.id, l.shelf_code, l.place_code, l.note';
 
     switch (sort) {
         case 'title-asc':
@@ -106,11 +162,12 @@ router.get('/', async (req, res, next) => {
     }
 
     try {
+        await ensureCatalogListSchema();
         const result = await pool.query(query, params);
         res.json(result.rows.filter(book => !isDemoBook(book)).map(mapListBook));
     } catch (error) {
         if (!pool.isConfigured) {
-            res.json(localStore.getBooks(req.query).filter(book => !isDemoBook(book)).map(mapListBook));
+            res.json(localStore.getBooks(req.query, req.user).filter(book => !isDemoBook(book)).map(mapListBook));
             return;
         }
         next(error);

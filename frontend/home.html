@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <link rel="icon" href="img/appicon-light.png" type="image/png">
-    <link rel="apple-touch-icon" href="img/appicon.png">
+    <link rel="icon" href="img/appicon-forest.png" type="image/png">
+    <link rel="apple-touch-icon" href="img/appicon-forest.png">
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="theme-color" content="#f5f2ec">
     <meta name="mobile-web-app-capable" content="yes">
@@ -243,6 +243,13 @@
                     <button type="button" class="copies-input-plus" id="addCopiesPlus">+</button>
                 </div>
             </div>
+            <div class="form-group">
+                <label>📍 Полка и место хранения</label>
+                <select id="bookLocationSelect">
+                    <option value="">Без места хранения</option>
+                </select>
+                <p class="field-note">Новые полки и места добавляются во вкладке администратора.</p>
+            </div>
             <div class="modal-buttons">
                 <button type="button" class="cancel-modal" id="closeModalBtn">Отмена</button>
                 <button type="submit" class="submit-modal">Сохранить книгу</button>
@@ -279,6 +286,19 @@
                     <div class="detail-cell"><span>💬</span><b id="viewCommentsValue">0</b></div>
                 </div>
                 <div class="view-meta" id="viewMeta"></div>
+                <div class="book-placement-rental">
+                    <div class="book-placement-card">
+                        <span class="placement-label">📍 Где лежит</span>
+                        <b id="viewLocationValue">Место не указано</b>
+                        <small id="viewLocationNote">Админ может выбрать полку в карточке книги.</small>
+                    </div>
+                    <div class="book-rental-card">
+                        <span class="placement-label">🔖 Аренда</span>
+                        <b id="viewRentalStatus">Доступна</b>
+                        <small id="viewRentalNote">Можно закрепить книгу за собой.</small>
+                        <button type="button" id="rentBookBtn" class="rent-book-btn">Арендовать</button>
+                    </div>
+                </div>
                 <div class="view-copies premium-copies">
                     <span class="copies-label">📚 <span class="copies-label-text">Количество копий</span></span>
                     <div class="copies-control">

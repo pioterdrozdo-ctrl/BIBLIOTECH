@@ -10,6 +10,7 @@ const state = {
     activeBookId: null,
     editingBookId: null,
     coverDataUrl: null,
+    storageLocations: [],
     search: '',
     minCopies: 0
 };
@@ -73,6 +74,35 @@ function escapeHtml(value = '') {
     return String(value).replace(/[&<>'"]/g, (char) => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;'
     }[char]));
+}
+
+function normalizeLocation(location = null) {
+    if (!location) return null;
+    const shelfCode = location.shelfCode || location.shelf_code || '';
+    const placeCode = location.placeCode || location.place_code || '';
+    if (!location.id && !shelfCode && !placeCode) return null;
+    return {
+        id: location.id,
+        shelfCode,
+        shelf_code: shelfCode,
+        placeCode,
+        place_code: placeCode,
+        note: location.note || ''
+    };
+}
+
+function formatLocation(location = null) {
+    const normalized = normalizeLocation(location);
+    if (!normalized) return 'Место не указано';
+    return [normalized.note, normalized.shelfCode, normalized.placeCode ? `место ${normalized.placeCode}` : '']
+        .filter(Boolean)
+        .join(' · ');
+}
+
+function getBookLocation(book = {}) {
+    return normalizeLocation(book.location)
+        || state.storageLocations.find(location => Number(location.id) === Number(book.locationId || book.location_id))
+        || null;
 }
 
 function formatDate(date = new Date()) {
@@ -139,6 +169,12 @@ function migrateBook(book) {
         coverDataURL: book.coverDataURL || book.coverDataUrl || book.cover || book.coverUrl || book.image || book.imageUrl || null,
         available: Boolean(book.available),
         copies: Number.isFinite(Number(book.copies)) ? Math.max(0, Number(book.copies)) : (book.available ? 1 : 0),
+        location: normalizeLocation(book.location),
+        locationId: book.locationId || book.location_id || book.location?.id || null,
+        location_id: book.location_id || book.locationId || book.location?.id || null,
+        activeRentalsCount: Number(book.activeRentalsCount || book.active_rentals_count || 0),
+        myRentalId: book.myRentalId || book.my_rental_id || null,
+        rentedByMe: Boolean(book.rentedByMe || book.myRentalId || book.my_rental_id),
         dateAdded: book.dateAdded || formatDate(),
         comments: Array.isArray(book.comments) ? book.comments : [],
         qrCode,
@@ -192,6 +228,34 @@ async function loadBooks() {
     updateDashboard();
 }
 
+async function loadStorageLocations() {
+    try {
+        const response = await fetch(`${API_URL}/storage-locations`, {
+            headers: { 'Authorization': currentToken ? `Bearer ${currentToken}` : '' }
+        });
+        if (!response.ok) throw new Error('locations API error');
+        const payload = await response.json();
+        const rawLocations = Array.isArray(payload) ? payload : (payload.locations || []);
+        state.storageLocations = rawLocations.map(normalizeLocation).filter(Boolean);
+    } catch (error) {
+        state.storageLocations = [
+            { id: 1, shelfCode: 'ИКТ-ФВ 13', shelf_code: 'ИКТ-ФВ 13', placeCode: '09', place_code: '09', note: 'Надставка' },
+            { id: 2, shelfCode: 'ИКТ-ФВ 13', shelf_code: 'ИКТ-ФВ 13', placeCode: '12', place_code: '12', note: 'Надставка' }
+        ];
+    }
+    renderLocationSelect();
+}
+
+function renderLocationSelect(selectedId = '') {
+    const select = document.getElementById('bookLocationSelect');
+    if (!select) return;
+    const current = selectedId || select.value || '';
+    select.innerHTML = '<option value="">Без места хранения</option>' + state.storageLocations.map(location => (
+        `<option value="${escapeHtml(location.id)}">${escapeHtml(formatLocation(location))}</option>`
+    )).join('');
+    select.value = current && state.storageLocations.some(location => Number(location.id) === Number(current)) ? String(current) : '';
+}
+
 function saveBooks() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.books));
 }
@@ -204,7 +268,8 @@ function getSearchScore(book, query) {
     const desc = normalizeText(book.description);
     const comments = normalizeText((book.comments || []).map(c => c.text).join(' '));
     const qr = normalizeText([book.qrCode, book.qr_code, book.qrPayload, book.qr_payload].filter(Boolean).join(' '));
-    const full = `${title} ${author} ${desc} ${comments} ${qr}`;
+    const location = normalizeText(formatLocation(getBookLocation(book)));
+    const full = `${title} ${author} ${desc} ${comments} ${qr} ${location}`;
     const fullLatin = transliterate(full);
     const qLatin = transliterate(q);
     const words = q.split(' ').filter(Boolean);
@@ -218,6 +283,7 @@ function getSearchScore(book, query) {
     if (title.includes(q)) score += 55;
     if (author.includes(q)) score += 50;
     if (desc.includes(q)) score += 25;
+    if (location.includes(q)) score += 22;
     if (comments.includes(q)) score += 15;
     if (fullLatin.includes(qLatin)) score += 25;
     for (const word of words) {
@@ -394,6 +460,8 @@ function renderBooks() {
             : '<div class="no-cover-icon">📖</div>';
         const availableText = book.available ? tr('inStock') : tr('outStock');
         const availableClass = book.available ? '' : 'out';
+        const locationText = formatLocation(getBookLocation(book));
+        const rentalText = book.rentedByMe ? 'Закреплена за вами' : (book.activeRentalsCount ? `Аренда: ${book.activeRentalsCount}` : '');
         const controls = canManageBooks()
             ? `<button class="delete-btn" data-id="${book.id}" title="Удалить книгу">🗑️ ${escapeHtml(tr('clearAll')).replace(' всё','')}</button>`
             : `<span class="guest-note">${isGuest() ? escapeHtml(tr('guestView')) : 'Пользователь: просмотр и комментарии'}</span>`;
@@ -406,6 +474,8 @@ function renderBooks() {
                 <div class="book-meta">
                     <span class="badge ${availableClass}">${availableText}</span>
                     <span class="badge copies">📚 ${book.copies || 0} экз.</span>
+                    <span class="badge location-badge">📍 ${escapeHtml(locationText)}</span>
+                    ${rentalText ? `<span class="badge rental-badge">🔖 ${escapeHtml(rentalText)}</span>` : ''}
                     <span class="badge date">📅 ${escapeHtml(book.dateAdded || 'Дата неизвестна')}</span>
                 </div>
             </div>
@@ -420,6 +490,8 @@ function openBook(bookId) {
     state.activeBookId = book.id;
     const availableText = book.available ? tr('inStock') : tr('outStock');
     const commentsCount = (book.comments || []).length;
+    const location = getBookLocation(book);
+    const locationText = formatLocation(location);
     $('#viewTitle').textContent = book.title;
     $('#viewDescription').textContent = book.description || 'Нет описания';
     const authorEl = $('#viewAuthorValue'); if (authorEl) authorEl.textContent = book.author || 'Автор не указан';
@@ -430,8 +502,15 @@ function openBook(bookId) {
         <span class="badge">✍️ ${escapeHtml(book.author || 'Автор не указан')}</span>
         <span class="badge ${book.available ? '' : 'out'}">${escapeHtml(availableText)}</span>
         <span class="badge copies">📚 ${book.copies || 0} экз.</span>
+        <span class="badge location-badge">📍 ${escapeHtml(locationText)}</span>
+        ${book.rentedByMe ? '<span class="badge rental-badge">🔖 Закреплена за вами</span>' : ''}
         <span class="badge date">📅 ${escapeHtml(book.dateAdded || 'Дата неизвестна')}</span>`;
     $('#viewCopiesCount').textContent = book.copies || 0;
+    const locationValue = $('#viewLocationValue');
+    if (locationValue) locationValue.textContent = locationText;
+    const locationNote = $('#viewLocationNote');
+    if (locationNote) locationNote.textContent = location ? 'Используйте этот код, чтобы быстро найти книгу на полке.' : 'Админ может выбрать полку при редактировании книги.';
+    updateRentalPanel(book);
     $('#editBookBtn')?.classList.toggle('hidden', !canManageBooks());
     $$('.copies-control button').forEach(btn => {
         btn.disabled = !canManageBooks();
@@ -443,6 +522,84 @@ function openBook(bookId) {
     renderComments(book);
     applyLanguage(localStorage.getItem(LANGUAGE_KEY) || 'ru');
     $('#viewModal').classList.add('active');
+}
+
+function updateRentalPanel(book) {
+    const status = $('#viewRentalStatus');
+    const note = $('#viewRentalNote');
+    const button = $('#rentBookBtn');
+    if (!status || !note || !button) return;
+
+    button.classList.remove('hidden', 'return-mode');
+    button.disabled = false;
+
+    if (isGuest()) {
+        status.textContent = 'Только просмотр';
+        note.textContent = 'Войдите в аккаунт, чтобы арендовать книгу.';
+        button.textContent = 'Нужен вход';
+        button.disabled = true;
+        return;
+    }
+
+    if (book.rentedByMe) {
+        status.textContent = 'Закреплена за вами';
+        note.textContent = 'После возврата книга снова станет доступна.';
+        button.textContent = 'Вернуть книгу';
+        button.classList.add('return-mode');
+        return;
+    }
+
+    if (!book.available || Number(book.copies || 0) <= 0) {
+        status.textContent = 'Нет свободных копий';
+        note.textContent = book.activeRentalsCount ? `Сейчас на руках: ${book.activeRentalsCount}` : 'Админ может увеличить количество копий.';
+        button.textContent = 'Недоступно';
+        button.disabled = true;
+        return;
+    }
+
+    status.textContent = 'Можно арендовать';
+    note.textContent = book.activeRentalsCount ? `Уже на руках: ${book.activeRentalsCount}` : 'Книга свободна для выдачи.';
+    button.textContent = 'Арендовать';
+}
+
+async function toggleBookRental() {
+    if (isGuest()) return notify('Войдите в аккаунт, чтобы арендовать книгу', 'error');
+    const book = state.books.find(b => b.id === Number(state.activeBookId));
+    if (!book) return;
+    const returning = Boolean(book.rentedByMe);
+    const endpoint = returning ? 'return' : 'rent';
+
+    try {
+        const response = await fetch(`${API_URL}/books/${book.id}/${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': currentToken ? `Bearer ${currentToken}` : '' },
+            body: JSON.stringify({ rentalId: book.myRentalId || null })
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || 'Rental error');
+
+        if (payload.book) {
+            const migrated = migrateBook({
+                ...payload.book,
+                coverDataURL: payload.book.coverDataURL || payload.book.cover_data_url || book.coverDataURL,
+                dateAdded: payload.book.created_at ? formatDate(new Date(payload.book.created_at)) : book.dateAdded,
+                comments: Array.isArray(payload.book.comments) ? payload.book.comments : (book.comments || [])
+            });
+            const index = state.books.findIndex(item => Number(item.id) === Number(book.id));
+            if (index >= 0) state.books[index] = { ...state.books[index], ...migrated };
+        } else {
+            book.rentedByMe = !returning;
+            book.copies = Math.max(0, Number(book.copies || 0) + (returning ? 1 : -1));
+            book.available = book.copies > 0;
+            book.activeRentalsCount = Math.max(0, Number(book.activeRentalsCount || 0) + (returning ? -1 : 1));
+        }
+        saveBooks();
+        renderBooks();
+        openBook(book.id);
+        notify(returning ? 'Книга возвращена' : 'Книга закреплена за вами', 'success');
+    } catch (error) {
+        notify(returning ? 'Не удалось вернуть книгу' : 'Не удалось арендовать книгу', 'error');
+    }
 }
 
 function renderComments(book) {
@@ -474,6 +631,7 @@ async function addBook(event) {
     const descInput = document.getElementById('bookDesc');
     const copiesInput = document.getElementById('bookCopies');
     const availableCheck = document.getElementById('bookAvailable');
+    const locationSelect = document.getElementById('bookLocationSelect');
 
     if (!titleInput || !authorInput) {
         notify('Ошибка: поля формы не найдены', 'error');
@@ -485,13 +643,14 @@ async function addBook(event) {
     const description = descInput ? descInput.value.trim() : '';
     const copies = Math.max(0, Number(copiesInput?.value || 0));
     const available = copies > 0 && (availableCheck?.checked || false);
+    const locationId = locationSelect?.value ? Number(locationSelect.value) : null;
 
     if (!title || !author) return notify('Заполните название и автора', 'error');
 
     const editingId = state.editingBookId ? Number(state.editingBookId) : null;
     const existingBook = editingId ? state.books.find(book => book.id === editingId) : null;
     const normalizedCopies = available ? Math.max(1, copies) : 0;
-    const bookData = { title, author, description, coverDataURL: state.coverDataUrl, copies: normalizedCopies, available };
+    const bookData = { title, author, description, coverDataURL: state.coverDataUrl, copies: normalizedCopies, available, locationId };
     const requestUrl = editingId ? `${API_URL}/books/${editingId}` : `${API_URL}/books`;
     const requestMethod = editingId ? 'PUT' : 'POST';
     console.log('📦 Отправляем на сервер:', bookData);
@@ -539,6 +698,9 @@ async function addBook(event) {
                 available,
                 copies: normalizedCopies,
                 coverDataURL: state.coverDataUrl,
+                locationId,
+                location_id: locationId,
+                location: state.storageLocations.find(location => Number(location.id) === Number(locationId)) || null,
                 comments: existingBook.comments || []
             });
         } else {
@@ -546,6 +708,9 @@ async function addBook(event) {
                 id: Date.now(), title, author, description,
                 available, copies: normalizedCopies,
                 coverDataURL: state.coverDataUrl,
+                locationId,
+                location_id: locationId,
+                location: state.storageLocations.find(location => Number(location.id) === Number(locationId)) || null,
                 dateAdded: formatDate(), comments: []
             });
         }
@@ -713,6 +878,7 @@ function openBookEditor(bookId) {
     setValue('bookAuthor', book.author || '');
     setValue('bookDesc', book.description || '');
     setValue('bookCopies', Number.isFinite(Number(book.copies)) ? Number(book.copies) : 0);
+    renderLocationSelect(book.locationId || book.location_id || book.location?.id || '');
     const available = document.getElementById('bookAvailable');
     if (available) available.checked = Boolean(book.available);
     const preview = document.getElementById('imagePreview');
@@ -738,6 +904,7 @@ function resetBookForm() {
     $('#clearBookCoverBtn')?.classList.add('hidden');
     const copies = $('#bookCopies');
     if (copies) copies.value = 1;
+    renderLocationSelect('');
     const available = $('#bookAvailable');
     if (available) available.checked = true;
 }
@@ -1639,7 +1806,7 @@ function updateThemeIcon(theme) {
         coffee: 'appicon-coffee.png',
         mono: 'appicon-mono.png'
     };
-    const normalized = allowed.includes(theme) ? theme : 'light';
+    const normalized = allowed.includes(theme) ? theme : 'forest';
     const iconPath = `img/${iconFiles[normalized] || iconFiles.light}`;
     const setLink = (rel, attr, href = iconPath) => {
         let link = document.querySelector(`link[rel="${rel}"]`);
@@ -1662,7 +1829,7 @@ function updateThemeIcon(theme) {
 
 function applyTheme(theme) {
     const allowedThemes = ['light', 'dark', 'forest', 'ocean', 'sunset', 'violet', 'coffee', 'mono'];
-    const normalized = allowedThemes.includes(theme) ? theme : 'light';
+    const normalized = allowedThemes.includes(theme) ? theme : 'forest';
     const darkThemes = ['dark', 'forest', 'ocean', 'violet', 'mono'];
     const themeColors = {
         light: '#f9f6f0',
@@ -1701,13 +1868,13 @@ function applyTheme(theme) {
 }
 
 function setupTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    const savedTheme = localStorage.getItem('theme') || 'forest';
     applyTheme(savedTheme);
 
     const btn = $('#floatingThemeToggle');
     if (btn) {
         btn.addEventListener('click', () => {
-            const current = localStorage.getItem('theme') || 'light';
+            const current = localStorage.getItem('theme') || 'forest';
             const next = document.body.classList.contains('dark-theme') ? 'light' : 'dark';
             localStorage.setItem('theme', next);
             applyTheme(next);
@@ -1872,6 +2039,7 @@ function init() {
     $('#copiesPlusBtn')?.addEventListener('click', () => updateCopies(1));
     $('#downloadBookQrBtn')?.addEventListener('click', downloadActiveBookQr);
     $('#copyBookQrBtn')?.addEventListener('click', copyActiveBookQrPayload);
+    $('#rentBookBtn')?.addEventListener('click', toggleBookRental);
 
     $('#searchInput')?.addEventListener('input', (e) => {
         state.search = e.target.value;
@@ -1970,7 +2138,7 @@ function init() {
     if (initialQrSearch) localStorage.setItem('lastSearch', initialQrSearch);
     if ($('#searchInput')) $('#searchInput').value = lastSearch;
     updateActiveFiltersUI();
-    loadBooks().then(() => {
+    loadStorageLocations().then(loadBooks).then(() => {
         if (initialBookPayload) openInitialBookFromUrl(initialBookPayload);
     });
 }

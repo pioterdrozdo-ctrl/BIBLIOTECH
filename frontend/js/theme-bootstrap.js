@@ -13,8 +13,8 @@
   var queryTheme = '';
   try { queryTheme = new URLSearchParams(window.location.search).get('theme') || ''; } catch (e) {}
   var savedTheme = localStorage.getItem('theme');
-  var theme = savedTheme || queryTheme || 'light';
-  if (allowed.indexOf(theme) === -1) theme = 'light';
+  var theme = savedTheme || queryTheme || 'forest';
+  if (allowed.indexOf(theme) === -1) theme = 'forest';
   if (!savedTheme && queryTheme && allowed.indexOf(queryTheme) !== -1) localStorage.setItem('theme', theme);
   document.documentElement.classList.add('theme-' + theme);
   document.documentElement.dataset.theme = theme;

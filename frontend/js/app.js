@@ -204,7 +204,7 @@ function updateThemeIcon(theme) {
         coffee: 'appicon-coffee.png',
         mono: 'appicon-mono.png'
     };
-    const normalized = allowed.includes(theme) ? theme : 'light';
+    const normalized = allowed.includes(theme) ? theme : 'forest';
     const iconPath = `img/${iconFiles[normalized] || iconFiles.light}`;
     const setLink = (rel, attr, href = iconPath) => {
         let link = document.querySelector(`link[rel="${rel}"]`);
@@ -261,7 +261,7 @@ function applyAuthTheme(theme) {
 
 function setupAuthTheme() {
     const btn = document.getElementById('authThemeToggle');
-    applyAuthTheme(localStorage.getItem('theme') || 'light');
+    applyAuthTheme(localStorage.getItem('theme') || 'forest');
     if (!btn) return;
     btn.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
     btn.addEventListener('click', () => {

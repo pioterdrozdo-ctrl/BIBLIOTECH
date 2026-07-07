@@ -1115,6 +1115,23 @@ header nav li.btn a:hover,
     margin-bottom: 14px;
 }
 
+.form-group select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+}
+
+.field-note {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
 .checkbox-row {
     display: flex;
     align-items: center;
@@ -1379,6 +1396,72 @@ header nav li.btn a:hover,
     flex-wrap: wrap;
     gap: 6px;
     margin-bottom: 12px;
+}
+
+.location-badge {
+    background: color-mix(in srgb, var(--accent-soft) 72%, var(--surface));
+}
+
+.rental-badge {
+    background: color-mix(in srgb, var(--gold) 22%, var(--surface));
+}
+
+.book-placement-rental {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.book-placement-card,
+.book-rental-card {
+    min-width: 0;
+    display: grid;
+    gap: 5px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-soft);
+}
+
+.placement-label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.book-placement-card b,
+.book-rental-card b {
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+
+.book-placement-card small,
+.book-rental-card small {
+    color: var(--muted);
+    line-height: 1.35;
+}
+
+.rent-book-btn,
+.admin-return-btn {
+    min-height: 36px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    background: var(--accent);
+    color: var(--on-accent);
+    cursor: pointer;
+    font-weight: 850;
+}
+
+.rent-book-btn.return-mode {
+    background: var(--surface);
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.rent-book-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
 }
 
 .view-copies {
@@ -2060,7 +2143,8 @@ footer {
     color: var(--muted);
 }
 
-#refreshUsersBtn {
+#refreshUsersBtn,
+#refreshRentalsBtn {
     min-height: 40px;
     padding: 9px 12px;
     border-radius: var(--radius);
@@ -2068,6 +2152,88 @@ footer {
     color: var(--on-accent);
     font-weight: 850;
     cursor: pointer;
+}
+
+.admin-location-form {
+    display: grid;
+    grid-template-columns: 1fr 0.7fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.admin-location-form label {
+    min-width: 0;
+    display: grid;
+    gap: 5px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.admin-location-form input {
+    min-height: 40px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-soft);
+    color: var(--text);
+}
+
+.admin-location-form button {
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: var(--radius-sm);
+    background: var(--accent);
+    color: var(--on-accent);
+    cursor: pointer;
+    font-weight: 850;
+}
+
+.admin-location-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+}
+
+.admin-location-chip,
+.admin-location-empty {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+}
+
+.admin-location-chip b,
+.admin-location-chip span,
+.admin-location-chip small {
+    display: block;
+}
+
+.admin-location-chip span {
+    margin-top: 4px;
+    color: var(--accent);
+    font-weight: 900;
+}
+
+.admin-location-chip small,
+.admin-location-empty {
+    color: var(--muted);
+}
+
+.admin-return-btn {
+    min-height: 32px;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--accent);
+    color: var(--on-accent);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 850;
 }
 
 .admin-table-shell {
@@ -2424,6 +2590,18 @@ footer {
 
     .book-detail-cover-panel .view-cover {
         min-height: 300px;
+    }
+}
+
+@media (max-width: 820px) {
+    .book-placement-rental,
+    .admin-location-form {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-location-form button,
+    .rent-book-btn {
+        width: 100%;
     }
 }
 

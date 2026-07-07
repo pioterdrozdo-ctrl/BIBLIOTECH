@@ -15,6 +15,14 @@ function withQrFields(book) {
     return { ...book, ...qrFields };
 }
 
+function seedStorageLocations() {
+    const created = now();
+    return [
+        { id: 1, shelf_code: 'ИКТ-ФВ 13', place_code: '09', note: 'Надставка', created_at: created, updated_at: created },
+        { id: 2, shelf_code: 'ИКТ-ФВ 13', place_code: '12', note: 'Надставка', created_at: created, updated_at: created }
+    ];
+}
+
 function seedBooks() {
     const created = now();
     return [
@@ -26,6 +34,7 @@ function seedBooks() {
             coverDataURL: null,
             copies: 3,
             available: true,
+            location_id: 1,
             user_id: 1,
             created_at: created,
             updated_at: created
@@ -38,6 +47,7 @@ function seedBooks() {
             coverDataURL: null,
             copies: 2,
             available: true,
+            location_id: 2,
             user_id: 1,
             created_at: created,
             updated_at: created
@@ -50,6 +60,7 @@ function seedBooks() {
             coverDataURL: null,
             copies: 0,
             available: false,
+            location_id: 1,
             user_id: 1,
             created_at: created,
             updated_at: created
@@ -62,6 +73,7 @@ function seedBooks() {
             coverDataURL: null,
             copies: 5,
             available: true,
+            location_id: 2,
             user_id: 1,
             created_at: created,
             updated_at: created
@@ -74,6 +86,7 @@ function seedBooks() {
             coverDataURL: null,
             copies: 4,
             available: true,
+            location_id: 1,
             user_id: 1,
             created_at: created,
             updated_at: created
@@ -86,6 +99,7 @@ function seedBooks() {
             coverDataURL: null,
             copies: 1,
             available: true,
+            location_id: 2,
             user_id: 1,
             created_at: created,
             updated_at: created
@@ -95,7 +109,7 @@ function seedBooks() {
 
 function createInitialStore() {
     return {
-        counters: { users: 1, books: 6, comments: 1, password_resets: 0 },
+        counters: { users: 1, books: 6, comments: 1, password_resets: 0, storage_locations: 2, rentals: 0 },
         users: [
             {
                 id: 1,
@@ -107,7 +121,9 @@ function createInitialStore() {
                 updated_at: now()
             }
         ],
+        storage_locations: seedStorageLocations(),
         books: seedBooks(),
+        rentals: [],
         password_resets: [],
         comments: [
             {
@@ -134,7 +150,19 @@ function readStore() {
     const store = JSON.parse(fs.readFileSync(STORE_FILE, 'utf8'));
     if (!store.counters) store.counters = {};
     if (!Array.isArray(store.password_resets)) store.password_resets = [];
+    if (!Array.isArray(store.storage_locations)) store.storage_locations = seedStorageLocations();
+    if (!Array.isArray(store.rentals)) store.rentals = [];
     store.users = (store.users || []).map(user => ({ email: null, ...user }));
+    const hasLegacyBooksWithoutLocation = (store.books || []).some(book =>
+        !Object.prototype.hasOwnProperty.call(book, 'location_id')
+        && !Object.prototype.hasOwnProperty.call(book, 'locationId')
+    );
+    store.books = (store.books || []).map(book => ({
+        ...book,
+        location_id: book.location_id ?? book.locationId ?? (hasLegacyBooksWithoutLocation ? (Number(book.id) % 2 === 0 ? 2 : 1) : null)
+    }));
+    store.counters.storage_locations = Math.max(Number(store.counters.storage_locations || 0), ...store.storage_locations.map(item => Number(item.id || 0)));
+    store.counters.rentals = Math.max(Number(store.counters.rentals || 0), ...store.rentals.map(item => Number(item.id || 0)));
     return store;
 }
 
@@ -147,16 +175,45 @@ function publicUser(user) {
     return { id: user.id, username: user.username, email: user.email || null, role: user.role };
 }
 
+function normalizeLocation(location) {
+    if (!location) return null;
+    return {
+        id: location.id,
+        shelf_code: location.shelf_code,
+        shelfCode: location.shelf_code,
+        place_code: location.place_code,
+        placeCode: location.place_code,
+        note: location.note || ''
+    };
+}
+
 function nextId(store, key) {
     store.counters[key] = Number(store.counters[key] || 0) + 1;
     return store.counters[key];
 }
 
-function normalizeBook(book, comments = []) {
+function normalizeBook(book, comments = [], store = null, user = null) {
+    const location = store
+        ? normalizeLocation(store.storage_locations.find(item => Number(item.id) === Number(book.location_id)))
+        : (book.location || null);
+    const activeRentals = store
+        ? store.rentals.filter(rental => Number(rental.book_id) === Number(book.id) && !rental.returned_at)
+        : [];
+    const myRental = user
+        ? activeRentals.find(rental => Number(rental.user_id) === Number(user.id))
+        : null;
     const qrFields = normalizeBookQrFields(book);
     return {
         ...book,
         ...qrFields,
+        location_id: book.location_id || null,
+        locationId: book.location_id || null,
+        location,
+        active_rentals_count: activeRentals.length,
+        activeRentalsCount: activeRentals.length,
+        my_rental_id: myRental?.id || null,
+        myRentalId: myRental?.id || null,
+        rentedByMe: Boolean(myRental),
         coverDataURL: book.coverDataURL || book.cover_data_url || null,
         cover_data_url: book.coverDataURL || book.cover_data_url || null,
         comments: comments.map(comment => ({
@@ -170,14 +227,14 @@ function normalizeBook(book, comments = []) {
     };
 }
 
-function getBooks({ filter, sort, search, minCopies } = {}) {
+function getBooks({ filter, sort, search, minCopies } = {}, user = null) {
     const store = readStore();
     const query = String(search || '').trim().toLowerCase();
     const min = Math.max(0, Number(minCopies || 0));
 
     let books = store.books.map(book => {
         const comments = store.comments.filter(comment => Number(comment.book_id) === Number(book.id));
-        return normalizeBook(book, comments);
+        return normalizeBook(book, comments, store, user);
     });
 
     if (query) {
@@ -188,6 +245,9 @@ function getBooks({ filter, sort, search, minCopies } = {}) {
                 book.description,
                 book.qrCode,
                 book.qr_code,
+                book.location?.shelf_code,
+                book.location?.place_code,
+                book.location?.note,
                 ...(book.comments || []).map(comment => comment.text)
             ].join(' ').toLowerCase();
             return haystack.includes(query);
@@ -216,11 +276,11 @@ function getBooks({ filter, sort, search, minCopies } = {}) {
     return books;
 }
 
-function getBook(id) {
+function getBook(id, user = null) {
     const store = readStore();
     const book = store.books.find(item => Number(item.id) === Number(id));
     if (!book) return null;
-    return normalizeBook(book, store.comments.filter(comment => Number(comment.book_id) === Number(book.id)));
+    return normalizeBook(book, store.comments.filter(comment => Number(comment.book_id) === Number(book.id)), store, user);
 }
 
 function createUser(username, password, email) {
@@ -325,9 +385,53 @@ function resetPasswordWithCode(email, code, password) {
     return publicUser(user);
 }
 
+function listStorageLocations() {
+    const store = readStore();
+    return store.storage_locations
+        .slice()
+        .sort((a, b) => String(a.shelf_code).localeCompare(String(b.shelf_code), 'ru') || String(a.place_code).localeCompare(String(b.place_code), 'ru'))
+        .map(normalizeLocation);
+}
+
+function addStorageLocation(data) {
+    const store = readStore();
+    const shelfCode = String(data.shelfCode || data.shelf_code || '').trim();
+    const placeCode = String(data.placeCode || data.place_code || '').trim();
+    const note = String(data.note || '').trim();
+    if (!shelfCode || !placeCode) {
+        const error = new Error('Shelf and place are required');
+        error.code = 'INVALID_LOCATION';
+        throw error;
+    }
+    const exists = store.storage_locations.some(location =>
+        location.shelf_code.toLowerCase() === shelfCode.toLowerCase()
+        && location.place_code.toLowerCase() === placeCode.toLowerCase()
+        && String(location.note || '').toLowerCase() === note.toLowerCase()
+    );
+    if (exists) {
+        const error = new Error('Location already exists');
+        error.code = 'DUPLICATE_LOCATION';
+        throw error;
+    }
+
+    const location = {
+        id: nextId(store, 'storage_locations'),
+        shelf_code: shelfCode,
+        place_code: placeCode,
+        note,
+        created_at: now(),
+        updated_at: now()
+    };
+    store.storage_locations.push(location);
+    writeStore(store);
+    return normalizeLocation(location);
+}
+
 function addBook(user, data) {
     const store = readStore();
     const copies = Math.max(0, Number(data.copies ?? 1));
+    const locationId = data.locationId ?? data.location_id ?? null;
+    const hasLocation = locationId && store.storage_locations.some(location => Number(location.id) === Number(locationId));
     const bookId = nextId(store, 'books');
     const book = withQrFields({
         id: bookId,
@@ -337,13 +441,14 @@ function addBook(user, data) {
         coverDataURL: data.coverDataURL || data.cover_data_url || null,
         copies,
         available: data.available !== false && copies > 0,
+        location_id: hasLocation ? Number(locationId) : null,
         user_id: user.id,
         created_at: now(),
         updated_at: now()
     });
     store.books.unshift(book);
     writeStore(store);
-    return normalizeBook(book, []);
+    return normalizeBook(book, [], store, user);
 }
 
 function updateBook(id, data) {
@@ -357,13 +462,106 @@ function updateBook(id, data) {
     if (data.coverDataURL !== undefined || data.cover_data_url !== undefined) {
         book.coverDataURL = data.coverDataURL || data.cover_data_url || null;
     }
+    if (data.locationId !== undefined || data.location_id !== undefined) {
+        const locationId = data.locationId ?? data.location_id;
+        const hasLocation = locationId && store.storage_locations.some(location => Number(location.id) === Number(locationId));
+        book.location_id = hasLocation ? Number(locationId) : null;
+    }
     if (data.copies !== undefined) book.copies = Math.max(0, Number(data.copies || 0));
     if (data.available !== undefined) book.available = Boolean(data.available);
     if (book.copies <= 0) book.available = false;
     book.updated_at = now();
 
     writeStore(store);
-    return normalizeBook(book, store.comments.filter(comment => Number(comment.book_id) === Number(book.id)));
+    return normalizeBook(book, store.comments.filter(comment => Number(comment.book_id) === Number(book.id)), store);
+}
+
+function rentBook(bookId, user) {
+    const store = readStore();
+    const book = store.books.find(item => Number(item.id) === Number(bookId));
+    if (!book) {
+        const error = new Error('Book not found');
+        error.code = 'NOT_FOUND';
+        throw error;
+    }
+    const activeForUser = store.rentals.find(rental =>
+        Number(rental.book_id) === Number(bookId)
+        && Number(rental.user_id) === Number(user.id)
+        && !rental.returned_at
+    );
+    if (activeForUser) {
+        const error = new Error('Already rented');
+        error.code = 'ALREADY_RENTED';
+        throw error;
+    }
+    if (Number(book.copies || 0) <= 0) {
+        const error = new Error('No copies available');
+        error.code = 'NO_COPIES';
+        throw error;
+    }
+
+    book.copies = Math.max(0, Number(book.copies || 0) - 1);
+    book.available = book.copies > 0;
+    book.updated_at = now();
+    const rental = {
+        id: nextId(store, 'rentals'),
+        book_id: Number(bookId),
+        user_id: user.id,
+        username: user.username,
+        rented_at: now(),
+        returned_at: null
+    };
+    store.rentals.push(rental);
+    writeStore(store);
+    return { rental, book: normalizeBook(book, store.comments.filter(comment => Number(comment.book_id) === Number(book.id)), store, user) };
+}
+
+function returnBook(bookId, user, rentalId = null) {
+    const store = readStore();
+    const book = store.books.find(item => Number(item.id) === Number(bookId));
+    if (!book) {
+        const error = new Error('Book not found');
+        error.code = 'NOT_FOUND';
+        throw error;
+    }
+    const rental = store.rentals.find(item =>
+        Number(item.book_id) === Number(bookId)
+        && !item.returned_at
+        && (rentalId ? Number(item.id) === Number(rentalId) : (user.role === 'admin' || Number(item.user_id) === Number(user.id)))
+    );
+    if (!rental) {
+        const error = new Error('Active rental not found');
+        error.code = 'RENTAL_NOT_FOUND';
+        throw error;
+    }
+
+    rental.returned_at = now();
+    book.copies = Math.max(0, Number(book.copies || 0)) + 1;
+    book.available = true;
+    book.updated_at = now();
+    writeStore(store);
+    return { rental, book: normalizeBook(book, store.comments.filter(comment => Number(comment.book_id) === Number(book.id)), store, user) };
+}
+
+function listRentalsForAdmin() {
+    const store = readStore();
+    return store.rentals
+        .slice()
+        .sort((a, b) => new Date(b.rented_at) - new Date(a.rented_at))
+        .map(rental => {
+            const book = store.books.find(item => Number(item.id) === Number(rental.book_id));
+            const user = store.users.find(item => Number(item.id) === Number(rental.user_id));
+            return {
+                id: rental.id,
+                book_id: rental.book_id,
+                book_title: book?.title || 'Книга удалена',
+                user_id: rental.user_id,
+                username: rental.username || user?.username || 'Пользователь',
+                rented_at: rental.rented_at,
+                returned_at: rental.returned_at || null,
+                status: rental.returned_at ? 'returned' : 'active'
+            };
+        });
 }
 
 function deleteBook(id, user) {
@@ -373,6 +571,7 @@ function deleteBook(id, user) {
 
     store.books.splice(index, 1);
     store.comments = store.comments.filter(comment => Number(comment.book_id) !== Number(id));
+    store.rentals = store.rentals.filter(rental => Number(rental.book_id) !== Number(id));
     writeStore(store);
     return true;
 }
@@ -450,10 +649,15 @@ module.exports = {
     listUsersForAdmin,
     createPasswordReset,
     resetPasswordWithCode,
+    listStorageLocations,
+    addStorageLocation,
     getBooks,
     getBook,
     addBook,
     updateBook,
+    rentBook,
+    returnBook,
+    listRentalsForAdmin,
     deleteBook,
     addComment,
     deleteComment,
