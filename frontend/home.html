@@ -461,11 +461,28 @@
     <div class="modal-content profile-modal-content">
         <button class="profile-close-btn" id="closeProfileModalBtn" type="button">×</button>
         <div class="profile-modal-top">
-            <div class="profile-avatar" id="profileAvatar">👤</div>
-            <div>
-                <p class="profile-kicker">Профиль читателя</p>
-                <h2 id="profileName">Пользователь</h2>
-                <span id="profileModeBadge" class="profile-mode-badge">Аккаунт</span>
+            <div class="profile-avatar-shell">
+                <div class="profile-avatar" id="profileAvatar">👤</div>
+                <span class="profile-live-dot" aria-hidden="true"></span>
+            </div>
+            <div class="profile-identity">
+                <p class="profile-kicker">Аккаунт BIBLIOTECH</p>
+                <div class="profile-name-row">
+                    <h2 id="profileName">Пользователь</h2>
+                    <span id="profileModeBadge" class="profile-mode-badge">Аккаунт</span>
+                </div>
+                <p class="profile-role-note" id="profileRoleNote">Личный профиль каталога</p>
+            </div>
+        </div>
+        <div class="profile-access-panel">
+            <div class="profile-access-title">
+                <span id="profileRoleIcon">👤</span>
+                <b id="profileAccessTitle">Читательский доступ</b>
+            </div>
+            <div class="profile-permission-grid">
+                <span id="profilePermissionOne">Каталог</span>
+                <span id="profilePermissionTwo">Комментарии</span>
+                <span id="profilePermissionThree">Темы</span>
             </div>
         </div>
         <div class="profile-grid">
@@ -534,7 +551,6 @@
             </div>
         </div>
         <div class="profile-actions">
-            <button id="profileGoStatsBtn" type="button">📊 Открыть статистику</button>
             <button id="profileLogoutBtn" type="button">🚪 Выйти</button>
         </div>
     </div>

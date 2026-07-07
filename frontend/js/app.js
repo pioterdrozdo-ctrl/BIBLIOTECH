@@ -1,5 +1,20 @@
 const API_URL = window.BIBLIOTECH_API_URL || '/api';
 const SESSION_KEY = 'bibliotech_current_user';
+const POST_LOGIN_URL_KEY = 'bibliotech_post_login_url';
+
+function getPostLoginUrl() {
+    const fallback = 'home.html';
+    const saved = localStorage.getItem(POST_LOGIN_URL_KEY);
+    localStorage.removeItem(POST_LOGIN_URL_KEY);
+    if (!saved) return fallback;
+    try {
+        const url = new URL(saved, window.location.href);
+        if (url.origin !== window.location.origin) return fallback;
+        return `${url.pathname}${url.search}${url.hash}` || fallback;
+    } catch {
+        return fallback;
+    }
+}
 
 function switchTab(tab) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -47,7 +62,7 @@ async function login() {
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem(SESSION_KEY, JSON.stringify({ id: data.user.id, username: data.user.username, role: data.user.role }));
 
-        window.location.href = 'home.html';
+        window.location.href = getPostLoginUrl();
     } catch (err) {
         errorDiv.textContent = 'Ошибка соединения с сервером';
         console.error(err);
@@ -91,7 +106,7 @@ async function register() {
         localStorage.setItem(SESSION_KEY, JSON.stringify({ id: data.user.id, username: data.user.username, role: data.user.role }));
 
         successDiv.textContent = 'Регистрация успешна!';
-        setTimeout(() => window.location.href = 'home.html', 700);
+        setTimeout(() => window.location.href = getPostLoginUrl(), 700);
     } catch (err) {
         errorDiv.textContent = 'Ошибка соединения с сервером';
         console.error(err);
@@ -102,7 +117,7 @@ function guestLogin() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.setItem(SESSION_KEY, JSON.stringify({ username: 'Гость', role: 'guest', guest: true }));
-    window.location.href = 'home.html';
+    window.location.href = getPostLoginUrl();
 }
 
 // Функции темы (оставляем без изменений)

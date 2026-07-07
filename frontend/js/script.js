@@ -1,5 +1,6 @@
 const STORAGE_KEY = 'book_catalog_v18';
 const SESSION_KEY = 'bibliotech_current_user';
+const POST_LOGIN_URL_KEY = 'bibliotech_post_login_url';
 const API_URL = window.BIBLIOTECH_API_URL || '/api';
 let currentToken = localStorage.getItem('token');
 const state = {
@@ -979,29 +980,77 @@ function setupLanguageSwitcher() {
 
 let qrStream = null;
 let qrLoopId = null;
+function buildBookDeepLink(bookId) {
+    const url = new URL('home.html', window.location.href);
+    url.searchParams.set('book', String(bookId));
+    return url.toString();
+}
+
+function parseBookIdFromQrPayload(text = '') {
+    const value = String(text).trim();
+    if (!value) return null;
+    try {
+        const url = new URL(value);
+        const bookParam = url.searchParams.get('book');
+        if (bookParam && Number.isFinite(Number(bookParam))) return Number(bookParam);
+        if (url.protocol === 'bibliotech:' && url.hostname.toLowerCase() === 'book') {
+            const id = url.pathname.split('/').filter(Boolean).pop();
+            return Number.isFinite(Number(id)) ? Number(id) : null;
+        }
+    } catch {
+        const bookMatch = value.match(/^bibliotech:\/\/book\/(\d+)/i) || value.match(/^book:(\d+)$/i);
+        if (bookMatch) return Number(bookMatch[1]);
+    }
+    const codeMatch = value.match(/^BT0*(\d+)$/i);
+    return codeMatch ? Number(codeMatch[1]) : null;
+}
+
 function parseQrPayload(text = '') {
     const value = String(text).trim();
     if (!value) return '';
+    const bookId = parseBookIdFromQrPayload(value);
+    if (bookId) return buildBookQrCode(bookId) || String(bookId);
     try {
         const url = new URL(value);
         const query = url.searchParams.get('q') || url.searchParams.get('title');
         if (query) return query;
-        const bookParam = url.searchParams.get('book');
-        if (bookParam) return buildBookQrCode(bookParam) || bookParam;
-        if (url.protocol === 'bibliotech:' && url.hostname.toLowerCase() === 'book') {
-            const id = url.pathname.split('/').filter(Boolean).pop();
-            return buildBookQrCode(id) || id || value;
-        }
         const hash = decodeURIComponent(url.hash.replace(/^#/, ''));
         if (hash) return hash;
         return url.pathname.split('/').filter(Boolean).pop() || value;
     } catch {
-        const bookMatch = value.match(/^bibliotech:\/\/book\/(\d+)/i) || value.match(/^book:(\d+)$/i);
-        if (bookMatch) return buildBookQrCode(bookMatch[1]) || bookMatch[1];
         return value.replace(/^bibliotech:\/\/search\//i, '').trim();
     }
 }
+
+function getBookFromQrPayload(rawText = '') {
+    const bookId = parseBookIdFromQrPayload(rawText);
+    if (bookId) {
+        const byId = state.books.find(book => Number(book.id) === Number(bookId));
+        if (byId) return byId;
+    }
+    const query = parseQrPayload(rawText);
+    if (!query) return null;
+    const normalized = normalizeText(query);
+    return state.books.find(book => {
+        const code = normalizeText(book.qrCode || book.qr_code || buildBookQrCode(book.id));
+        const payload = normalizeText(book.qrPayload || book.qr_payload || buildBookDeepLink(book.id));
+        return code === normalized || payload === normalized || String(book.id) === String(query);
+    }) || null;
+}
 function applyQrResult(rawText) {
+    const book = getBookFromQrPayload(rawText);
+    if (book) {
+        closeQrScanner();
+        state.search = '';
+        localStorage.removeItem('lastSearch');
+        const input = document.getElementById('searchInput');
+        if (input) input.value = '';
+        renderBooks();
+        openBook(book.id);
+        notify('QR распознан: карточка открыта');
+        return;
+    }
+
     const query = parseQrPayload(rawText);
     if (!query) return;
     const input = document.getElementById('searchInput');
@@ -1015,12 +1064,7 @@ function applyQrResult(rawText) {
 }
 
 function getBookQrPayload(book) {
-    const url = new URL('home.html', window.location.href);
-    const code = book.qrCode || book.qr_code || buildBookQrCode(book.id);
-    url.searchParams.set('q', code || book.title || String(book.id));
-    url.searchParams.set('book', String(book.id));
-    if (book.title) url.searchParams.set('title', book.title);
-    return url.toString();
+    return buildBookDeepLink(book.id);
 }
 
 function createBookQrDataUrl(payload) {
@@ -1101,11 +1145,44 @@ function readInitialQrSearchFromUrl() {
         const params = new URLSearchParams(window.location.search);
         const query = params.get('q') || params.get('title');
         if (query) return query;
-        const book = params.get('book');
-        return book ? (buildBookQrCode(book) || book) : '';
+        return '';
     } catch {
         return '';
     }
+}
+
+function readInitialBookPayloadFromUrl() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('book') ? window.location.href : '';
+    } catch {
+        return '';
+    }
+}
+
+function openInitialBookFromUrl(payload) {
+    if (!payload) return false;
+    const book = getBookFromQrPayload(payload);
+    if (!book) {
+        const query = parseQrPayload(payload);
+        if (query) {
+            state.search = query;
+            localStorage.setItem('lastSearch', query);
+            const input = document.getElementById('searchInput');
+            if (input) input.value = query;
+            renderBooks();
+            notify('Книга из QR не найдена, открыт поиск');
+        }
+        return false;
+    }
+    state.search = '';
+    localStorage.removeItem('lastSearch');
+    const input = document.getElementById('searchInput');
+    if (input) input.value = '';
+    renderBooks();
+    openBook(book.id);
+    notify('Карточка открыта по QR');
+    return true;
 }
 async function startQrScanner() {
     const video = document.getElementById('qrVideo');
@@ -1472,7 +1549,6 @@ function setupProfileModal() {
     const pill = document.getElementById('currentUserPill');
     const modal = document.getElementById('profileModal');
     const closeBtn = document.getElementById('closeProfileModalBtn');
-    const statsBtn = document.getElementById('profileGoStatsBtn');
     const logoutBtn = document.getElementById('profileLogoutBtn');
     const avatarInput = document.getElementById('profileAvatarInput');
     const presetGrid = document.getElementById('avatarPresetGrid');
@@ -1494,6 +1570,37 @@ function setupProfileModal() {
             badge.classList.toggle('guest', isGuestMode);
             badge.classList.toggle('user', role === 'user');
         }
+        const roleDetails = {
+            admin: {
+                icon: '🛡️',
+                title: 'Админский доступ',
+                note: 'Управление каталогом и карточками книг',
+                permissions: ['Книги: управление', 'Комментарии: модерация', 'Темы: персонально']
+            },
+            user: {
+                icon: '👤',
+                title: 'Читательский доступ',
+                note: 'Поиск книг и участие в обсуждениях',
+                permissions: ['Каталог: просмотр', 'Комментарии: участие', 'Темы: персонально']
+            },
+            guest: {
+                icon: '👀',
+                title: 'Гостевой доступ',
+                note: 'Быстрый просмотр каталога без аккаунта',
+                permissions: ['Каталог: просмотр', 'Поиск: доступен', 'Комментарии: закрыты']
+            }
+        };
+        const details = roleDetails[role] || roleDetails.user;
+        const setText = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        };
+        setText('profileRoleIcon', details.icon);
+        setText('profileAccessTitle', details.title);
+        setText('profileRoleNote', details.note);
+        setText('profilePermissionOne', details.permissions[0]);
+        setText('profilePermissionTwo', details.permissions[1]);
+        setText('profilePermissionThree', details.permissions[2]);
         document.getElementById('profileBooksCount') && (document.getElementById('profileBooksCount').textContent = books.length);
         document.getElementById('profileAvailableCount') && (document.getElementById('profileAvailableCount').textContent = available);
         document.getElementById('profileCommentsCount') && (document.getElementById('profileCommentsCount').textContent = comments);
@@ -1502,7 +1609,6 @@ function setupProfileModal() {
     pill?.addEventListener('click', () => { refreshProfile(); openModal('#profileModal'); });
     closeBtn?.addEventListener('click', () => closeModal('#profileModal'));
     modal?.addEventListener('click', e => { if (e.target.id === 'profileModal') closeModal('#profileModal'); });
-    statsBtn?.addEventListener('click', () => { window.location.href = 'stats.html'; });
     logoutBtn?.addEventListener('click', () => { clearAuthSession(); window.location.href = 'index.html'; });
     avatarInput?.addEventListener('change', (e) => {
         const file = e.target.files?.[0];
@@ -1675,7 +1781,11 @@ function setupHeroWow() {
 
 function init() {
     const session = getSession();
-    if (!session) { window.location.href = 'index.html'; return; }
+    if (!session) {
+        localStorage.setItem(POST_LOGIN_URL_KEY, window.location.href);
+        window.location.href = 'index.html';
+        return;
+    }
     if (isGuest()) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -1684,7 +1794,6 @@ function init() {
     const pill = $('#currentUserPill');
     if (pill) pill.textContent = getRoleLabel();
 
-    loadBooks();
     const token = localStorage.getItem('token');
     if (token && !isGuest()) currentToken = token;
     updateDashboard();
@@ -1853,13 +1962,16 @@ function init() {
         if (e.key === 'Enter') addComment();
     });
 
-    const initialQrSearch = readInitialQrSearchFromUrl();
+    const initialBookPayload = readInitialBookPayloadFromUrl();
+    const initialQrSearch = initialBookPayload ? '' : readInitialQrSearchFromUrl();
     const lastSearch = initialQrSearch || localStorage.getItem('lastSearch') || '';
     state.search = lastSearch;
     if (initialQrSearch) localStorage.setItem('lastSearch', initialQrSearch);
     if ($('#searchInput')) $('#searchInput').value = lastSearch;
     updateActiveFiltersUI();
-    loadBooks(); 
+    loadBooks().then(() => {
+        if (initialBookPayload) openInitialBookFromUrl(initialBookPayload);
+    });
 }
 
 document.addEventListener('DOMContentLoaded', init);
