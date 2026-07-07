@@ -1,6 +1,6 @@
 const express = require('express');
 const pool = require('../db/pool');
-const { authMiddleware } = require('../middleware/auth');
+const { authMiddleware, isAdmin } = require('../middleware/auth');
 const localStore = require('../services/localStore');
 const { buildBookQrCode, buildBookQrPayload, normalizeBookQrFields } = require('../utils/bookQr');
 const router = express.Router();
@@ -126,8 +126,8 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Добавить книгу (только для авторизованных)
-router.post('/', authMiddleware, async (req, res) => {
+// Добавить книгу (только админ)
+router.post('/', authMiddleware, isAdmin, async (req, res) => {
     const { title, author, description, coverDataURL, copies, available } = req.body;
 
     if (!title || !author) {
@@ -152,8 +152,8 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 });
 
-// Обновить книгу
-router.put('/:id', authMiddleware, async (req, res) => {
+// Обновить книгу (только админ)
+router.put('/:id', authMiddleware, isAdmin, async (req, res) => {
     const { title, author, description, coverDataURL, copies, available } = req.body;
 
     try {
@@ -186,8 +186,8 @@ router.put('/:id', authMiddleware, async (req, res) => {
     }
 });
 
-// Удалить книгу
-router.delete('/:id', authMiddleware, async (req, res) => {
+// Удалить книгу (только админ)
+router.delete('/:id', authMiddleware, isAdmin, async (req, res) => {
     try {
         const result = await pool.query('DELETE FROM books WHERE id = $1 RETURNING id', [req.params.id]);
 

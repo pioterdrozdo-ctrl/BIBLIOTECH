@@ -782,6 +782,7 @@ header nav li.btn a:hover,
 
 .filter-pill,
 .badge,
+.role-banner,
 .guest-banner,
 .guest-note,
 .profile-mode-badge {
@@ -800,15 +801,23 @@ header nav li.btn a:hover,
 
 .filter-pill.active,
 .badge:not(.out),
+.role-banner.admin,
 .profile-mode-badge {
     color: var(--ok);
     background: var(--ok-soft);
 }
 
 .badge.out,
+.role-banner.guest,
 .profile-mode-badge.guest {
     color: var(--danger);
     background: var(--danger-soft);
+}
+
+.role-banner.user,
+.profile-mode-badge.user {
+    color: var(--accent);
+    background: var(--accent-soft);
 }
 
 .badge.date {
@@ -820,6 +829,95 @@ header nav li.btn a:hover,
     margin: 12px 0 16px;
     color: var(--muted);
     font-size: 14px;
+}
+
+.admin-panel {
+    margin: 14px 0 16px;
+    padding: 14px;
+    border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border));
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--surface), var(--accent-soft));
+    box-shadow: var(--shadow-soft);
+}
+
+.admin-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.admin-eyebrow {
+    display: inline-flex;
+    margin-bottom: 4px;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.admin-panel h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.admin-panel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.admin-panel-actions button,
+.admin-panel-actions a,
+.admin-edit-book-btn {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 850;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.admin-panel-actions a {
+    background: var(--surface);
+    color: var(--text);
+}
+
+.admin-panel-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.admin-metric {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+}
+
+.admin-metric span {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.admin-metric b {
+    display: block;
+    margin-top: 4px;
+    color: var(--text);
+    font-size: 24px;
+    line-height: 1;
 }
 
 .books-grid {
@@ -1041,6 +1139,18 @@ header nav li.btn a:hover,
     border-radius: var(--radius-sm);
 }
 
+.clear-cover-btn {
+    width: 100%;
+    min-height: 38px;
+    margin-top: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface-muted);
+    color: var(--danger);
+    font-weight: 850;
+    cursor: pointer;
+}
+
 .copies-input-wrapper,
 .copies-control,
 .filter-number-control {
@@ -1172,6 +1282,30 @@ header nav li.btn a:hover,
     min-width: 0;
     padding: 32px;
     overflow-y: auto;
+}
+
+.detail-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.detail-title-row > div {
+    min-width: 0;
+}
+
+.admin-edit-book-btn {
+    flex: 0 0 auto;
+    margin-right: 42px;
+    background: var(--accent);
+}
+
+.admin-edit-book-btn:hover,
+.admin-panel-actions button:hover,
+.admin-panel-actions a:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 26px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 .view-title {
@@ -2241,6 +2375,30 @@ footer {
     .qr-manual-row button,
     #addCommentBtn {
         width: 100%;
+    }
+
+    .admin-panel-head,
+    .detail-title-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .admin-panel-actions,
+    .admin-panel-actions > *,
+    .admin-edit-book-btn {
+        width: 100%;
+    }
+
+    .admin-panel-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin-edit-book-btn {
+        margin-right: 0;
+    }
+
+    .view-title {
+        margin-right: 0;
     }
 
     .book-detail-info-panel {

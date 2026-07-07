@@ -7,6 +7,7 @@ const state = {
     filter: 'all',
     sort: 'relevance',
     activeBookId: null,
+    editingBookId: null,
     coverDataUrl: null,
     search: '',
     minCopies: 0
@@ -20,9 +21,51 @@ function getSession() {
     catch { return null; }
 }
 
+function clearAuthSession() {
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    currentToken = null;
+}
+
 function isGuest() {
     const session = getSession();
     return Boolean(session && session.guest);
+}
+
+function getRole() {
+    const session = getSession();
+    if (!session || session.guest) return 'guest';
+    return session.role === 'admin' ? 'admin' : 'user';
+}
+
+function isAdmin() {
+    return getRole() === 'admin';
+}
+
+function canManageBooks() {
+    return isAdmin();
+}
+
+function canComment() {
+    return getRole() !== 'guest';
+}
+
+function getRoleLabel() {
+    const session = getSession();
+    const username = session?.username || 'Пользователь';
+    if (getRole() === 'admin') return `Админ: ${username}`;
+    if (getRole() === 'user') return `Пользователь: ${username}`;
+    return 'Гостевой режим';
+}
+
+function canDeleteComment(comment = {}) {
+    if (isAdmin()) return true;
+    if (!canComment()) return false;
+    const session = getSession();
+    const sameId = comment.user_id && session?.id && Number(comment.user_id) === Number(session.id);
+    const sameName = comment.username && session?.username && comment.username === session.username;
+    return Boolean(sameId || sameName);
 }
 
 function escapeHtml(value = '') {
@@ -238,6 +281,29 @@ function highlight(text, query) {
     );
 }
 
+function updateAdminPanel(stats = null) {
+    const panel = document.getElementById('adminPanel');
+    if (!panel) return;
+    const visible = canManageBooks();
+    panel.hidden = !visible;
+    panel.classList.toggle('hidden', !visible);
+    if (!visible) return;
+
+    const books = Array.isArray(state.books) ? state.books : [];
+    const total = Number(stats?.totalBooks ?? books.length);
+    const available = Number(stats?.availableBooks ?? books.filter(book => book.available).length);
+    const copies = Number(stats?.totalCopies ?? books.reduce((sum, book) => sum + (Number(book.copies) || 0), 0));
+    const comments = Number(stats?.totalComments ?? books.reduce((sum, book) => sum + ((book.comments || []).length), 0));
+    const set = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    };
+    set('adminTotalBooks', total);
+    set('adminAvailableBooks', available);
+    set('adminTotalCopies', copies);
+    set('adminTotalComments', comments);
+}
+
 
 async function updateDashboard() {
     try {
@@ -254,6 +320,7 @@ async function updateDashboard() {
             set('dashPercent', stats.availablePercent + '%');
             set('heroTotalBooks', stats.totalBooks);
             set('heroTotalCopies', stats.totalCopies);
+            updateAdminPanel(stats);
 
             const authorsBox = document.getElementById('topAuthors');
             if (authorsBox && stats.topAuthors) {
@@ -279,6 +346,7 @@ async function updateDashboard() {
     set('dashPercent', percent + '%');
     set('heroTotalBooks', total);
     set('heroTotalCopies', copies);
+    updateAdminPanel({ totalBooks: total, availableBooks: available, totalCopies: copies, totalComments: comments });
 
     const authorCounts = state.books.reduce((acc, book) => {
         const author = (book.author || 'Автор не указан').trim();
@@ -325,7 +393,9 @@ function renderBooks() {
             : '<div class="no-cover-icon">📖</div>';
         const availableText = book.available ? tr('inStock') : tr('outStock');
         const availableClass = book.available ? '' : 'out';
-        const controls = isGuest() ? `<span class="guest-note">${escapeHtml(tr('guestView'))}</span>` : `<button class="delete-btn" data-id="${book.id}" title="Удалить книгу">🗑️ ${escapeHtml(tr('clearAll')).replace(' всё','')}</button>`;
+        const controls = canManageBooks()
+            ? `<button class="delete-btn" data-id="${book.id}" title="Удалить книгу">🗑️ ${escapeHtml(tr('clearAll')).replace(' всё','')}</button>`
+            : `<span class="guest-note">${isGuest() ? escapeHtml(tr('guestView')) : 'Пользователь: просмотр и комментарии'}</span>`;
         return `<div class="book-card ${state.search ? 'search-match-card' : ''}" data-id="${book.id}" tabindex="0">
             <div class="book-cover">${coverHtml}</div>
             <div class="book-info">
@@ -361,6 +431,11 @@ function openBook(bookId) {
         <span class="badge copies">📚 ${book.copies || 0} экз.</span>
         <span class="badge date">📅 ${escapeHtml(book.dateAdded || 'Дата неизвестна')}</span>`;
     $('#viewCopiesCount').textContent = book.copies || 0;
+    $('#editBookBtn')?.classList.toggle('hidden', !canManageBooks());
+    $$('.copies-control button').forEach(btn => {
+        btn.disabled = !canManageBooks();
+        btn.classList.toggle('hidden', !canManageBooks());
+    });
     const cover = $('#viewCover');
     cover.innerHTML = book.coverDataURL ? `<img src="${book.coverDataURL}" alt="${escapeHtml(book.title)}">` : `<div class="view-cover-placeholder"><span>📖</span><b>${escapeHtml(book.title.slice(0, 22))}</b></div>`;
     renderBookQr(book);
@@ -375,19 +450,22 @@ function renderComments(book) {
     if (!book.comments || !book.comments.length) {
         list.innerHTML = '<div class="empty-comments">✨ Комментариев пока нет.</div>';
     } else {
-        list.innerHTML = book.comments.map((comment, index) => `<div class="comment-item">
-            <div class="comment-text">${escapeHtml(comment.text)}</div>
-            <span class="comment-date">📅 ${escapeHtml(comment.date || '')}</span>
-            ${isGuest() ? '' : `<button class="delete-comment-btn" data-idx="${index}">🗑️</button>`}
-        </div>`).join('');
+        list.innerHTML = book.comments.map((comment, index) => {
+            const deleteAction = canDeleteComment(comment) ? `<button class="delete-comment-btn" data-idx="${index}">🗑️</button>` : '';
+            return `<div class="comment-item">
+                <div class="comment-text">${escapeHtml(comment.text)}</div>
+                <span class="comment-date">📅 ${escapeHtml(comment.date || '')}</span>
+                ${deleteAction}
+            </div>`;
+        }).join('');
     }
     const inputArea = $('.add-comment-area');
-    if (inputArea) inputArea.style.display = isGuest() ? 'none' : '';
+    if (inputArea) inputArea.style.display = canComment() ? '' : 'none';
 }
 
 async function addBook(event) {
     event.preventDefault();
-    if (isGuest()) return notify('В гостевом режиме нельзя добавлять книги', 'error');
+    if (!canManageBooks()) return notify('Редактировать книги может только админ', 'error');
 
     // Прямое получение элементов
     const titleInput = document.getElementById('bookTitle');
@@ -409,29 +487,42 @@ async function addBook(event) {
 
     if (!title || !author) return notify('Заполните название и автора', 'error');
 
-    const bookData = { title, author, description, coverDataURL: state.coverDataUrl, copies: copies || 1, available };
+    const editingId = state.editingBookId ? Number(state.editingBookId) : null;
+    const existingBook = editingId ? state.books.find(book => book.id === editingId) : null;
+    const normalizedCopies = available ? Math.max(1, copies) : 0;
+    const bookData = { title, author, description, coverDataURL: state.coverDataUrl, copies: normalizedCopies, available };
+    const requestUrl = editingId ? `${API_URL}/books/${editingId}` : `${API_URL}/books`;
+    const requestMethod = editingId ? 'PUT' : 'POST';
     console.log('📦 Отправляем на сервер:', bookData);
 
     try {
-        const response = await fetch(`${API_URL}/books`, {
-            method: 'POST',
+        const response = await fetch(requestUrl, {
+            method: requestMethod,
             headers: { 'Content-Type': 'application/json', 'Authorization': currentToken ? `Bearer ${currentToken}` : '' },
             body: JSON.stringify(bookData)
         });
 
         if (response.ok) {
-            const newBook = await response.json();
-            state.books.unshift(migrateBook({
-                ...newBook,
-                coverDataURL: newBook.coverDataURL || newBook.cover_data_url || state.coverDataUrl,
-                dateAdded: newBook.created_at ? formatDate(new Date(newBook.created_at)) : formatDate(),
-                comments: []
-            }));
+            const savedBook = await response.json();
+            const migrated = migrateBook({
+                ...savedBook,
+                coverDataURL: savedBook.coverDataURL || savedBook.cover_data_url || state.coverDataUrl,
+                dateAdded: savedBook.created_at ? formatDate(new Date(savedBook.created_at)) : (existingBook?.dateAdded || formatDate()),
+                comments: Array.isArray(savedBook.comments) ? savedBook.comments : (existingBook?.comments || [])
+            });
+            if (editingId) {
+                const index = state.books.findIndex(book => book.id === editingId);
+                if (index >= 0) state.books[index] = { ...state.books[index], ...migrated };
+                else state.books.unshift(migrated);
+            } else {
+                state.books.unshift(migrated);
+            }
             saveBooks();
             closeModal('#bookModal');
             resetBookForm();
             renderBooks();
-            notify('Книга добавлена в каталог', 'success');
+            if (editingId) openBook(editingId);
+            notify(editingId ? 'Карточка книги обновлена' : 'Книга добавлена в каталог', 'success');
         } else {
             const err = await response.json();
             console.error('Ошибка сервера:', err);
@@ -439,22 +530,35 @@ async function addBook(event) {
         }
     } catch (error) {
         console.error('Fallback (локальное сохранение):', error);
-        state.books.unshift({
-            id: Date.now(), title, author, description,
-            available, copies: available ? copies : 0,
-            coverDataURL: state.coverDataUrl,
-            dateAdded: formatDate(), comments: []
-        });
+        if (editingId && existingBook) {
+            Object.assign(existingBook, {
+                title,
+                author,
+                description,
+                available,
+                copies: normalizedCopies,
+                coverDataURL: state.coverDataUrl,
+                comments: existingBook.comments || []
+            });
+        } else {
+            state.books.unshift({
+                id: Date.now(), title, author, description,
+                available, copies: normalizedCopies,
+                coverDataURL: state.coverDataUrl,
+                dateAdded: formatDate(), comments: []
+            });
+        }
         saveBooks();
         closeModal('#bookModal');
         resetBookForm();
         renderBooks();
-        notify('Книга добавлена локально (офлайн режим)', 'warning');
+        if (editingId) openBook(editingId);
+        notify(editingId ? 'Карточка обновлена локально (офлайн режим)' : 'Книга добавлена локально (офлайн режим)', 'warning');
     }
 }
 
 async function deleteBook(id) {
-    if (isGuest()) return notify('Гость может только смотреть каталог', 'error');
+    if (!canManageBooks()) return notify('Удалять книги может только админ', 'error');
     const book = state.books.find(b => b.id === Number(id));
     if (!book) return;
     const ok = await askConfirm({
@@ -490,7 +594,7 @@ async function deleteBook(id) {
 }
 
 async function updateCopies(delta) {
-    if (isGuest()) return notify('Гость не может менять количество', 'error');
+    if (!canManageBooks()) return notify('Менять количество книг может только админ', 'error');
     const book = state.books.find(b => b.id === state.activeBookId);
     if (!book) return;
     const newCopies = Math.max(0, (book.copies || 0) + delta);
@@ -560,11 +664,11 @@ async function addComment() {
 }
 
 async function deleteComment(index) {
-    if (isGuest()) return;
     const book = state.books.find(b => b.id === state.activeBookId);
     if (!book) return;
     const comment = book.comments[Number(index)];
     if (!comment) return;
+    if (!canDeleteComment(comment)) return notify('Удалить можно только свой комментарий или комментарий как админ', 'error');
 
     if (comment.id) {
         try {
@@ -580,11 +684,57 @@ async function deleteComment(index) {
     renderComments(book);
 }
 
+function setBookModalMode(mode = 'create') {
+    const title = document.querySelector('#bookModal .modal-content h2');
+    const submit = document.querySelector('#bookModal .submit-modal');
+    if (title) title.textContent = mode === 'edit' ? 'Редактировать карточку книги' : 'Добавить книгу';
+    if (submit) submit.textContent = mode === 'edit' ? 'Сохранить изменения' : 'Сохранить книгу';
+}
+
+function openAddBookModal() {
+    if (!canManageBooks()) return notify('Добавлять книги может только админ', 'error');
+    resetBookForm();
+    openModal('#bookModal');
+}
+
+function openBookEditor(bookId) {
+    if (!canManageBooks()) return notify('Редактировать карточку книги может только админ', 'error');
+    const book = state.books.find(item => item.id === Number(bookId));
+    if (!book) return notify('Книга не найдена', 'error');
+
+    state.editingBookId = book.id;
+    state.coverDataUrl = book.coverDataURL || null;
+    const setValue = (id, value) => {
+        const input = document.getElementById(id);
+        if (input) input.value = value ?? '';
+    };
+    setValue('bookTitle', book.title || '');
+    setValue('bookAuthor', book.author || '');
+    setValue('bookDesc', book.description || '');
+    setValue('bookCopies', Number.isFinite(Number(book.copies)) ? Number(book.copies) : 0);
+    const available = document.getElementById('bookAvailable');
+    if (available) available.checked = Boolean(book.available);
+    const preview = document.getElementById('imagePreview');
+    if (preview) {
+        preview.innerHTML = state.coverDataUrl
+            ? `<img src="${state.coverDataUrl}" class="preview-img" alt="preview"><span>✅ Обложка выбрана</span>`
+            : '🖼️ Обложка не выбрана';
+    }
+    const clearCoverBtn = document.getElementById('clearBookCoverBtn');
+    clearCoverBtn?.classList.toggle('hidden', !state.coverDataUrl);
+    setBookModalMode('edit');
+    closeModal('#viewModal');
+    openModal('#bookModal');
+}
+
 function resetBookForm() {
     $('#bookForm')?.reset();
+    state.editingBookId = null;
     state.coverDataUrl = null;
+    setBookModalMode('create');
     const preview = $('#imagePreview');
     if (preview) preview.innerHTML = '🖼️ Обложка не выбрана';
+    $('#clearBookCoverBtn')?.classList.add('hidden');
     const copies = $('#bookCopies');
     if (copies) copies.value = 1;
     const available = $('#bookAvailable');
@@ -1274,8 +1424,8 @@ function applyProfileAvatar() {
     const profileAvatar = document.getElementById('profileAvatar');
     const pill = document.getElementById('currentUserPill');
     const session = getSession();
-    const label = session?.guest ? 'Гостевой режим' : (session?.username || 'Пользователь');
-    const defaultIcon = session?.guest ? '👀' : '👤';
+    const label = getRoleLabel();
+    const defaultIcon = session?.guest ? '👀' : (isAdmin() ? '🛡️' : '👤');
     const icon = avatar || defaultIcon;
     if (profileAvatar) {
         if (icon.startsWith('data:image')) profileAvatar.innerHTML = `<img src="${icon}" alt="avatar">`;
@@ -1330,15 +1480,20 @@ function setupProfileModal() {
     const refreshProfile = () => {
         let session = null;
         try { session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch (e) {}
+        const role = getRole();
         const name = session?.guest ? 'Гость' : (session?.username || 'Пользователь');
-        const isGuestMode = Boolean(session?.guest);
+        const isGuestMode = role === 'guest';
         const books = Array.isArray(state.books) ? state.books : [];
         const available = books.filter(book => book.available).length;
         const comments = books.reduce((sum, book) => sum + (book.comments?.length || 0), 0);
         document.getElementById('profileName') && (document.getElementById('profileName').textContent = name);
         applyProfileAvatar();
         const badge = document.getElementById('profileModeBadge');
-        if (badge) { badge.textContent = isGuestMode ? 'Гостевой режим' : 'Аккаунт администратора'; badge.classList.toggle('guest', isGuestMode); }
+        if (badge) {
+            badge.textContent = role === 'admin' ? 'Аккаунт администратора' : role === 'user' ? 'Аккаунт пользователя' : 'Гостевой режим';
+            badge.classList.toggle('guest', isGuestMode);
+            badge.classList.toggle('user', role === 'user');
+        }
         document.getElementById('profileBooksCount') && (document.getElementById('profileBooksCount').textContent = books.length);
         document.getElementById('profileAvailableCount') && (document.getElementById('profileAvailableCount').textContent = available);
         document.getElementById('profileCommentsCount') && (document.getElementById('profileCommentsCount').textContent = comments);
@@ -1348,7 +1503,7 @@ function setupProfileModal() {
     closeBtn?.addEventListener('click', () => closeModal('#profileModal'));
     modal?.addEventListener('click', e => { if (e.target.id === 'profileModal') closeModal('#profileModal'); });
     statsBtn?.addEventListener('click', () => { window.location.href = 'stats.html'; });
-    logoutBtn?.addEventListener('click', () => { localStorage.removeItem(SESSION_KEY); window.location.href = 'index.html'; });
+    logoutBtn?.addEventListener('click', () => { clearAuthSession(); window.location.href = 'index.html'; });
     avatarInput?.addEventListener('change', (e) => {
         const file = e.target.files?.[0];
         if (!file || !file.type.startsWith('image/')) return;
@@ -1466,12 +1621,31 @@ function setupTheme() {
 }
 
 function setupGuestMode() {
-    if (!isGuest()) return;
-    document.body.classList.add('guest-mode');
-    $('#openModalBtn')?.setAttribute('disabled', 'disabled');
-    $('#openAddBookBtnHero')?.setAttribute('disabled', 'disabled');
+    const role = getRole();
+    document.body.classList.remove('guest-mode', 'role-guest', 'role-user', 'role-admin');
+    document.body.classList.add(`role-${role}`);
+    if (role === 'guest') document.body.classList.add('guest-mode');
+
+    const manage = canManageBooks();
+    ['#openModalBtn', '#openAddBookBtnHero'].forEach(selector => {
+        const btn = $(selector);
+        if (!btn) return;
+        btn.hidden = !manage;
+        btn.disabled = !manage;
+        btn.classList.toggle('hidden', !manage);
+        btn.setAttribute('aria-hidden', String(!manage));
+    });
+
     const header = $('.header-actions');
-    if (header && !$('.guest-banner')) header.insertAdjacentHTML('afterbegin', '<span class="guest-banner">👀 Гость: доступен просмотр, поиск и фильтры</span>');
+    const oldBanner = $('.role-banner, .guest-banner');
+    oldBanner?.remove();
+    const bannerText = role === 'admin'
+        ? '🛡️ Админ: управление книгами'
+        : role === 'user'
+            ? '👤 Пользователь: просмотр и комментарии'
+            : '👀 Гость: просмотр, поиск и фильтры';
+    if (header) header.insertAdjacentHTML('afterbegin', `<span class="role-banner ${role}">${bannerText}</span>`);
+    updateAdminPanel();
 }
 
 function setupHeroWow() {
@@ -1502,12 +1676,17 @@ function setupHeroWow() {
 function init() {
     const session = getSession();
     if (!session) { window.location.href = 'index.html'; return; }
+    if (isGuest()) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        currentToken = null;
+    }
     const pill = $('#currentUserPill');
-    if (pill) pill.textContent = session.guest ? '👀 Гостевой режим' : `👤 ${session.username || 'Пользователь'}`;
+    if (pill) pill.textContent = getRoleLabel();
 
     loadBooks();
     const token = localStorage.getItem('token');
-if (token) currentToken = token;
+    if (token && !isGuest()) currentToken = token;
     updateDashboard();
     setupGuestMode();
     setupTheme();
@@ -1522,23 +1701,44 @@ if (token) currentToken = token;
     const menu = $('#navMenu'), menuBtn = $('#menuIcon');
     menuBtn?.addEventListener('click', () => { menu?.classList.toggle('active'); menuBtn.classList.toggle('active'); document.body.classList.toggle('lock'); });
 
-    $('#logoutBtn')?.addEventListener('click', (e) => { e.preventDefault(); localStorage.removeItem(SESSION_KEY); window.location.href = 'index.html'; });
-    $('#openModalBtn')?.addEventListener('click', () => !isGuest() && openModal('#bookModal'));
-    $('#openAddBookBtnHero')?.addEventListener('click', () => !isGuest() && openModal('#bookModal'));
+    $('#logoutBtn')?.addEventListener('click', (e) => { e.preventDefault(); clearAuthSession(); window.location.href = 'index.html'; });
+    $('#openModalBtn')?.addEventListener('click', openAddBookModal);
+    $('#openAddBookBtnHero')?.addEventListener('click', openAddBookModal);
+    $('#adminAddBookBtn')?.addEventListener('click', openAddBookModal);
     $('#closeModalBtn')?.addEventListener('click', () => { closeModal('#bookModal'); resetBookForm(); });
     $('#bookModal')?.addEventListener('click', e => { if (e.target.id === 'bookModal') { closeModal('#bookModal'); resetBookForm(); } });
     $('#closeViewBtn')?.addEventListener('click', () => closeModal('#viewModal'));
     $('#viewModal')?.addEventListener('click', e => { if (e.target.id === 'viewModal') closeModal('#viewModal'); });
+    $('#editBookBtn')?.addEventListener('click', () => openBookEditor(state.activeBookId));
     $('#bookForm')?.addEventListener('submit', addBook);
 
     $('#bookCoverInput')?.addEventListener('change', (e) => {
         const file = e.target.files[0];
         const preview = $('#imagePreview');
-        if (!file) { state.coverDataUrl = null; if (preview) preview.innerHTML = '🖼️ Обложка не выбрана'; return; }
+        const clearCoverBtn = $('#clearBookCoverBtn');
+        if (!file) {
+            state.coverDataUrl = state.editingBookId ? state.coverDataUrl : null;
+            clearCoverBtn?.classList.toggle('hidden', !state.coverDataUrl);
+            if (preview && !state.coverDataUrl) preview.innerHTML = '🖼️ Обложка не выбрана';
+            return;
+        }
         if (!file.type.startsWith('image/')) { notify('Выберите изображение', 'error'); return; }
         const reader = new FileReader();
-        reader.onload = () => { state.coverDataUrl = reader.result; if (preview) preview.innerHTML = `<img src="${reader.result}" class="preview-img" alt="preview"><span>✅ Обложка готова</span>`; };
+        reader.onload = () => {
+            state.coverDataUrl = reader.result;
+            clearCoverBtn?.classList.remove('hidden');
+            if (preview) preview.innerHTML = `<img src="${reader.result}" class="preview-img" alt="preview"><span>✅ Обложка готова</span>`;
+        };
         reader.readAsDataURL(file);
+    });
+
+    $('#clearBookCoverBtn')?.addEventListener('click', () => {
+        state.coverDataUrl = '';
+        const input = $('#bookCoverInput');
+        if (input) input.value = '';
+        const preview = $('#imagePreview');
+        if (preview) preview.innerHTML = '🖼️ Обложка убрана';
+        $('#clearBookCoverBtn')?.classList.add('hidden');
     });
 
     $('#bookAvailable')?.addEventListener('change', () => {

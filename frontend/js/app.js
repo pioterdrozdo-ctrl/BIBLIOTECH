@@ -45,7 +45,7 @@ async function login() {
 
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem(SESSION_KEY, JSON.stringify({ username: data.user.username, role: data.user.role }));
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ id: data.user.id, username: data.user.username, role: data.user.role }));
 
         window.location.href = 'home.html';
     } catch (err) {
@@ -88,7 +88,7 @@ async function register() {
 
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem(SESSION_KEY, JSON.stringify({ username: data.user.username, role: data.user.role }));
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ id: data.user.id, username: data.user.username, role: data.user.role }));
 
         successDiv.textContent = 'Регистрация успешна!';
         setTimeout(() => window.location.href = 'home.html', 700);
@@ -99,6 +99,8 @@ async function register() {
 }
 
 function guestLogin() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     localStorage.setItem(SESSION_KEY, JSON.stringify({ username: 'Гость', role: 'guest', guest: true }));
     window.location.href = 'home.html';
 }

@@ -144,6 +144,24 @@
             <button class="add-book-btn" id="openModalBtn">+ Добавить книгу</button>
         </div>
     </div>
+    <section class="admin-panel hidden" id="adminPanel" hidden>
+        <div class="admin-panel-head">
+            <div>
+                <span class="admin-eyebrow">Админ-панель</span>
+                <h2>Управление каталогом</h2>
+            </div>
+            <div class="admin-panel-actions">
+                <button type="button" id="adminAddBookBtn">+ Новая книга</button>
+                <a href="stats.html">Статистика</a>
+            </div>
+        </div>
+        <div class="admin-panel-grid">
+            <div class="admin-metric"><span>Книг</span><b id="adminTotalBooks">0</b></div>
+            <div class="admin-metric"><span>В наличии</span><b id="adminAvailableBooks">0</b></div>
+            <div class="admin-metric"><span>Экземпляров</span><b id="adminTotalCopies">0</b></div>
+            <div class="admin-metric"><span>Комментариев</span><b id="adminTotalComments">0</b></div>
+        </div>
+    </section>
     <div class="search-sort-panel premium-search-panel">
         <div class="search-box premium-search-box">
             <label>🔍 Умный поиск</label>
@@ -207,6 +225,7 @@
                 <label>Обложка (загрузите изображение)</label>
                 <input type="file" id="bookCoverInput" accept="image/jpeg,image/png,image/webp,image/gif">
                 <div id="imagePreview" class="image-preview-area">🖼️ Обложка не выбрана</div>
+                <button type="button" class="clear-cover-btn hidden" id="clearBookCoverBtn">Убрать обложку</button>
             </div>
             <div class="form-group">
                 <label>Наличие</label>
@@ -250,6 +269,7 @@
                         <h2 class="view-title" id="viewTitle"></h2>
                         <p class="view-description" id="viewDescription"></p>
                     </div>
+                    <button class="admin-edit-book-btn hidden" id="editBookBtn" type="button">✎ Редактировать</button>
                 </div>
                 <div class="detail-grid">
                     <div class="detail-cell"><span class="book-author-label">Автор</span><b id="viewAuthorValue">—</b></div>
