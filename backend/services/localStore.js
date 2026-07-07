@@ -95,11 +95,12 @@ function seedBooks() {
 
 function createInitialStore() {
     return {
-        counters: { users: 1, books: 6, comments: 1 },
+        counters: { users: 1, books: 6, comments: 1, password_resets: 0 },
         users: [
             {
                 id: 1,
                 username: 'admin',
+                email: 'admin@bibliotech.local',
                 password_hash: hashPassword('GreenScreen'),
                 role: 'admin',
                 created_at: now(),
@@ -107,6 +108,7 @@ function createInitialStore() {
             }
         ],
         books: seedBooks(),
+        password_resets: [],
         comments: [
             {
                 id: 1,
@@ -129,7 +131,11 @@ function ensureStore() {
 
 function readStore() {
     ensureStore();
-    return JSON.parse(fs.readFileSync(STORE_FILE, 'utf8'));
+    const store = JSON.parse(fs.readFileSync(STORE_FILE, 'utf8'));
+    if (!store.counters) store.counters = {};
+    if (!Array.isArray(store.password_resets)) store.password_resets = [];
+    store.users = (store.users || []).map(user => ({ email: null, ...user }));
+    return store;
 }
 
 function writeStore(store) {
@@ -138,7 +144,7 @@ function writeStore(store) {
 }
 
 function publicUser(user) {
-    return { id: user.id, username: user.username, role: user.role };
+    return { id: user.id, username: user.username, email: user.email || null, role: user.role };
 }
 
 function nextId(store, key) {
@@ -217,7 +223,7 @@ function getBook(id) {
     return normalizeBook(book, store.comments.filter(comment => Number(comment.book_id) === Number(book.id)));
 }
 
-function createUser(username, password) {
+function createUser(username, password, email) {
     const store = readStore();
     const exists = store.users.some(user => user.username.toLowerCase() === String(username).toLowerCase());
     if (exists) {
@@ -225,10 +231,18 @@ function createUser(username, password) {
         error.code = 'DUPLICATE_USER';
         throw error;
     }
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const emailExists = store.users.some(user => user.email && user.email.toLowerCase() === normalizedEmail);
+    if (emailExists) {
+        const error = new Error('Email already exists');
+        error.code = 'DUPLICATE_EMAIL';
+        throw error;
+    }
 
     const user = {
         id: nextId(store, 'users'),
         username,
+        email: normalizedEmail,
         password_hash: hashPassword(password),
         role: 'user',
         created_at: now(),
@@ -244,6 +258,70 @@ function authenticateUser(username, password) {
     const store = readStore();
     const user = store.users.find(item => item.username.toLowerCase() === String(username).toLowerCase());
     if (!user || !verifyPassword(password, user.password_hash)) return null;
+    return publicUser(user);
+}
+
+function listUsersForAdmin() {
+    const store = readStore();
+    return store.users
+        .slice()
+        .sort((a, b) => Number(a.id) - Number(b.id))
+        .map(user => ({
+            id: user.id,
+            username: user.username,
+            email: user.email || null,
+            role: user.role,
+            created_at: user.created_at,
+            updated_at: user.updated_at,
+            password_set: Boolean(user.password_hash),
+            password_status: 'hidden_hash'
+        }));
+}
+
+function createPasswordReset(email) {
+    const store = readStore();
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const user = store.users.find(item => item.email && item.email.toLowerCase() === normalizedEmail);
+    if (!user) return null;
+
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    store.password_resets = store.password_resets.filter(token => Number(token.user_id) !== Number(user.id) || token.used_at);
+    store.password_resets.push({
+        id: nextId(store, 'password_resets'),
+        user_id: user.id,
+        code_hash: hashPassword(code),
+        expires_at: expiresAt,
+        used_at: null,
+        created_at: now()
+    });
+    writeStore(store);
+    return { user: publicUser(user), code };
+}
+
+function resetPasswordWithCode(email, code, password) {
+    const store = readStore();
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const user = store.users.find(item => item.email && item.email.toLowerCase() === normalizedEmail);
+    if (!user) {
+        const error = new Error('Invalid reset');
+        error.code = 'INVALID_RESET';
+        throw error;
+    }
+
+    const token = store.password_resets
+        .filter(item => Number(item.user_id) === Number(user.id) && !item.used_at && new Date(item.expires_at) > new Date())
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+    if (!token || !verifyPassword(String(code || '').trim(), token.code_hash)) {
+        const error = new Error('Invalid reset');
+        error.code = 'INVALID_RESET';
+        throw error;
+    }
+
+    user.password_hash = hashPassword(password);
+    user.updated_at = now();
+    token.used_at = now();
+    writeStore(store);
     return publicUser(user);
 }
 
@@ -369,6 +447,9 @@ module.exports = {
     STORE_FILE,
     createUser,
     authenticateUser,
+    listUsersForAdmin,
+    createPasswordReset,
+    resetPasswordWithCode,
     getBooks,
     getBook,
     addBook,

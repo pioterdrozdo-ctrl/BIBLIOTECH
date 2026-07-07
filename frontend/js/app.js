@@ -23,12 +23,15 @@ function switchTab(tab) {
     if (tab === 'login') {
         document.querySelector('.tab:first-child').classList.add('active');
         document.getElementById('loginForm').classList.add('active');
-    } else {
-        document.querySelector('.tab:last-child').classList.add('active');
+    } else if (tab === 'register') {
+        document.querySelector('.tabs .tab:nth-child(2)').classList.add('active');
         document.getElementById('registerForm').classList.add('active');
+    } else {
+        document.querySelector('.tabs .tab:nth-child(3)').classList.add('active');
+        document.getElementById('resetForm').classList.add('active');
     }
 
-    ['loginError', 'regError', 'regSuccess'].forEach(id => {
+    ['loginError', 'regError', 'regSuccess', 'resetInfo', 'resetError'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.textContent = '';
     });
@@ -60,7 +63,7 @@ async function login() {
 
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem(SESSION_KEY, JSON.stringify({ id: data.user.id, username: data.user.username, role: data.user.role }));
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ id: data.user.id, username: data.user.username, email: data.user.email, role: data.user.role }));
 
         window.location.href = getPostLoginUrl();
     } catch (err) {
@@ -71,6 +74,7 @@ async function login() {
 
 async function register() {
     const username = document.getElementById('regUsername').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
     const password = document.getElementById('regPassword').value;
     const errorDiv = document.getElementById('regError');
     const successDiv = document.getElementById('regSuccess');
@@ -78,7 +82,7 @@ async function register() {
     errorDiv.textContent = '';
     successDiv.textContent = '';
 
-    if (!username || !password) {
+    if (!username || !email || !password) {
         errorDiv.textContent = 'Заполните все поля';
         return;
     }
@@ -92,7 +96,7 @@ async function register() {
         const response = await fetch(`${API_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username, email, password })
         });
 
         const data = await response.json();
@@ -103,10 +107,77 @@ async function register() {
 
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem(SESSION_KEY, JSON.stringify({ id: data.user.id, username: data.user.username, role: data.user.role }));
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ id: data.user.id, username: data.user.username, email: data.user.email, role: data.user.role }));
 
         successDiv.textContent = 'Регистрация успешна!';
         setTimeout(() => window.location.href = getPostLoginUrl(), 700);
+    } catch (err) {
+        errorDiv.textContent = 'Ошибка соединения с сервером';
+        console.error(err);
+    }
+}
+
+async function requestPasswordReset() {
+    const email = document.getElementById('resetEmail').value.trim();
+    const infoDiv = document.getElementById('resetInfo');
+    const errorDiv = document.getElementById('resetError');
+    infoDiv.textContent = '';
+    errorDiv.textContent = '';
+    if (!email) {
+        errorDiv.textContent = 'Введите почту аккаунта';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/auth/password-reset/request`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            errorDiv.textContent = data.error || 'Не удалось отправить код';
+            return;
+        }
+        infoDiv.textContent = data.devCode
+            ? `Код восстановления: ${data.devCode}`
+            : 'Если почта найдена, код отправлен.';
+    } catch (err) {
+        errorDiv.textContent = 'Ошибка соединения с сервером';
+        console.error(err);
+    }
+}
+
+async function confirmPasswordReset() {
+    const email = document.getElementById('resetEmail').value.trim();
+    const code = document.getElementById('resetCode').value.trim();
+    const password = document.getElementById('resetPassword').value;
+    const infoDiv = document.getElementById('resetInfo');
+    const errorDiv = document.getElementById('resetError');
+    infoDiv.textContent = '';
+    errorDiv.textContent = '';
+    if (!email || !code || !password) {
+        errorDiv.textContent = 'Введите почту, код и новый пароль';
+        return;
+    }
+    if (password.length < 4) {
+        errorDiv.textContent = 'Пароль должен быть минимум 4 символа';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/auth/password-reset/confirm`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, code, password })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            errorDiv.textContent = data.error || 'Код неверный или истек';
+            return;
+        }
+        infoDiv.textContent = 'Пароль обновлен. Теперь можно войти.';
+        setTimeout(() => switchTab('login'), 900);
     } catch (err) {
         errorDiv.textContent = 'Ошибка соединения с сервером';
         console.error(err);
@@ -211,6 +282,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const loginPassword = document.getElementById('loginPassword');
     const regPassword = document.getElementById('regPassword');
+    const resetPassword = document.getElementById('resetPassword');
     if (loginPassword) loginPassword.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
     if (regPassword) regPassword.addEventListener('keydown', e => { if (e.key === 'Enter') register(); });
+    if (resetPassword) resetPassword.addEventListener('keydown', e => { if (e.key === 'Enter') confirmPasswordReset(); });
 });

@@ -29,6 +29,7 @@
                         <li><a href="home.html#top">Главная</a></li>
                         <li class="active"><a href="stats.html">Статистика</a></li>
                         <li><a href="about.html">О нас</a></li>
+                        <li class="admin-nav-item hidden"><a href="admin.html">Админ</a></li>
                         <li class="nav-language-item">
                             <div class="language-switcher" id="languageSwitcher">
                                 <button class="language-current" id="langToggleBtn" type="button" aria-label="Выбрать язык">
@@ -141,6 +142,17 @@
                 <span id="profileModeBadge" class="profile-mode-badge">Аккаунт</span>
             </div>
         </div>
+        <div class="profile-access-panel">
+            <div class="profile-access-title">
+                <span id="profileRoleIcon">👤</span>
+                <b id="profileAccessTitle">Читательский доступ</b>
+            </div>
+            <div class="profile-permission-grid">
+                <span id="profilePermissionOne">Каталог</span>
+                <span id="profilePermissionTwo">Комментарии</span>
+                <span id="profilePermissionThree">Темы</span>
+            </div>
+        </div>
         <div class="profile-grid">
             <div class="profile-stat-card"><b id="profileBooksCount">0</b><span>книг в каталоге</span></div>
             <div class="profile-stat-card"><b id="profileAvailableCount">0</b><span>в наличии</span></div>
@@ -207,13 +219,12 @@
             </div>
         </div>
         <div class="profile-actions">
-            <button id="profileGoStatsBtn" type="button">📊 Открыть статистику</button>
             <button id="profileLogoutBtn" type="button">🚪 Выйти</button>
         </div>
     </div>
 </div>
 
-    <footer>📊 Статистика обновляется по данным вашего каталога.</footer>
+    <footer>© 2026 BIBLIOTECH. Все права защищены.</footer>
     <button class="floating-theme-toggle" id="floatingThemeToggle" title="Тёмная тема">🌙</button>
 </div>
 <script>

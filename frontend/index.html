@@ -23,6 +23,7 @@
         <div class="tabs">
             <button class="tab active" onclick="switchTab('login')">Вход</button>
             <button class="tab" onclick="switchTab('register')">Регистрация</button>
+            <button class="tab" onclick="switchTab('reset')">Восстановить</button>
         </div>
 
         <div id="loginForm" class="form active">
@@ -30,15 +31,27 @@
             <input type="password" id="loginPassword" placeholder="Пароль">
             <button onclick="login()">Войти</button>
             <button class="guest-btn" onclick="guestLogin()">Войти как гость</button>
+            <button class="auth-link-btn" onclick="switchTab('reset')" type="button">Забыли пароль?</button>
             <div id="loginError" class="error"></div>
         </div>
 
         <div id="registerForm" class="form">
             <input type="text" id="regUsername" placeholder="Имя пользователя">
+            <input type="email" id="regEmail" placeholder="Почта для восстановления">
             <input type="password" id="regPassword" placeholder="Пароль (мин. 4 символа)">
             <button onclick="register()">Зарегистрироваться</button>
             <div id="regError" class="error"></div>
             <div id="regSuccess" class="success"></div>
+        </div>
+
+        <div id="resetForm" class="form">
+            <input type="email" id="resetEmail" placeholder="Почта аккаунта">
+            <button onclick="requestPasswordReset()">Отправить код</button>
+            <input type="text" id="resetCode" inputmode="numeric" placeholder="Код из письма">
+            <input type="password" id="resetPassword" placeholder="Новый пароль">
+            <button onclick="confirmPasswordReset()">Сменить пароль</button>
+            <div id="resetInfo" class="success"></div>
+            <div id="resetError" class="error"></div>
         </div>
     </div>
 

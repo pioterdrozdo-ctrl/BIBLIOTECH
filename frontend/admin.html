@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <link rel="icon" href="img/appicon-light.png" type="image/png">
+    <link rel="apple-touch-icon" href="img/appicon.png">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#f5f2ec">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="BIBLIOTECH">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <script src="js/theme-bootstrap.js"></script>
+    <title>Админ | BIBLIOTECH</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin-page">
+<div class="wrapper">
+    <header>
+        <div class="container">
+            <div class="header-inner">
+                <div class="NAHODKI brand-logo"><img src="img/appicon.png" alt="BIBLIOTECH logo"><span>BIBLIOTECH</span></div>
+                <div class="menu_icon" id="menuIcon"><span></span><span></span><span></span></div>
+                <nav id="navMenu">
+                    <ul>
+                        <li><a href="home.html#top">Главная</a></li>
+                        <li><a href="stats.html">Статистика</a></li>
+                        <li><a href="about.html">О нас</a></li>
+                        <li class="admin-nav-item active"><a href="admin.html">Админ</a></li>
+                        <li><button class="user-pill profile-pill" id="currentUserPill" type="button">Админ</button></li>
+                        <li class="btn"><a href="#" id="logoutBtn">Выйти</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="admin-main">
+        <section class="admin-hero">
+            <div class="container">
+                <span class="eyebrow">Панель администратора</span>
+                <h1>Пользователи BIBLIOTECH</h1>
+                <p>Здесь видно аккаунты, роли и почты для восстановления. Пароли не раскрываются: они хранятся как защищенные хэши.</p>
+            </div>
+        </section>
+
+        <section class="container admin-users-panel">
+            <div class="admin-users-head">
+                <div>
+                    <h2>Таблица пользователей</h2>
+                    <p id="adminUsersSummary">Загрузка...</p>
+                </div>
+                <button type="button" id="refreshUsersBtn">Обновить</button>
+            </div>
+            <div class="admin-table-shell">
+                <table class="admin-users-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Логин</th>
+                            <th>Почта</th>
+                            <th>Роль</th>
+                            <th>Пароль</th>
+                            <th>Создан</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminUsersTableBody">
+                        <tr><td colspan="6">Загрузка...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>© 2026 BIBLIOTECH. Все права защищены.</footer>
+</div>
+
+<script src="js/admin.js"></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>

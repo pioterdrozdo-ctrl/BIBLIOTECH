@@ -2,11 +2,21 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     avatar TEXT,
     role VARCHAR(20) DEFAULT 'user',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    code_hash VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Таблица книг
@@ -40,6 +50,7 @@ CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);
 CREATE INDEX IF NOT EXISTS idx_books_available ON books(available);
 CREATE INDEX IF NOT EXISTS idx_books_qr_code ON books(qr_code);
 CREATE INDEX IF NOT EXISTS idx_comments_book_id ON comments(book_id);
+CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique_idx ON users (LOWER(email)) WHERE email IS NOT NULL;
 
 -- Триггер для updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -59,8 +70,8 @@ CREATE TRIGGER update_books_updated_at BEFORE UPDATE ON books
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Добавление администратора (пароль: GreenScreen, правильный хэш)
-INSERT INTO users (username, password_hash, role) 
-VALUES ('admin', '$2b$10$CwTycUXWue0Thq9StjUM0uJ.pG9sWwB6pTfZXh7eQvJZQeUzP9iFq', 'admin')
+INSERT INTO users (username, email, password_hash, role)
+VALUES ('admin', 'admin@bibliotech.local', '$2b$10$CwTycUXWue0Thq9StjUM0uJ.pG9sWwB6pTfZXh7eQvJZQeUzP9iFq', 'admin')
 ON CONFLICT (username) DO NOTHING;
 
 -- Добавление демо-книг

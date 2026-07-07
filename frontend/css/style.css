@@ -2017,6 +2017,115 @@ footer {
     text-align: center;
 }
 
+.admin-main {
+    padding-bottom: 56px;
+}
+
+.admin-hero {
+    padding: clamp(34px, 6vw, 68px) 0 22px;
+}
+
+.admin-hero h1 {
+    max-width: 860px;
+}
+
+.admin-hero p {
+    max-width: 760px;
+    color: var(--muted);
+}
+
+.admin-users-panel {
+    display: grid;
+    gap: 14px;
+}
+
+.admin-users-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+}
+
+.admin-users-head h2 {
+    margin: 0;
+}
+
+.admin-users-head p {
+    margin: 6px 0 0;
+    color: var(--muted);
+}
+
+#refreshUsersBtn {
+    min-height: 40px;
+    padding: 9px 12px;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.admin-table-shell {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+}
+
+.admin-users-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+}
+
+.admin-users-table th,
+.admin-users-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.admin-users-table th {
+    color: var(--muted);
+    background: var(--surface-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.admin-users-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.admin-role-badge,
+.password-safe {
+    min-height: 28px;
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: var(--surface-muted);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.admin-role-badge.admin {
+    background: var(--ok-soft);
+    color: var(--ok);
+}
+
+.password-safe {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
 .stats-main,
 .about-main {
     padding-bottom: 56px;
@@ -2533,6 +2642,15 @@ footer {
 
     .theme-settings-head {
         flex-direction: column;
+    }
+
+    .admin-users-head {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    #refreshUsersBtn {
+        width: 100%;
     }
 
     .admin-panel-head,

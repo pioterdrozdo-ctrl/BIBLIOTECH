@@ -32,10 +32,10 @@ async function apiRequest(endpoint, options = {}) {
 }
 
 // Auth API
-async function register(username, password) {
+async function register(username, password, email) {
     const data = await apiRequest('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, email }),
     });
     if (data.token) {
         localStorage.setItem('token', data.token);

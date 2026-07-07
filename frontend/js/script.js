@@ -815,49 +815,49 @@ const I18N = {
     ru: {
         title: '📚 Книжный шкаф', subtitle: 'Каталог с фильтрами, поиском и комментариями', add: '+ Добавить книгу',
         searchLabel: '🔍 Умный поиск', searchPlaceholder: 'Название, автор, описание или комментарий...', sort: 'Лучшее совпадение', filters: 'Фильтры', qr: '▣ Сканировать QR',
-        all: '📚 Все', available: '✅ В наличии', unavailable: '❌ Нет в наличии', footer: '✨ Нажмите на книгу — откроется окно с описанием и комментариями.',
+        all: '📚 Все', available: '✅ В наличии', unavailable: '❌ Нет в наличии', footer: '© 2026 BIBLIOTECH. Все права защищены.',
         voiceKicker: 'Голосовой поиск', voiceStatus: 'Готов к прослушиванию', voiceText: 'Скажите название книги, автора или тему', voiceHint: 'Нажмите «Разрешить», если браузер запросит доступ',
         qrTitle: '▣ Сканер QR-кода', qrText: 'Наведите камеру на QR-код книги — каталог сам откроет нужную карточку или выполнит поиск.', qrStart: 'Включить камеру', qrStop: 'Остановить', qrManual: 'Или вставьте текст из QR вручную', qrFind: 'Найти'
     },
     en: {
         title: '📚 Bookshelf', subtitle: 'Catalog with filters, search and comments', add: '+ Add book',
         searchLabel: '🔍 Smart search', searchPlaceholder: 'Title, author, description or comment...', sort: 'Best match', filters: 'Filters', qr: '▣ Scan QR',
-        all: '📚 All', available: '✅ Available', unavailable: '❌ Unavailable', footer: '✨ Click a book to open details and comments.',
+        all: '📚 All', available: '✅ Available', unavailable: '❌ Unavailable', footer: '© 2026 BIBLIOTECH. All rights reserved.',
         voiceKicker: 'Voice search', voiceStatus: 'Ready to listen', voiceText: 'Say a book title, author or topic', voiceHint: 'Allow microphone access if the browser asks',
         qrTitle: '▣ QR scanner', qrText: 'Point the camera at a book QR code — the catalog will open it or search for it.', qrStart: 'Start camera', qrStop: 'Stop', qrManual: 'Or paste QR text manually', qrFind: 'Find'
     },
     uk: {
         title: '📚 Книжкова шафа', subtitle: 'Каталог з фільтрами, пошуком і коментарями', add: '+ Додати книгу',
         searchLabel: '🔍 Розумний пошук', searchPlaceholder: 'Назва, автор, опис або коментар...', sort: 'Найкращий збіг', filters: 'Фільтри', qr: '▣ Сканувати QR',
-        all: '📚 Усі', available: '✅ Є в наявності', unavailable: '❌ Немає', footer: '✨ Натисніть на книгу — відкриються опис і коментарі.',
+        all: '📚 Усі', available: '✅ Є в наявності', unavailable: '❌ Немає', footer: '© 2026 BIBLIOTECH. Усі права захищено.',
         voiceKicker: 'Голосовий пошук', voiceStatus: 'Готово до прослуховування', voiceText: 'Скажіть назву книги, автора або тему', voiceHint: 'Надайте доступ, якщо браузер попросить',
         qrTitle: '▣ QR-сканер', qrText: 'Наведіть камеру на QR-код книги — каталог відкриє її або виконає пошук.', qrStart: 'Увімкнути камеру', qrStop: 'Зупинити', qrManual: 'Або вставте текст QR вручну', qrFind: 'Знайти'
     },
     de: {
         title: '📚 Bücherregal', subtitle: 'Katalog mit Filtern, Suche und Kommentaren', add: '+ Buch hinzufügen',
         searchLabel: '🔍 Intelligente Suche', searchPlaceholder: 'Titel, Autor, Beschreibung oder Kommentar...', sort: 'Beste Übereinstimmung', filters: 'Filter', qr: '▣ QR scannen',
-        all: '📚 Alle', available: '✅ Verfügbar', unavailable: '❌ Nicht verfügbar', footer: '✨ Klicken Sie auf ein Buch, um Details und Kommentare zu öffnen.',
+        all: '📚 Alle', available: '✅ Verfügbar', unavailable: '❌ Nicht verfügbar', footer: '© 2026 BIBLIOTECH. Alle Rechte vorbehalten.',
         voiceKicker: 'Sprachsuche', voiceStatus: 'Bereit zum Zuhören', voiceText: 'Sagen Sie Titel, Autor oder Thema', voiceHint: 'Erlauben Sie Mikrofonzugriff, wenn der Browser fragt',
         qrTitle: '▣ QR-Scanner', qrText: 'Richten Sie die Kamera auf den QR-Code — der Katalog öffnet oder sucht das Buch.', qrStart: 'Kamera starten', qrStop: 'Stoppen', qrManual: 'Oder QR-Text manuell einfügen', qrFind: 'Suchen'
     },
     kk: {
         title: '📚 Кітап сөресі', subtitle: 'Сүзгілер, іздеу және пікірлер бар каталог', add: '+ Кітап қосу',
         searchLabel: '🔍 Ақылды іздеу', searchPlaceholder: 'Атауы, авторы, сипаттамасы немесе пікір...', sort: 'Ең жақсы сәйкестік', filters: 'Сүзгілер', qr: '▣ QR сканерлеу',
-        all: '📚 Барлығы', available: '✅ Бар', unavailable: '❌ Жоқ', footer: '✨ Кітапты бассаңыз, сипаттама мен пікірлер ашылады.',
+        all: '📚 Барлығы', available: '✅ Бар', unavailable: '❌ Жоқ', footer: '© 2026 BIBLIOTECH. Барлық құқықтар қорғалған.',
         voiceKicker: 'Дауыспен іздеу', voiceStatus: 'Тыңдауға дайын', voiceText: 'Кітап атауын, авторын немесе тақырыбын айтыңыз', voiceHint: 'Браузер сұраса, рұқсат беріңіз',
         qrTitle: '▣ QR сканері', qrText: 'Камераны QR-кодқа бағыттаңыз — каталог кітапты ашады немесе іздейді.', qrStart: 'Камераны қосу', qrStop: 'Тоқтату', qrManual: 'Немесе QR мәтінін қолмен енгізіңіз', qrFind: 'Табу'
     },
     es: {
         title: '📚 Estantería', subtitle: 'Catálogo con filtros, búsqueda y comentarios', add: '+ Añadir libro',
         searchLabel: '🔍 Búsqueda inteligente', searchPlaceholder: 'Título, autor, descripción o comentario...', sort: 'Mejor coincidencia', filters: 'Filtros', qr: '▣ Escanear QR',
-        all: '📚 Todo', available: '✅ Disponible', unavailable: '❌ No disponible', footer: '✨ Haz clic en un libro para ver la descripción y los comentarios.',
+        all: '📚 Todo', available: '✅ Disponible', unavailable: '❌ No disponible', footer: '© 2026 BIBLIOTECH. Todos los derechos reservados.',
         voiceKicker: 'Búsqueda por voz', voiceStatus: 'Listo para escuchar', voiceText: 'Di el título, autor o tema del libro', voiceHint: 'Permite el micrófono si el navegador lo solicita',
         qrTitle: '▣ Escáner QR', qrText: 'Apunta la cámara al QR del libro: el catálogo lo abrirá o lo buscará.', qrStart: 'Activar cámara', qrStop: 'Detener', qrManual: 'O pega el texto del QR manualmente', qrFind: 'Buscar'
     },
     zh: {
         title: '📚 书架', subtitle: '带筛选、搜索和评论的目录', add: '+ 添加图书',
         searchLabel: '🔍 智能搜索', searchPlaceholder: '书名、作者、描述或评论...', sort: '最佳匹配', filters: '筛选', qr: '▣ 扫描二维码',
-        all: '📚 全部', available: '✅ 可借', unavailable: '❌ 不可借', footer: '✨ 点击图书即可查看简介和评论。',
+        all: '📚 全部', available: '✅ 可借', unavailable: '❌ 不可借', footer: '© 2026 BIBLIOTECH. 保留所有权利。',
         voiceKicker: '语音搜索', voiceStatus: '准备聆听', voiceText: '说出书名、作者或主题', voiceHint: '如果浏览器请求权限，请允许麦克风',
         qrTitle: '▣ 二维码扫描器', qrText: '将摄像头对准图书二维码，目录会打开或搜索该书。', qrStart: '开启摄像头', qrStop: '停止', qrManual: '或手动粘贴二维码文本', qrFind: '查找'
     }
@@ -1741,6 +1741,7 @@ function setupGuestMode() {
         btn.classList.toggle('hidden', !manage);
         btn.setAttribute('aria-hidden', String(!manage));
     });
+    $$('.admin-nav-item').forEach(item => item.classList.toggle('hidden', !manage));
 
     const header = $('.header-actions');
     const oldBanner = $('.role-banner, .guest-banner');

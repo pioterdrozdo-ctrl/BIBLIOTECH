@@ -244,7 +244,7 @@ input {
 
 .tabs {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
     margin-bottom: 18px;
     padding: 4px;
@@ -323,6 +323,15 @@ input {
     border: 1px solid var(--border) !important;
     background: var(--accent-soft) !important;
     color: var(--text) !important;
+}
+
+.auth-link-btn {
+    min-height: 40px !important;
+    margin-top: 8px;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    color: var(--accent) !important;
+    box-shadow: none !important;
 }
 
 .demo-hint {
