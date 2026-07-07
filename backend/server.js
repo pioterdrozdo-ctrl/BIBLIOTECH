@@ -10,6 +10,7 @@ const authRoutes = require('./routes/auth');
 const bookRoutes = require('./routes/books');
 const commentRoutes = require('./routes/comments');
 const statsRoutes = require('./routes/stats');
+const catalogListRoutes = require('./routes/catalogList');
 const pool = require('./db/pool');
 
 const app = express();
@@ -91,12 +92,25 @@ app.get('/manifest.webmanifest', (req, res) => {
     res.send(JSON.stringify(buildManifest(themeName)));
 });
 
+app.get('/home.html', (req, res) => {
+    const htmlPath = path.join(frontendPath, 'home.html');
+    let html = fs.readFileSync(htmlPath, 'utf8');
+    html = html.replace(
+        /<script src="js\/script\.js(?:\?[^"]*)?"><\/script>/,
+        '<script src="js/script.js?v=20260707-2"></script>\n<script src="js/catalog-fix.js?v=20260707-2"></script>'
+    );
+    res.setHeader('Cache-Control', 'no-cache');
+    res.type('html');
+    res.send(html);
+});
+
 app.use(express.static(frontendPath, {
     extensions: ['html'],
     maxAge: isProduction ? '1h' : 0,
     setHeaders: (res, filePath) => {
+        const ext = path.extname(filePath);
         const fileName = path.basename(filePath);
-        if (fileName === 'sw.js' || fileName === 'manifest.webmanifest') {
+        if (['.html', '.js', '.css'].includes(ext) || fileName === 'sw.js' || fileName === 'manifest.webmanifest') {
             res.setHeader('Cache-Control', 'no-cache');
         }
         if (fileName === 'manifest.webmanifest') {
@@ -107,6 +121,7 @@ app.use(express.static(frontendPath, {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/books', catalogListRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/stats', statsRoutes);
@@ -123,10 +138,6 @@ app.get('/api/health', (req, res) => {
 // ОТДАЕМ HTML
 app.get('/', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
-});
-
-app.get('/home.html', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'home.html'));
 });
 
 app.get('/about.html', (req, res) => {

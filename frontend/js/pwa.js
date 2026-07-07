@@ -5,8 +5,12 @@
     if (!('serviceWorker' in navigator)) return;
 
     window.addEventListener('load', function () {
-        navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function (error) {
-            console.warn('[BIBLIOTECH] Service worker registration failed:', error);
-        });
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(function (registration) {
+                return registration.update();
+            })
+            .catch(function (error) {
+                console.warn('[BIBLIOTECH] Service worker registration failed:', error);
+            });
     });
 })();
