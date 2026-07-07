@@ -49,8 +49,6 @@ router.get('/', async (req, res, next) => {
                b.copies,
                b.available,
                b.created_at,
-               b.updated_at,
-               b.user_id,
                b.qr_code,
                COALESCE(json_agg(json_build_object('id', c.id, 'text', c.text, 'date', c.created_at, 'created_at', c.created_at, 'username', c.username, 'user_id', c.user_id))
                         FILTER (WHERE c.id IS NOT NULL), '[]') as comments
@@ -70,9 +68,9 @@ router.get('/', async (req, res, next) => {
 
     if (filter === 'available') conditions.push('b.available = true');
     if (filter === 'unavailable') conditions.push('b.available = false');
-    if (minCopies && parseInt(minCopies) > 0) {
+    if (minCopies && parseInt(minCopies, 10) > 0) {
         conditions.push(`b.copies >= $${paramCounter}`);
-        params.push(parseInt(minCopies));
+        params.push(parseInt(minCopies, 10));
         paramCounter++;
     }
 
