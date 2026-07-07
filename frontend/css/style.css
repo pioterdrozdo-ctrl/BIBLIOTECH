@@ -556,6 +556,7 @@ header nav li.btn a:hover,
     width: 74px;
     height: 74px;
     object-fit: contain;
+    border-radius: var(--radius);
 }
 
 .visual-card b {
@@ -1909,6 +1910,7 @@ footer {
     width: 132px;
     height: 132px;
     object-fit: contain;
+    border-radius: var(--radius);
 }
 
 .about-logo-showcase span {
@@ -2357,7 +2359,9 @@ header {
 }
 
 .brand-logo img,
-.auth-brand img {
+.auth-brand img,
+.logo-orb img,
+.about-logo-showcase img {
     filter: drop-shadow(0 14px 22px color-mix(in srgb, var(--accent) 28%, transparent));
 }
 

@@ -34,7 +34,7 @@
     document.body.classList.add('theme-' + theme);
     document.body.dataset.theme = theme;
     if (dark) document.body.classList.add('dark-theme');
-    document.querySelectorAll('.brand-logo img, .auth-brand img').forEach(function (img) {
+    document.querySelectorAll('.brand-logo img, .auth-brand img, .logo-orb img, .about-logo-showcase img').forEach(function (img) {
       img.src = iconPath;
     });
   });

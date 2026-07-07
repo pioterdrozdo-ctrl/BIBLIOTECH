@@ -131,7 +131,7 @@ function updateThemeIcon(theme) {
     setLink('icon', { 'type': 'image/png' });
     setLink('apple-touch-icon');
     setLink('manifest', {}, `/manifest.webmanifest?theme=${encodeURIComponent(normalized)}`);
-    document.querySelectorAll('.brand-logo img, .auth-brand img').forEach(img => {
+    document.querySelectorAll('.brand-logo img, .auth-brand img, .logo-orb img, .about-logo-showcase img').forEach(img => {
         img.src = iconPath;
         img.removeAttribute('srcset');
     });
