@@ -87,7 +87,7 @@
     if (isHomePage) {
         loadScript('js/profile-rentals.js?v=20260709-profile-rentals-1', '__bibliotechProfileRentalsLoading');
         loadScript('js/profile-security.js?v=20260709-profile-security-1', '__bibliotechProfileSecurityLoading');
-        loadScript('js/profile-compact.js?v=20260709-profile-compact-1', '__bibliotechProfileCompactLoading');
+        loadScript('js/profile-compact.js?v=20260709-profile-settings-modal-1', '__bibliotechProfileCompactLoading');
         loadScript('js/catalog-fix.js?v=20260709-cover-perf-1', '__bibliotechCatalogFixLoading');
     }
 
