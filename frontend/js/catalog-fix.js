@@ -21,6 +21,12 @@
             .trim();
     }
 
+    function cssEscape(value) {
+        const text = String(value || '');
+        if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(text);
+        return text.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    }
+
     function isDemo(book) {
         return demoKeys.has(`${norm(book.title)}::${norm(book.author)}`);
     }
@@ -67,7 +73,7 @@
 
     function setCardCover(book, coverDataURL) {
         if (!book || !coverDataURL) return;
-        const card = document.querySelector(`.book-card[data-id="${CSS.escape(String(book.id))}"]`);
+        const card = document.querySelector(`.book-card[data-id="${cssEscape(book.id)}"]`);
         const cover = card && card.querySelector('.book-cover');
         if (!cover) return;
 
@@ -100,7 +106,9 @@
                 const coverDataURL = getCoverDataURL(book);
                 if (book && coverDataURL) setCardCover(book, coverDataURL);
             })
-            .catch(() => {});
+            .catch(() => {
+                coverRequests.delete(bookId);
+            });
     }
 
     function forceCardCoverImages() {
