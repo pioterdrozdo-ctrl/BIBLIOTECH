@@ -170,14 +170,23 @@ async function requestPasswordReset() {
         });
         const data = await response.json();
         if (!response.ok) {
-            errorDiv.textContent = data.error || 'Не удалось отправить код';
+            showResetStep('email');
+            errorDiv.textContent = data.error || 'Не удалось отправить код на почту';
             return;
         }
-        showResetStep('code');
-        infoDiv.textContent = data.devCode
-            ? `Код восстановления: ${data.devCode}`
-            : 'Код отправлен. Проверьте почту и введите его ниже.';
+
+        if (data.emailSent || data.devCode) {
+            showResetStep('code');
+            infoDiv.textContent = data.devCode
+                ? `Код восстановления: ${data.devCode}`
+                : 'Код отправлен. Проверьте почту и введите его ниже.';
+            return;
+        }
+
+        showResetStep('email');
+        errorDiv.textContent = 'Письмо не отправлено: на сервере не настроена почта восстановления.';
     } catch (err) {
+        showResetStep('email');
         errorDiv.textContent = 'Ошибка соединения с сервером';
         console.error(err);
     }
