@@ -6,6 +6,16 @@
     var path = window.location.pathname || '';
     var isHomePage = /(^|\/)home\.html$/.test(path) || path === '/' || path === '';
     var isAdminPage = /(^|\/)admin\.html$/.test(path);
+    var isAuthPage = /(^|\/)index\.html$/.test(path) || path === '/';
+
+    function loadScript(src, key) {
+        if (window[key]) return;
+        window[key] = true;
+        var script = document.createElement('script');
+        script.src = src;
+        script.defer = true;
+        document.head.appendChild(script);
+    }
 
     function wireAdminProfileLink() {
         var pill = document.getElementById('currentUserPill');
@@ -61,6 +71,10 @@
         if (isHomePage) openPendingProfile();
     }
 
+    if (isAuthPage) {
+        loadScript('js/auth-2fa.js?v=20260709-2fa-login-1', '__bibliotechAuth2faLoading');
+    }
+
     if (isHomePage && !window.__bibliotechBookDetailPolishLoading) {
         window.__bibliotechBookDetailPolishLoading = true;
         var polishLink = document.createElement('link');
@@ -69,20 +83,10 @@
         document.head.appendChild(polishLink);
     }
 
-    if (isHomePage && !window.__bibliotechProfileRentalsLoading) {
-        window.__bibliotechProfileRentalsLoading = true;
-        var rentalsScript = document.createElement('script');
-        rentalsScript.src = 'js/profile-rentals.js?v=20260709-profile-rentals-1';
-        rentalsScript.defer = true;
-        document.head.appendChild(rentalsScript);
-    }
-
-    if (isHomePage && !window.__bibliotechCatalogFixLoading) {
-        window.__bibliotechCatalogFixLoading = true;
-        var script = document.createElement('script');
-        script.src = 'js/catalog-fix.js?v=20260709-cover-perf-1';
-        script.defer = true;
-        document.head.appendChild(script);
+    if (isHomePage) {
+        loadScript('js/profile-rentals.js?v=20260709-profile-rentals-1', '__bibliotechProfileRentalsLoading');
+        loadScript('js/profile-security.js?v=20260709-profile-security-1', '__bibliotechProfileSecurityLoading');
+        loadScript('js/catalog-fix.js?v=20260709-cover-perf-1', '__bibliotechCatalogFixLoading');
     }
 
     if (!('serviceWorker' in navigator)) return;
