@@ -44,11 +44,18 @@
         </div>
 
         <div id="resetForm" class="form">
-            <input type="email" id="resetEmail" placeholder="Почта аккаунта">
-            <button onclick="requestPasswordReset()">Отправить код</button>
-            <input type="text" id="resetCode" inputmode="numeric" placeholder="Код из письма">
-            <input type="password" id="resetPassword" placeholder="Новый пароль">
-            <button onclick="confirmPasswordReset()">Сменить пароль</button>
+            <div class="reset-step active" id="resetEmailStep">
+                <p class="reset-note">Введите почту аккаунта — мы отправим код восстановления.</p>
+                <input type="email" id="resetEmail" placeholder="Почта аккаунта">
+                <button onclick="requestPasswordReset()">Отправить код</button>
+            </div>
+            <div class="reset-step" id="resetCodeStep">
+                <p class="reset-note">Введите код из письма и придумайте новый пароль.</p>
+                <input type="text" id="resetCode" inputmode="numeric" placeholder="Код из письма">
+                <input type="password" id="resetPassword" placeholder="Новый пароль">
+                <button onclick="confirmPasswordReset()">Сменить пароль</button>
+                <button class="auth-link-btn" onclick="showResetStep('email')" type="button">Отправить код заново</button>
+            </div>
             <button class="auth-link-btn" onclick="switchTab('login')" type="button">Вернуться ко входу</button>
             <div id="resetInfo" class="success"></div>
             <div id="resetError" class="error"></div>
