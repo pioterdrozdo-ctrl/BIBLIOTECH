@@ -87,7 +87,7 @@
     if (isHomePage) {
         loadScript('js/profile-rentals.js?v=20260709-profile-rentals-1', '__bibliotechProfileRentalsLoading');
         loadScript('js/profile-security.js?v=20260709-profile-security-1', '__bibliotechProfileSecurityLoading');
-        loadScript('js/profile-twitter.js?v=20260710-twitter-profile-1', '__bibliotechProfileTwitterLoading');
+        loadScript('js/profile-twitter.js?v=20260710-twitter-profile-2', '__bibliotechProfileTwitterLoading');
         // Old profile-compact stays disabled because it moved DOM blocks and could freeze the page.
         // catalog-fix is already injected by backend/server.js for home.html, so do not load it twice here.
     }
