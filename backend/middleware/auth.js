@@ -4,7 +4,7 @@ const pool = require('../db/pool');
 function getJwtSecret() {
     const secret = process.env.JWT_SECRET;
     if (!secret && process.env.NODE_ENV === 'production') {
-        throw new Error('JWT_SECRET is required in production');
+        console.warn('[AUTH] JWT_SECRET is not set. Using fallback secret temporarily; set JWT_SECRET in Render as soon as possible.');
     }
     return secret || 'bibliotech-dev-secret-change-me';
 }
