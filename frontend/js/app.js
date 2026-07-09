@@ -16,25 +16,35 @@ function getPostLoginUrl() {
     }
 }
 
-function switchTab(tab) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
-
-    if (tab === 'login') {
-        document.querySelector('.tab:first-child').classList.add('active');
-        document.getElementById('loginForm').classList.add('active');
-    } else if (tab === 'register') {
-        document.querySelector('.tabs .tab:nth-child(2)').classList.add('active');
-        document.getElementById('registerForm').classList.add('active');
-    } else {
-        document.querySelector('.tabs .tab:nth-child(3)').classList.add('active');
-        document.getElementById('resetForm').classList.add('active');
-    }
-
+function clearAuthMessages() {
     ['loginError', 'regError', 'regSuccess', 'resetInfo', 'resetError'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.textContent = '';
     });
+}
+
+function setActiveAuthTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    if (tab === 'login') {
+        document.querySelector('.tab:first-child')?.classList.add('active');
+    } else if (tab === 'register') {
+        document.querySelector('.tabs .tab:nth-child(2)')?.classList.add('active');
+    }
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+    setActiveAuthTab(tab);
+
+    if (tab === 'login') {
+        document.getElementById('loginForm')?.classList.add('active');
+    } else if (tab === 'register') {
+        document.getElementById('registerForm')?.classList.add('active');
+    } else if (tab === 'reset') {
+        document.getElementById('resetForm')?.classList.add('active');
+    }
+
+    clearAuthMessages();
 }
 
 async function login() {
@@ -57,7 +67,7 @@ async function login() {
 
         const data = await response.json();
         if (!response.ok) {
-            errorDiv.textContent = data.error || 'Ошибка входа';
+            errorDiv.textContent = data.message || data.error || 'Ошибка входа';
             return;
         }
 
