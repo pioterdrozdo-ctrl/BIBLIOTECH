@@ -16,7 +16,7 @@
             #profileModal .profile-modal-top {
                 position: relative;
                 display: block;
-                min-height: 218px;
+                min-height: 258px;
                 padding: 0 22px 22px;
                 border-bottom: 1px solid var(--border);
                 background: var(--surface);
@@ -72,7 +72,7 @@
 
             #profileModal .profile-identity {
                 min-width: 0;
-                padding-top: 38px;
+                padding-top: 78px;
                 padding-right: 110px;
             }
 
@@ -180,7 +180,7 @@
                 }
 
                 #profileModal .profile-modal-top {
-                    min-height: 210px;
+                    min-height: 240px;
                     padding-left: 16px;
                     padding-right: 16px;
                 }
@@ -205,7 +205,7 @@
                 }
 
                 #profileModal .profile-identity {
-                    padding-top: 34px;
+                    padding-top: 64px;
                     padding-right: 0;
                 }
 
