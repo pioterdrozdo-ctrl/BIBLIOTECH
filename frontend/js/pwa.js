@@ -87,7 +87,7 @@
 
     if (isHomePage && !window.__bibliotechBookDetailPolishLoading) {
         window.__bibliotechBookDetailPolishLoading = true;
-        loadStylesheet('css/hero-library-map.css?v=20260710-minimal-book-2', '__bibliotechHeroLibraryMapCss');
+        loadStylesheet('css/hero-library-map.css?v=20260710-premium-book-scene-1', '__bibliotechHeroLibraryMapCss');
         loadStylesheet('css/book-detail-polish.css?v=20260709-book-detail-scroll-1', '__bibliotechBookDetailPolishCss');
         loadStylesheet('css/book-detail-hide-meta.css?v=20260710-hide-inner-badges-1', '__bibliotechBookDetailHideMetaCss');
         loadStylesheet('css/book-detail-desktop-compact.css?v=20260710-inner-card-refined-1', '__bibliotechBookDetailDesktopCompactCss');
@@ -95,6 +95,7 @@
     }
 
     if (isHomePage) {
+        loadScript('js/hero-book-scene.js?v=20260710-premium-book-scene-1', '__bibliotechHeroBookSceneLoading');
         loadScript('js/profile-rentals.js?v=20260709-profile-rentals-1', '__bibliotechProfileRentalsLoading');
         loadScript('js/profile-security.js?v=20260709-profile-security-1', '__bibliotechProfileSecurityLoading');
         loadScript('js/profile-twitter.js?v=20260710-profile-modals-1', '__bibliotechProfileTwitterLoading');
