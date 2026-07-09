@@ -1,6 +1,14 @@
 const jwt = require('jsonwebtoken');
 const pool = require('../db/pool');
 
+function getJwtSecret() {
+    const secret = process.env.JWT_SECRET;
+    if (!secret && process.env.NODE_ENV === 'production') {
+        throw new Error('JWT_SECRET is required in production');
+    }
+    return secret || 'bibliotech-dev-secret-change-me';
+}
+
 function isFrozen(user = {}) {
     if (!user.banned_until) return false;
     const bannedUntil = new Date(user.banned_until);
@@ -23,7 +31,7 @@ const authMiddleware = async (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bibliotech-dev-secret-change-me');
+        const decoded = jwt.verify(token, getJwtSecret());
         req.user = decoded;
 
         try {
@@ -41,7 +49,10 @@ const authMiddleware = async (req, res, next) => {
             }
             req.user.role = account.role || req.user.role;
         } catch (dbError) {
-            console.warn('[AUTH] account access check skipped:', dbError.message);
+            console.warn('[AUTH] account access check failed:', dbError.message);
+            if (pool.isConfigured) {
+                return res.status(503).json({ error: 'Account access check unavailable' });
+            }
         }
 
         next();
@@ -55,14 +66,15 @@ const optionalAuthMiddleware = async (req, res, next) => {
     if (!token) return next();
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bibliotech-dev-secret-change-me');
+        const decoded = jwt.verify(token, getJwtSecret());
         req.user = decoded;
         try {
             const account = await readAccountAccess(decoded.id);
             if (!account || isFrozen(account)) req.user = null;
             else req.user.role = account.role || req.user.role;
         } catch (dbError) {
-            console.warn('[AUTH] optional account access check skipped:', dbError.message);
+            console.warn('[AUTH] optional account access check failed:', dbError.message);
+            if (pool.isConfigured) req.user = null;
         }
     } catch (error) {
         req.user = null;
