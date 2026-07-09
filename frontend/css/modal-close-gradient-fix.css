@@ -1,0 +1,96 @@
+/* Align all modal close buttons and remove harsh clipped gradients in profile extra modals. */
+.modal button[aria-label="Закрыть"],
+.modal .close-btn,
+.modal .close-view-btn,
+.modal .profile-close-btn,
+.modal .profile-extra-close,
+#closeViewBtn,
+#closeProfileBtn {
+    display: grid !important;
+    place-items: center !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+}
+
+.modal button[aria-label="Закрыть"]::before,
+.modal button[aria-label="Закрыть"]::after,
+.modal .close-btn::before,
+.modal .close-btn::after,
+.modal .close-view-btn::before,
+.modal .close-view-btn::after,
+.modal .profile-close-btn::before,
+.modal .profile-close-btn::after,
+.modal .profile-extra-close::before,
+.modal .profile-extra-close::after {
+    line-height: 1 !important;
+}
+
+.profile-extra-close {
+    align-self: flex-start !important;
+    margin-top: 0 !important;
+    font-size: 24px !important;
+    transform: none !important;
+}
+
+#profileModal .profile-close-btn,
+.profile-extra-close,
+.close-view-btn,
+.close-btn {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+}
+
+#profileModal .profile-close-btn {
+    top: 14px !important;
+    right: 14px !important;
+}
+
+.profile-extra-header {
+    position: relative !important;
+    overflow: hidden !important;
+    background: var(--surface) !important;
+    isolation: isolate !important;
+}
+
+.profile-extra-header::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: -1 !important;
+    pointer-events: none !important;
+    background:
+        radial-gradient(circle at 7% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 44%),
+        radial-gradient(circle at 38% 0%, color-mix(in srgb, var(--accent-strong) 10%, transparent), transparent 38%),
+        linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 88%) !important;
+    opacity: .9 !important;
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,.7) 48%, transparent 100%) !important;
+    mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,.7) 48%, transparent 100%) !important;
+}
+
+.profile-extra-header > * {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+#profileModal .profile-modal-top::before {
+    background:
+        radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--gold) 22%, transparent), transparent 42%),
+        radial-gradient(circle at 78% 28%, color-mix(in srgb, var(--accent-strong) 24%, transparent), transparent 36%),
+        linear-gradient(135deg, color-mix(in srgb, var(--accent) 52%, var(--surface)), color-mix(in srgb, var(--bg-soft) 78%, #000)) !important;
+}
+
+@media (max-width: 560px) {
+    #profileModal .profile-close-btn,
+    .profile-extra-close,
+    .close-view-btn,
+    .close-btn {
+        width: 38px !important;
+        height: 38px !important;
+        min-width: 38px !important;
+        min-height: 38px !important;
+    }
+}
