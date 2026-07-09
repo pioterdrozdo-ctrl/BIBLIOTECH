@@ -139,13 +139,83 @@
 }
 
 .hero-logo-card img {
+    display: none !important;
+}
+
+.hero-logo-mark {
     position: relative;
     z-index: 2;
     width: 82%;
     height: 82%;
-    object-fit: contain;
+    display: grid;
+    place-items: center;
     border-radius: 28px;
-    filter: drop-shadow(0 12px 18px color-mix(in srgb, #000 22%, transparent));
+    background:
+        linear-gradient(145deg, color-mix(in srgb, #fff 18%, transparent), transparent 36%),
+        linear-gradient(135deg, color-mix(in srgb, var(--accent) 82%, var(--surface)), color-mix(in srgb, var(--accent-strong) 76%, var(--gold)));
+    box-shadow:
+        0 16px 32px color-mix(in srgb, #000 22%, transparent),
+        inset 0 1px 0 color-mix(in srgb, #fff 22%, transparent),
+        inset 0 -18px 28px color-mix(in srgb, #000 10%, transparent);
+    color: color-mix(in srgb, var(--bg) 68%, #101820);
+    overflow: hidden;
+}
+
+.hero-logo-mark::before {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border-radius: 22px;
+    border: 1px solid color-mix(in srgb, var(--bg) 22%, transparent);
+    opacity: .54;
+}
+
+.hero-logo-mark strong {
+    position: relative;
+    z-index: 2;
+    margin-left: 16px;
+    color: inherit;
+    font-size: clamp(78px, 8vw, 108px);
+    font-weight: 920;
+    line-height: .85;
+    letter-spacing: -.08em;
+    text-shadow:
+        0 2px 0 color-mix(in srgb, #fff 12%, transparent),
+        0 12px 22px color-mix(in srgb, #000 22%, transparent);
+}
+
+.hero-logo-book-lines {
+    position: absolute;
+    z-index: 3;
+    left: 26px;
+    top: 50%;
+    width: 28px;
+    height: 78px;
+    transform: translateY(-50%);
+    border-radius: 8px 3px 3px 8px;
+    border-left: 5px solid currentColor;
+    border-top: 4px solid currentColor;
+    border-bottom: 4px solid currentColor;
+    opacity: .92;
+}
+
+.hero-logo-book-lines::before,
+.hero-logo-book-lines::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    right: 0;
+    height: 4px;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+.hero-logo-book-lines::before {
+    top: 22px;
+}
+
+.hero-logo-book-lines::after {
+    bottom: 22px;
 }
 
 .hero-book-scene,
@@ -214,5 +284,11 @@
         width: min(160px, 48vw);
         height: min(160px, 48vw);
         border-radius: 30px;
+    }
+
+    .hero-logo-book-lines {
+        left: 21px;
+        width: 24px;
+        height: 66px;
     }
 }
