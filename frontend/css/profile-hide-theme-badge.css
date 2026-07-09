@@ -1,0 +1,8 @@
+/* The round "8 тем" counter in profile customization is decorative and takes space. */
+.theme-settings-badge {
+    display: none !important;
+}
+
+.theme-settings-head {
+    padding-right: 0 !important;
+}
