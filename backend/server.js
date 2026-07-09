@@ -100,6 +100,16 @@ app.get('/home.html', (req, res) => {
     const htmlPath = path.join(frontendPath, 'home.html');
     let html = fs.readFileSync(htmlPath, 'utf8');
     html = html.replace(
+        "if (!rawSession) window.location.href = 'index.html';",
+        `if (!rawSession) {
+            try {
+                const target = window.location.pathname + window.location.search + window.location.hash;
+                if (target && target !== '/home.html') localStorage.setItem('bibliotech_post_login_url', target);
+            } catch (e) {}
+            window.location.href = 'index.html';
+        }`
+    );
+    html = html.replace(
         /<script src="js\/script\.js(?:\?[^\"]*)?"><\/script>/,
         '<script src="js/script.js?v=20260707-2"></script>\n<script src="js/catalog-fix.js?v=20260707-2"></script>'
     );
