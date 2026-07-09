@@ -69,6 +69,14 @@
         document.head.appendChild(polishLink);
     }
 
+    if (isHomePage && !window.__bibliotechProfileRentalsLoading) {
+        window.__bibliotechProfileRentalsLoading = true;
+        var rentalsScript = document.createElement('script');
+        rentalsScript.src = 'js/profile-rentals.js?v=20260709-profile-rentals-1';
+        rentalsScript.defer = true;
+        document.head.appendChild(rentalsScript);
+    }
+
     if (isHomePage && !window.__bibliotechCatalogFixLoading) {
         window.__bibliotechCatalogFixLoading = true;
         var script = document.createElement('script');
