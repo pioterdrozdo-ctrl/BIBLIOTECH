@@ -36,8 +36,16 @@ function showResetStep(step = 'email') {
     const emailStep = document.getElementById('resetEmailStep');
     const codeStep = document.getElementById('resetCodeStep');
     const isCodeStep = step === 'code';
-    emailStep?.classList.toggle('active', !isCodeStep);
-    codeStep?.classList.toggle('active', isCodeStep);
+
+    if (emailStep) {
+        emailStep.classList.toggle('active', !isCodeStep);
+        emailStep.hidden = isCodeStep;
+    }
+    if (codeStep) {
+        codeStep.classList.toggle('active', isCodeStep);
+        codeStep.hidden = !isCodeStep;
+    }
+
     clearAuthMessages();
 
     setTimeout(() => {
