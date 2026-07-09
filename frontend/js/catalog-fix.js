@@ -9,6 +9,11 @@
         ['Война и мир', 'Лев Толстой']
     ].map(([title, author]) => `${norm(title)}::${norm(author)}`));
 
+    const coverCache = new Map();
+    const activeCoverRequests = new Set();
+    let observerStarted = false;
+    let forceTimer = null;
+
     function norm(value) {
         return String(value || '')
             .toLowerCase()
@@ -19,6 +24,12 @@
             .trim();
     }
 
+    function cssEscape(value) {
+        const text = String(value || '');
+        if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(text);
+        return text.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    }
+
     function isDemo(book) {
         return demoKeys.has(`${norm(book.title)}::${norm(book.author)}`);
     }
@@ -27,6 +38,138 @@
         return String(value || '').replace(/[&<>'"]/g, char => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;'
         }[char]));
+    }
+
+    function removeHomeAdminPanel() {
+        document.getElementById('adminPanel')?.remove();
+    }
+
+    function getCoverDataURL(book) {
+        return book && (
+            book.coverDataURL
+            || book.cover_data_url
+            || book.coverDataUrl
+            || book.cover
+            || book.coverUrl
+            || book.image
+            || book.imageUrl
+            || null
+        );
+    }
+
+    function rememberCover(book, coverDataURL) {
+        if (!book || !book.id || !coverDataURL) return;
+        coverCache.set(String(book.id), {
+            id: book.id,
+            title: book.title || '',
+            coverDataURL
+        });
+    }
+
+    function makeCoverImage(book, coverDataURL) {
+        const img = document.createElement('img');
+        img.className = 'book-cover-img';
+        img.src = coverDataURL;
+        img.alt = book && book.title ? String(book.title) : 'Обложка книги';
+        img.loading = 'eager';
+        img.decoding = 'async';
+        img.setAttribute('fetchpriority', 'high');
+        return img;
+    }
+
+    function tuneCoverImage(img) {
+        if (!img) return;
+        img.loading = 'eager';
+        img.decoding = 'async';
+        img.setAttribute('loading', 'eager');
+        img.setAttribute('decoding', 'async');
+        img.setAttribute('fetchpriority', 'high');
+        if (img.dataset.src && !img.src) img.src = img.dataset.src;
+    }
+
+    function setCardCover(book, coverDataURL) {
+        if (!book || !coverDataURL) return;
+        const card = document.querySelector(`.book-card[data-id="${cssEscape(book.id)}"]`);
+        const cover = card && card.querySelector('.book-cover');
+        if (!cover) return;
+
+        rememberCover(book, coverDataURL);
+
+        const existing = cover.querySelector('img');
+        if (existing) {
+            existing.src = coverDataURL;
+            existing.alt = book.title || existing.alt || 'Обложка книги';
+            tuneCoverImage(existing);
+            return;
+        }
+
+        cover.innerHTML = '';
+        cover.appendChild(makeCoverImage(book, coverDataURL));
+    }
+
+    function fetchAndSetCardCover(card) {
+        const bookId = card && card.dataset ? String(card.dataset.id || '') : '';
+        if (!bookId) return;
+
+        const cover = card.querySelector('.book-cover');
+        if (!cover) return;
+
+        const existing = cover.querySelector('img');
+        if (existing) {
+            tuneCoverImage(existing);
+            if (existing.src) {
+                coverCache.set(bookId, {
+                    id: bookId,
+                    title: existing.alt || '',
+                    coverDataURL: existing.src
+                });
+            }
+            return;
+        }
+
+        const cached = coverCache.get(bookId);
+        if (cached && cached.coverDataURL) {
+            setCardCover(cached, cached.coverDataURL);
+            return;
+        }
+
+        if (activeCoverRequests.has(bookId)) return;
+
+        activeCoverRequests.add(bookId);
+        const token = localStorage.getItem('token');
+        fetch(`/api/books/${encodeURIComponent(bookId)}`, {
+            headers: { Authorization: token ? `Bearer ${token}` : '' }
+        })
+            .then(response => response.ok ? response.json() : null)
+            .then(book => {
+                const coverDataURL = getCoverDataURL(book);
+                if (book && coverDataURL) {
+                    rememberCover(book, coverDataURL);
+                    setCardCover(book, coverDataURL);
+                }
+            })
+            .catch(() => {})
+            .finally(() => {
+                activeCoverRequests.delete(bookId);
+            });
+    }
+
+    function forceCardCoverImages() {
+        removeHomeAdminPanel();
+        document.querySelectorAll('.book-cover-img').forEach(tuneCoverImage);
+        document.querySelectorAll('.book-card[data-id]').forEach(fetchAndSetCardCover);
+    }
+
+    function scheduleForceCardCoverImages(delay = 0) {
+        clearTimeout(forceTimer);
+        forceTimer = setTimeout(forceCardCoverImages, delay);
+    }
+
+    function startCoverObserver() {
+        if (observerStarted || !document.body || !window.MutationObserver) return;
+        observerStarted = true;
+        const observer = new MutationObserver(() => scheduleForceCardCoverImages(80));
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 
     try {
@@ -52,6 +195,16 @@
         };
     }
 
+    const originalRenderBooks = window.renderBooks;
+    if (typeof originalRenderBooks === 'function') {
+        window.__bibliotechRenderBooksWithCovers = function renderBooksWithCovers() {
+            const result = originalRenderBooks.apply(this, arguments);
+            scheduleForceCardCoverImages(0);
+            setTimeout(forceCardCoverImages, 150);
+            return result;
+        };
+    }
+
     const originalOpenBook = window.openBook;
     if (typeof originalOpenBook === 'function') {
         window.__bibliotechOpenBookWithCover = function openBookWithCover(bookId) {
@@ -62,13 +215,19 @@
             })
                 .then(response => response.ok ? response.json() : null)
                 .then(book => {
-                    const coverDataURL = book && (book.coverDataURL || book.cover_data_url || book.coverDataUrl);
+                    const coverDataURL = getCoverDataURL(book);
                     const cover = document.querySelector('#viewCover');
-                    if (!cover || !coverDataURL) return;
-                    cover.innerHTML = `<img src="${coverDataURL}" alt="${escapeHtml(book.title || '')}">`;
-                    if (typeof window.renderBookQr === 'function') {
-                        window.renderBookQr({ ...book, coverDataURL });
+                    if (cover && coverDataURL) {
+                        cover.innerHTML = `<img src="${coverDataURL}" alt="${escapeHtml(book.title || '')}" loading="eager" decoding="async" fetchpriority="high">`;
                     }
+                    if (book && coverDataURL) {
+                        rememberCover(book, coverDataURL);
+                        setCardCover(book, coverDataURL);
+                        if (typeof window.renderBookQr === 'function') {
+                            window.renderBookQr({ ...book, coverDataURL });
+                        }
+                    }
+                    scheduleForceCardCoverImages(0);
                 })
                 .catch(() => {});
             return result;
@@ -80,8 +239,25 @@
         if (window.__bibliotechSaveBooksWithoutDemo) {
             window.eval('saveBooks = window.__bibliotechSaveBooksWithoutDemo;');
         }
+        if (window.__bibliotechRenderBooksWithCovers) {
+            window.eval('renderBooks = window.__bibliotechRenderBooksWithCovers;');
+        }
         if (window.__bibliotechOpenBookWithCover) {
             window.eval('openBook = window.__bibliotechOpenBookWithCover;');
         }
     } catch {}
+
+    removeHomeAdminPanel();
+    startCoverObserver();
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            startCoverObserver();
+            forceCardCoverImages();
+        });
+    } else {
+        forceCardCoverImages();
+    }
+    setTimeout(forceCardCoverImages, 300);
+    setTimeout(forceCardCoverImages, 1000);
+    setTimeout(forceCardCoverImages, 2000);
 })();
