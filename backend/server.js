@@ -208,6 +208,6 @@ initDatabase().finally(() => {
     app.listen(PORT, HOST, () => {
         console.log(`[OK] Server running on http://${HOST}:${PORT}`);
         console.log(`[OK] Local:   http://localhost:${PORT}`);
-        getNetworkUrls(port).forEach(url => console.log(`[OK] Phone:   ${url}`));
+        getNetworkUrls(PORT).forEach(url => console.log(`[OK] Phone:   ${url}`));
     });
 });
