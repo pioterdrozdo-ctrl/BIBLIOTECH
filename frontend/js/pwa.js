@@ -99,6 +99,7 @@
         loadScript('js/profile-rentals.js?v=20260709-profile-rentals-1', '__bibliotechProfileRentalsLoading');
         loadScript('js/profile-security.js?v=20260709-profile-security-1', '__bibliotechProfileSecurityLoading');
         loadScript('js/profile-twitter.js?v=20260710-profile-modals-1', '__bibliotechProfileTwitterLoading');
+        loadScript('js/modal-visual-fix.js?v=20260710-modal-visual-fix-1', '__bibliotechModalVisualFixLoading');
         loadScript('js/card-rent-safe.js?v=20260710-card-rent-refined-1', '__bibliotechCardRentSafeLoading');
         loadScript('js/comment-clear-fix.js?v=20260710-comment-clear-1', '__bibliotechCommentClearFixLoading');
         // Old profile-compact stays disabled because it moved DOM blocks and could freeze the page.
