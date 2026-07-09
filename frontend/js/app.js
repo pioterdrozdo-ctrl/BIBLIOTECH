@@ -151,6 +151,12 @@ async function register() {
     }
 }
 
+function resetEmailErrorText(data = {}) {
+    if (data.error) return data.reason ? `${data.error} (${data.reason})` : data.error;
+    if (data.reason) return `Не удалось отправить код на почту (${data.reason})`;
+    return 'Не удалось отправить код на почту';
+}
+
 async function requestPasswordReset() {
     const email = document.getElementById('resetEmail').value.trim();
     const infoDiv = document.getElementById('resetInfo');
@@ -171,7 +177,7 @@ async function requestPasswordReset() {
         const data = await response.json();
         if (!response.ok) {
             showResetStep('email');
-            errorDiv.textContent = data.error || 'Не удалось отправить код на почту';
+            errorDiv.textContent = resetEmailErrorText(data);
             return;
         }
 
