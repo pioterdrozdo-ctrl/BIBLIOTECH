@@ -27,7 +27,8 @@
         input.autocomplete = 'one-time-code';
         input.placeholder = 'Код 2FA из приложения';
         input.hidden = true;
-        password.insertAdjacentElement('afterend', input);
+        const anchor = password.closest('.auth-input-wrap') || password;
+        anchor.insertAdjacentElement('afterend', input);
         input.addEventListener('keydown', event => {
             if (event.key === 'Enter' && typeof window.login === 'function') window.login();
         });
