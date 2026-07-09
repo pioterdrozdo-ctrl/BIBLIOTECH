@@ -3,7 +3,6 @@
         const visual = document.querySelector('.hero-wow .hero-visual');
         if (!visual || visual.querySelector('.hero-logo-scene')) return;
 
-        const logoSource = document.querySelector('.brand-logo img')?.getAttribute('src') || 'img/appicon.png';
         const scene = document.createElement('div');
         scene.className = 'hero-logo-scene';
         scene.setAttribute('aria-hidden', 'true');
@@ -11,7 +10,10 @@
             <div class="hero-logo-frame">
                 <div class="hero-logo-depth"></div>
                 <div class="hero-logo-card">
-                    <img src="${logoSource}" alt="">
+                    <div class="hero-logo-mark">
+                        <span class="hero-logo-book-lines"></span>
+                        <strong>B</strong>
+                    </div>
                 </div>
             </div>
         `;
