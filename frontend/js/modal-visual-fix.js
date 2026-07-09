@@ -10,47 +10,85 @@
             .modal .profile-close-btn,
             .modal .close-view-btn,
             .modal .close-btn,
-            .modal button[aria-label="Закрыть"] {
-                display: inline-flex !important;
-                align-items: center !important;
-                justify-content: center !important;
+            .modal button[aria-label="Закрыть"],
+            #closeViewBtn,
+            #closeProfileBtn {
+                position: absolute !important;
+                display: block !important;
                 width: 42px !important;
                 height: 42px !important;
                 min-width: 42px !important;
                 min-height: 42px !important;
+                max-width: 42px !important;
+                max-height: 42px !important;
                 padding: 0 !important;
                 margin: 0 !important;
-                line-height: 0 !important;
+                border-radius: 50% !important;
                 box-sizing: border-box !important;
-                text-align: center !important;
-                vertical-align: middle !important;
+                line-height: 0 !important;
+                font-size: 0 !important;
+                text-indent: -9999px !important;
+                overflow: hidden !important;
+                transform: none !important;
             }
 
-            .modal .profile-extra-close {
+            .modal .profile-extra-close,
+            .modal .profile-extra-header .profile-extra-close {
                 position: relative !important;
                 flex: 0 0 42px !important;
-                font-size: 0 !important;
-                transform: none !important;
+                align-self: flex-start !important;
+                top: auto !important;
+                right: auto !important;
+            }
+
+            #profileModal .profile-close-btn,
+            #closeProfileBtn {
+                top: 14px !important;
+                right: 14px !important;
+            }
+
+            .book-detail-modal .close-view-btn,
+            #closeViewBtn {
+                top: 14px !important;
+                right: 14px !important;
+                z-index: 20 !important;
             }
 
             .modal .profile-extra-close::before,
             .modal .profile-close-btn::before,
             .modal .close-view-btn::before,
             .modal .close-btn::before,
-            .modal button[aria-label="Закрыть"]::before {
+            .modal button[aria-label="Закрыть"]::before,
+            #closeViewBtn::before,
+            #closeProfileBtn::before {
                 content: '×' !important;
-                display: block !important;
-                font-size: 26px !important;
+                position: absolute !important;
+                inset: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                display: grid !important;
+                place-items: center !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                color: currentColor !important;
+                font-family: Arial, Helvetica, sans-serif !important;
+                font-size: 27px !important;
                 font-weight: 500 !important;
                 line-height: 1 !important;
-                transform: translateY(-1px) !important;
+                text-indent: 0 !important;
+                transform: none !important;
+                pointer-events: none !important;
             }
 
-            .modal .profile-close-btn,
-            .modal .close-view-btn,
-            .modal .close-btn,
-            .modal button[aria-label="Закрыть"] {
-                font-size: 0 !important;
+            .modal .profile-extra-close::after,
+            .modal .profile-close-btn::after,
+            .modal .close-view-btn::after,
+            .modal .close-btn::after,
+            .modal button[aria-label="Закрыть"]::after,
+            #closeViewBtn::after,
+            #closeProfileBtn::after {
+                content: none !important;
+                display: none !important;
             }
 
             .profile-extra-header {
@@ -95,11 +133,30 @@
                 .modal .profile-close-btn,
                 .modal .close-view-btn,
                 .modal .close-btn,
-                .modal button[aria-label="Закрыть"] {
+                .modal button[aria-label="Закрыть"],
+                #closeViewBtn,
+                #closeProfileBtn {
                     width: 38px !important;
                     height: 38px !important;
                     min-width: 38px !important;
                     min-height: 38px !important;
+                    max-width: 38px !important;
+                    max-height: 38px !important;
+                }
+
+                .modal .profile-extra-close,
+                .modal .profile-extra-header .profile-extra-close {
+                    flex-basis: 38px !important;
+                }
+
+                .modal .profile-extra-close::before,
+                .modal .profile-close-btn::before,
+                .modal .close-view-btn::before,
+                .modal .close-btn::before,
+                .modal button[aria-label="Закрыть"]::before,
+                #closeViewBtn::before,
+                #closeProfileBtn::before {
+                    font-size: 25px !important;
                 }
             }
         `;
