@@ -20,7 +20,6 @@
                 <div class="hero-book-spine"></div>
                 <div class="hero-book-turn"></div>
                 <div class="hero-book-logo logo-orb"><img src="${logoSource}" alt=""></div>
-                <div class="hero-book-caption">BIBLIOTECH<small>каталог, который дышит книгами</small></div>
             </div>
         `;
         visual.appendChild(scene);
