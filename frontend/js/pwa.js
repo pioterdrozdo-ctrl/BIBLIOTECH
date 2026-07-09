@@ -88,6 +88,7 @@
     if (isHomePage && !window.__bibliotechBookDetailPolishLoading) {
         window.__bibliotechBookDetailPolishLoading = true;
         loadStylesheet('css/hero-library-map.css?v=20260710-premium-book-scene-1', '__bibliotechHeroLibraryMapCss');
+        loadStylesheet('css/hero-desktop-animation-fix.css?v=20260710-desktop-animation-fix-1', '__bibliotechHeroDesktopAnimationFixCss');
         loadStylesheet('css/book-detail-polish.css?v=20260709-book-detail-scroll-1', '__bibliotechBookDetailPolishCss');
         loadStylesheet('css/book-detail-hide-meta.css?v=20260710-hide-inner-badges-1', '__bibliotechBookDetailHideMetaCss');
         loadStylesheet('css/book-detail-desktop-compact.css?v=20260710-inner-card-refined-1', '__bibliotechBookDetailDesktopCompactCss');
