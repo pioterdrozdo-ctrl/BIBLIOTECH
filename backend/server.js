@@ -6,6 +6,7 @@ const os = require('os');
 const fs = require('fs');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
+const securityRoutes = require('./routes/security');
 const authRoutes = require('./routes/auth');
 const bookRoutes = require('./routes/books');
 const commentRoutes = require('./routes/comments');
@@ -98,7 +99,7 @@ app.get('/home.html', (req, res) => {
     const htmlPath = path.join(frontendPath, 'home.html');
     let html = fs.readFileSync(htmlPath, 'utf8');
     html = html.replace(
-        /<script src="js\/script\.js(?:\?[^"]*)?"><\/script>/,
+        /<script src="js\/script\.js(?:\?[^\"]*)?"><\/script>/,
         '<script src="js/script.js?v=20260707-2"></script>\n<script src="js/catalog-fix.js?v=20260707-2"></script>'
     );
     res.setHeader('Cache-Control', 'no-cache');
@@ -122,6 +123,7 @@ app.use(express.static(frontendPath, {
 }));
 
 // Routes
+app.use('/api/auth', securityRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/books', catalogListRoutes);
 app.use('/api/books', bookRoutes);
@@ -206,6 +208,6 @@ initDatabase().finally(() => {
     app.listen(PORT, HOST, () => {
         console.log(`[OK] Server running on http://${HOST}:${PORT}`);
         console.log(`[OK] Local:   http://localhost:${PORT}`);
-        getNetworkUrls(PORT).forEach(url => console.log(`[OK] Phone:   ${url}`));
+        getNetworkUrls(port).forEach(url => console.log(`[OK] Phone:   ${url}`));
     });
 });
