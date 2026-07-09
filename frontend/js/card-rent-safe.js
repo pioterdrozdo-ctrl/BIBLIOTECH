@@ -10,40 +10,46 @@
 
             .book-card .card-rent-safe-btn {
                 width: 100%;
-                min-height: 42px;
+                min-height: 40px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                gap: 7px;
-                padding: 10px 14px;
-                border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+                gap: 0;
+                padding: 9px 15px;
+                border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border));
                 border-radius: 999px;
-                background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+                background: color-mix(in srgb, var(--accent) 88%, var(--surface));
                 color: var(--on-accent);
-                font-weight: 950;
+                font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                font-size: 14px;
+                font-weight: 720;
+                letter-spacing: .01em;
+                line-height: 1;
                 cursor: pointer;
-                box-shadow: 0 12px 26px color-mix(in srgb, var(--accent) 20%, transparent);
-                transition: transform .16s ease, filter .16s ease, opacity .16s ease;
+                box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 14%, transparent);
+                transition: transform .16s ease, background .16s ease, border-color .16s ease, opacity .16s ease;
             }
 
             .book-card .card-rent-safe-btn:hover {
                 transform: translateY(-1px);
-                filter: brightness(1.04);
+                background: color-mix(in srgb, var(--accent-strong) 88%, var(--surface));
+                border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
             }
 
             .book-card .card-rent-safe-btn.return-mode {
-                background: color-mix(in srgb, var(--surface-muted) 88%, var(--accent));
+                background: transparent;
                 color: var(--text);
-                border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+                border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+                box-shadow: none;
             }
 
             .book-card .card-rent-safe-btn:disabled {
                 cursor: not-allowed;
                 opacity: .58;
                 transform: none;
-                filter: none;
-                background: var(--surface-muted);
+                background: transparent;
                 color: var(--muted);
+                border-color: var(--border);
                 box-shadow: none;
             }
         `;
@@ -56,9 +62,9 @@
 
     function getCardRentState(card) {
         const text = card.textContent || '';
-        if (/закреплена за вами/i.test(text)) return { label: '↩ Вернуть', disabled: false, returnMode: true };
+        if (/закреплена за вами/i.test(text)) return { label: 'Вернуть', disabled: false, returnMode: true };
         if (/нет в наличии|недоступно/i.test(text)) return { label: 'Недоступно', disabled: true, returnMode: false };
-        return { label: '🔖 Арендовать', disabled: false, returnMode: false };
+        return { label: 'Арендовать', disabled: false, returnMode: false };
     }
 
     function applyRentButtons() {
