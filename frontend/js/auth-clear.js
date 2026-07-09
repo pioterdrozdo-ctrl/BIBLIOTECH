@@ -12,34 +12,33 @@
 
             .auth-input-wrap input {
                 margin-bottom: 0 !important;
-                padding-right: 46px !important;
+                padding-right: 48px !important;
             }
 
             .auth-container .input-clear-btn {
                 position: absolute !important;
+                right: 9px !important;
                 top: 50% !important;
-                right: 10px !important;
+                width: 30px !important;
+                min-width: 30px !important;
+                height: 30px !important;
+                min-height: 30px !important;
+                display: inline-grid !important;
+                place-items: center !important;
                 transform: translateY(-50%) !important;
-                width: 28px !important;
-                min-width: 28px !important;
-                height: 28px !important;
-                min-height: 28px !important;
                 padding: 0 !important;
-                display: inline-flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                border: 1px solid color-mix(in srgb, var(--border) 80%, transparent) !important;
-                border-radius: 50% !important;
-                background: color-mix(in srgb, var(--surface-strong) 82%, transparent) !important;
+                border: 0 !important;
+                border-radius: var(--radius-sm, 6px) !important;
+                background: transparent !important;
                 color: var(--muted) !important;
                 box-shadow: none !important;
                 cursor: pointer !important;
-                font-size: 18px !important;
+                font-size: 14px !important;
                 font-weight: 800 !important;
                 line-height: 1 !important;
                 opacity: 0 !important;
                 pointer-events: none !important;
-                transition: opacity .15s ease, color .15s ease, border-color .15s ease !important;
+                transition: opacity .15s ease, background .15s ease, color .15s ease !important;
             }
 
             .auth-container .input-clear-btn.visible {
@@ -48,8 +47,8 @@
             }
 
             .auth-container .input-clear-btn:hover {
+                background: var(--surface-muted) !important;
                 color: var(--text) !important;
-                border-color: var(--accent) !important;
                 transform: translateY(-50%) !important;
             }
 
@@ -76,8 +75,9 @@
         const button = document.createElement('button');
         button.className = 'input-clear-btn';
         button.type = 'button';
+        button.title = 'Очистить поле';
         button.setAttribute('aria-label', 'Очистить поле');
-        button.textContent = '×';
+        button.textContent = '✖';
         wrapper.appendChild(button);
 
         input.addEventListener('input', () => updateClearButton(input, button));
