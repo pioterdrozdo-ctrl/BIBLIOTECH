@@ -7,7 +7,7 @@
     if (isHomePage && !window.__bibliotechCatalogFixLoading) {
         window.__bibliotechCatalogFixLoading = true;
         var script = document.createElement('script');
-        script.src = 'js/catalog-fix.js?v=20260709-cover-fix-2';
+        script.src = 'js/catalog-fix.js?v=20260709-cover-perf-1';
         script.defer = true;
         document.head.appendChild(script);
     }
