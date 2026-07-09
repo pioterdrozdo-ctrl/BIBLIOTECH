@@ -4,6 +4,14 @@
 
     var path = window.location.pathname || '';
     var isHomePage = /(^|\/)home\.html$/.test(path) || path === '/' || path === '';
+    if (isHomePage && !window.__bibliotechBookDetailPolishLoading) {
+        window.__bibliotechBookDetailPolishLoading = true;
+        var polishLink = document.createElement('link');
+        polishLink.rel = 'stylesheet';
+        polishLink.href = 'css/book-detail-polish.css?v=20260709-book-detail-1';
+        document.head.appendChild(polishLink);
+    }
+
     if (isHomePage && !window.__bibliotechCatalogFixLoading) {
         window.__bibliotechCatalogFixLoading = true;
         var script = document.createElement('script');
