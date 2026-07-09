@@ -1,0 +1,82 @@
+/* Keep the premium hero animation alive on desktop even when the OS/browser reports reduced motion. */
+.hero-book-shell,
+.hero-book-scene::before,
+.hero-book-orbit,
+.hero-book-logo,
+.hero-book-turn,
+.hero-book-spark {
+    animation-play-state: running !important;
+}
+
+@media (min-width: 901px) {
+    .hero-book-shell {
+        animation: heroBookFloat 7s ease-in-out infinite !important;
+        will-change: transform;
+    }
+
+    .hero-book-scene::before {
+        animation: heroBookBreath 7.5s ease-in-out infinite !important;
+        will-change: transform, opacity;
+    }
+
+    .hero-book-orbit {
+        animation: heroBookOrbit 22s linear infinite !important;
+        will-change: transform;
+    }
+
+    .hero-book-logo {
+        animation: heroLogoBreath 7s ease-in-out infinite !important;
+        will-change: transform;
+    }
+
+    .hero-book-turn {
+        animation: heroPageTurn 8.2s ease-in-out infinite !important;
+        will-change: transform, opacity;
+    }
+
+    .hero-book-spark.one {
+        animation: heroSparkOne 7.4s ease-in-out infinite !important;
+    }
+
+    .hero-book-spark.two {
+        animation: heroSparkTwo 7.9s ease-in-out infinite !important;
+    }
+
+    .hero-book-spark.three {
+        animation: heroSparkThree 7.2s ease-in-out infinite !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-book-shell {
+        animation: heroBookFloat 10s ease-in-out infinite !important;
+    }
+
+    .hero-book-scene::before {
+        animation: heroBookBreath 11s ease-in-out infinite !important;
+    }
+
+    .hero-book-orbit {
+        animation: heroBookOrbit 32s linear infinite !important;
+    }
+
+    .hero-book-logo {
+        animation: heroLogoBreath 10s ease-in-out infinite !important;
+    }
+
+    .hero-book-turn {
+        animation: heroPageTurn 12s ease-in-out infinite !important;
+    }
+
+    .hero-book-spark.one {
+        animation: heroSparkOne 11s ease-in-out infinite !important;
+    }
+
+    .hero-book-spark.two {
+        animation: heroSparkTwo 12s ease-in-out infinite !important;
+    }
+
+    .hero-book-spark.three {
+        animation: heroSparkThree 10.5s ease-in-out infinite !important;
+    }
+}
