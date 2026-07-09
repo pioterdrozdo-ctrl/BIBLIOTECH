@@ -1,127 +1,169 @@
-/* Desktop-only compact layout for the opened book card.
+/* Desktop-only refined layout for the opened book card.
    Mobile/tablet rules from book-detail-polish.css stay untouched. */
 @media (min-width: 901px) {
     .book-detail-modal {
         padding: 18px;
         align-items: center;
+        background: color-mix(in srgb, #000 42%, transparent);
     }
 
     .book-detail-modal .view-modal-content.premium-book-modal {
-        width: min(980px, calc(100vw - 36px));
-        max-height: min(88vh, 760px);
-        border-radius: 22px;
+        width: min(940px, calc(100vw - 36px));
+        max-height: min(88vh, 740px);
+        border-radius: 24px;
+        border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+        background: var(--surface);
+        box-shadow: 0 24px 80px color-mix(in srgb, #000 22%, transparent);
     }
 
     .book-detail-modal .close-view-btn {
         top: 12px;
         margin: 12px 12px -54px auto;
-        width: 40px;
-        height: 40px;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--surface) 92%, transparent);
+        box-shadow: none;
     }
 
     .book-detail-modal .book-detail-shell {
         min-height: 0;
-        grid-template-columns: 275px minmax(0, 1fr);
+        grid-template-columns: 250px minmax(0, 1fr);
+        background: linear-gradient(90deg, color-mix(in srgb, var(--bg-soft) 62%, transparent), var(--surface) 34%);
     }
 
     .book-detail-modal .book-detail-cover-panel {
         grid-template-rows: auto auto auto;
         align-content: start;
         gap: 12px;
-        padding: 22px 18px;
+        padding: 22px 16px;
+        border-right: 1px solid var(--border);
+        background: color-mix(in srgb, var(--bg-soft) 78%, var(--surface));
     }
 
     .book-detail-modal .detail-kicker {
+        width: max-content;
         padding: 5px 9px;
-        font-size: 11px;
+        border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--surface) 78%, transparent);
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 760;
+        letter-spacing: .08em;
     }
 
     .book-detail-modal .book-detail-cover-panel .view-cover {
-        min-height: 330px;
-        max-height: 330px;
-        padding: 14px;
+        min-height: 305px;
+        max-height: 305px;
+        padding: 13px;
         border-radius: 18px;
+        background: color-mix(in srgb, var(--surface) 82%, transparent);
+        border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+        box-shadow: 0 14px 34px color-mix(in srgb, #000 12%, transparent);
     }
 
     .book-detail-modal .view-cover img {
-        max-height: 300px;
-        border-radius: 13px;
+        max-height: 276px;
+        border-radius: 12px;
+        box-shadow: 0 10px 22px color-mix(in srgb, #000 18%, transparent);
     }
 
     .book-detail-modal .reading-hint-card {
-        padding: 12px;
+        padding: 11px 12px;
         border-radius: 14px;
-        font-size: 13px;
+        border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+        background: color-mix(in srgb, var(--surface) 76%, transparent);
+        color: var(--muted);
+        font-size: 12.5px;
         line-height: 1.42;
+        box-shadow: none;
     }
 
     .book-detail-modal .book-detail-info-panel {
-        padding: 26px 28px 24px;
+        padding: 24px 26px 22px;
+        background: color-mix(in srgb, var(--surface) 94%, transparent);
     }
 
     .book-detail-modal .detail-title-row {
         gap: 12px;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
         padding-right: 42px;
     }
 
     .book-detail-modal .view-title {
+        max-width: 650px;
         margin-bottom: 8px;
-        font-size: clamp(28px, 3vw, 38px);
-        line-height: 1.03;
+        font-size: clamp(27px, 2.7vw, 36px);
+        line-height: 1.04;
+        letter-spacing: -0.045em;
     }
 
     .book-detail-modal .view-description {
-        max-width: 680px;
-        font-size: 15px;
-        line-height: 1.48;
+        max-width: 650px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+        color: color-mix(in srgb, var(--text) 80%, var(--muted));
+        font-size: 14.5px;
+        line-height: 1.5;
     }
 
     .book-detail-modal .detail-grid {
         display: grid;
-        grid-template-columns: minmax(160px, 1.45fr) minmax(120px, .95fr) minmax(130px, 1fr) 72px;
-        gap: 7px;
-        margin: 12px 0 10px;
-        padding: 7px;
-        border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border));
-        border-radius: 16px;
-        background: color-mix(in srgb, var(--surface) 72%, transparent);
-        box-shadow: 0 8px 22px color-mix(in srgb, #000 5%, transparent);
+        grid-template-columns: minmax(170px, 1.55fr) minmax(112px, .92fr) minmax(128px, .98fr) 64px;
+        gap: 6px;
+        margin: 13px 0 10px;
+        padding: 6px;
+        border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+        border-radius: 15px;
+        background: color-mix(in srgb, var(--bg-soft) 42%, transparent);
+        box-shadow: none;
     }
 
     .book-detail-modal .detail-cell {
         min-height: 0;
-        padding: 8px 10px;
-        border-radius: 12px;
-        background: color-mix(in srgb, var(--bg-soft) 82%, transparent);
+        padding: 7px 9px;
+        border: 0;
+        border-radius: 11px;
+        background: transparent;
         box-shadow: none;
+    }
+
+    .book-detail-modal .detail-cell:not(:last-child) {
+        border-right: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+        border-radius: 0;
     }
 
     .book-detail-modal .detail-cell span {
         display: block;
         margin: 0 0 4px;
-        font-size: 10px;
+        color: var(--muted);
+        font-size: 9.5px;
         line-height: 1.1;
-        opacity: .9;
+        font-weight: 780;
+        letter-spacing: .055em;
+        text-transform: uppercase;
+        opacity: .86;
     }
 
     .book-detail-modal .detail-cell b {
         display: block;
         margin: 0;
         font-size: 13px;
-        line-height: 1.18;
+        font-weight: 720;
+        line-height: 1.2;
     }
 
     .book-detail-modal .detail-cell:last-child {
         text-align: center;
         display: grid;
         place-items: center;
-        gap: 2px;
+        gap: 1px;
     }
 
     .book-detail-modal .detail-cell:last-child span {
         margin: 0;
-        font-size: 12px;
+        font-size: 11px;
     }
 
     .book-detail-modal .detail-cell:last-child b {
@@ -131,101 +173,144 @@
     .book-detail-modal .placement-label,
     .book-detail-modal .copies-label,
     .book-detail-modal .comments-title {
-        font-size: 11px;
+        color: var(--muted);
+        font-size: 10.5px;
+        letter-spacing: .045em;
+        text-transform: uppercase;
     }
 
     .book-detail-modal .book-placement-rental {
-        grid-template-columns: minmax(0, 1.1fr) minmax(230px, .8fr);
-        gap: 10px;
-        margin-bottom: 10px;
+        grid-template-columns: minmax(0, 1.08fr) minmax(220px, .82fr);
+        gap: 9px;
+        margin-bottom: 9px;
     }
 
     .book-detail-modal .book-placement-card,
     .book-detail-modal .book-rental-card {
-        padding: 12px;
+        padding: 11px 12px;
         border-radius: 14px;
+        border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+        background: color-mix(in srgb, var(--surface) 82%, var(--bg-soft));
+        box-shadow: none;
+    }
+
+    .book-detail-modal .book-placement-card b,
+    .book-detail-modal .book-rental-card b {
+        font-size: 14px;
+        font-weight: 760;
     }
 
     .book-detail-modal .book-placement-card small,
     .book-detail-modal .book-rental-card small {
+        color: var(--muted);
+        font-size: 12px;
         line-height: 1.35;
     }
 
     .book-detail-modal .rent-book-btn {
         min-height: 38px;
         margin-top: 7px;
-        border-radius: 11px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 740;
+        letter-spacing: .01em;
+        box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 13%, transparent);
     }
 
     .book-detail-modal .view-copies.premium-copies {
-        min-height: 54px;
-        margin-bottom: 10px;
-        padding: 9px 12px;
+        min-height: 50px;
+        margin-bottom: 9px;
+        padding: 8px 11px;
         border-radius: 14px;
+        border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+        background: color-mix(in srgb, var(--surface) 88%, var(--bg-soft));
+        box-shadow: none;
     }
 
     .book-detail-modal .copies-control {
         padding: 3px;
+        background: transparent;
     }
 
     .book-detail-modal .copies-control button {
-        width: 34px;
-        height: 34px;
+        width: 32px;
+        height: 32px;
+        box-shadow: none;
     }
 
     .book-detail-modal .copies-count {
-        min-width: 40px;
-        font-size: 18px;
+        min-width: 38px;
+        font-size: 17px;
+        font-weight: 800;
     }
 
     .book-detail-modal .book-qr-generator {
         gap: 10px;
-        padding: 12px;
+        padding: 11px;
         border-radius: 14px;
+        border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+        background: color-mix(in srgb, var(--surface) 86%, var(--bg-soft));
+        box-shadow: none;
     }
 
     .book-detail-modal .book-qr-main {
-        grid-template-columns: 94px minmax(0, 1fr);
-        gap: 12px;
+        grid-template-columns: 82px minmax(0, 1fr);
+        gap: 11px;
     }
 
     .book-detail-modal .book-qr-code {
-        width: 94px;
-        height: 94px;
-        border-radius: 14px;
+        width: 82px;
+        height: 82px;
+        border-radius: 13px;
+        border: 1px solid var(--border);
     }
 
     .book-detail-modal .book-qr-copy b {
-        font-size: 16px;
+        font-size: 15px;
+        font-weight: 760;
     }
 
     .book-detail-modal .book-qr-copy span,
     .book-detail-modal .book-qr-copy input {
-        font-size: 13px;
+        font-size: 12.5px;
+    }
+
+    .book-detail-modal .book-qr-actions {
+        gap: 7px;
     }
 
     .book-detail-modal .book-qr-actions button {
-        min-height: 38px;
+        min-height: 36px;
+        border-radius: 11px;
+        font-size: 12.5px;
+        font-weight: 740;
     }
 
     .book-detail-modal .comments-section.premium-comments {
-        margin-top: 10px;
-        padding: 12px;
+        margin-top: 9px;
+        padding: 11px;
         border-radius: 14px;
+        border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+        background: color-mix(in srgb, var(--surface) 88%, var(--bg-soft));
+        box-shadow: none;
     }
 
     .book-detail-modal .comments-title {
-        margin-bottom: 9px;
-        font-size: 15px;
+        margin-bottom: 8px;
+        color: var(--text);
+        font-size: 14px;
+        font-weight: 820;
+        text-transform: none;
+        letter-spacing: 0;
     }
 
     .book-detail-modal .comments-list {
-        max-height: 150px;
+        max-height: 132px;
     }
 
     .book-detail-modal .comment-input-row input,
     .book-detail-modal #addCommentBtn {
-        min-height: 40px;
+        min-height: 38px;
         border-radius: 12px;
     }
 }
