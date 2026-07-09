@@ -18,6 +18,11 @@
         });
     }
 
+    function clearProfileHash() {
+        if (window.location.hash !== '#profile' || !window.history?.replaceState) return;
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
     function openPendingProfile() {
         var shouldOpen = false;
         try {
@@ -35,10 +40,14 @@
             var modal = document.getElementById('profileModal');
             if (pill && modal) {
                 pill.click();
+                clearProfileHash();
                 clearInterval(timer);
                 return;
             }
-            if (attempts > 20) clearInterval(timer);
+            if (attempts > 20) {
+                clearProfileHash();
+                clearInterval(timer);
+            }
         }, 120);
     }
 
