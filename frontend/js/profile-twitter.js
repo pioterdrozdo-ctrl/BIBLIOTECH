@@ -129,28 +129,11 @@
             }
 
             #profileModal .profile-access-panel,
-            #profileModal .profile-grid {
-                display: none !important;
-            }
-
+            #profileModal .profile-grid,
             #profileModal .avatar-settings,
             #profileModal .theme-settings,
             #profileModal #profileSecurityPanel {
                 display: none !important;
-                margin: 16px 22px 0;
-                animation: profileTwitterSectionIn .16s ease both;
-            }
-
-            #profileModal.profile-customize-open .avatar-settings,
-            #profileModal.profile-customize-open .theme-settings,
-            #profileModal.profile-settings-open #profileSecurityPanel {
-                display: block !important;
-            }
-
-            #profileModal.profile-customize-open #profileCustomizeBtn,
-            #profileModal.profile-settings-open #profileSettingsBtn {
-                background: var(--accent);
-                color: var(--on-accent);
             }
 
             #profileModal .profile-rentals-panel {
@@ -167,9 +150,108 @@
                 padding: 0 0 22px;
             }
 
-            @keyframes profileTwitterSectionIn {
-                from { opacity: 0; transform: translateY(5px); }
-                to { opacity: 1; transform: translateY(0); }
+            .profile-extra-modal {
+                z-index: 10030;
+                padding: clamp(12px, 2.5vw, 24px);
+            }
+
+            .profile-extra-content {
+                width: min(720px, 100%);
+                max-height: min(88vh, 820px);
+                overflow-y: auto;
+                overflow-x: hidden;
+                border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+                border-radius: clamp(18px, 2.4vw, 26px);
+                background: var(--surface);
+                box-shadow: var(--shadow);
+            }
+
+            .profile-extra-content::-webkit-scrollbar { width: 0; height: 0; display: none; }
+            .profile-extra-content { scrollbar-width: none; -ms-overflow-style: none; }
+
+            .profile-extra-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 14px;
+                padding: clamp(18px, 3vw, 26px) clamp(16px, 3vw, 26px) 12px;
+                border-bottom: 1px solid var(--border);
+                background:
+                    radial-gradient(circle at 12% 12%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 34%),
+                    var(--surface);
+            }
+
+            .profile-extra-title {
+                display: flex;
+                gap: 12px;
+                align-items: flex-start;
+                min-width: 0;
+            }
+
+            .profile-extra-icon {
+                width: 44px;
+                height: 44px;
+                flex: 0 0 auto;
+                display: grid;
+                place-items: center;
+                border-radius: 16px;
+                background: var(--accent-soft);
+                color: var(--accent);
+                font-size: 23px;
+            }
+
+            .profile-extra-header h2 {
+                margin: 0;
+                font-size: clamp(24px, 4vw, 34px);
+                line-height: 1.05;
+            }
+
+            .profile-extra-header p {
+                margin: 5px 0 0;
+                color: var(--muted);
+                line-height: 1.45;
+            }
+
+            .profile-extra-close {
+                width: 42px;
+                height: 42px;
+                flex: 0 0 auto;
+                display: grid;
+                place-items: center;
+                border: 1px solid var(--border);
+                border-radius: 50%;
+                background: var(--surface-muted);
+                color: var(--text);
+                cursor: pointer;
+                font-size: 24px;
+            }
+
+            .profile-extra-body {
+                display: grid;
+                gap: 14px;
+                padding: clamp(16px, 3vw, 26px);
+            }
+
+            .profile-extra-body .avatar-settings,
+            .profile-extra-body .theme-settings,
+            .profile-extra-body #profileSecurityPanel {
+                display: block !important;
+                margin: 0 !important;
+                box-shadow: var(--shadow-soft);
+            }
+
+            .profile-extra-body .theme-settings,
+            .profile-extra-body #profileSecurityPanel {
+                margin-top: 0 !important;
+            }
+
+            .profile-extra-empty {
+                padding: 16px;
+                border: 1px dashed var(--border);
+                border-radius: var(--radius);
+                background: var(--surface-muted);
+                color: var(--muted);
+                text-align: center;
             }
 
             @media (max-width: 560px) {
@@ -221,16 +303,89 @@
                 }
 
                 #profileModal .profile-rentals-panel,
-                #profileModal .avatar-settings,
-                #profileModal .theme-settings,
-                #profileModal #profileSecurityPanel,
                 #profileModal .profile-actions {
                     margin-left: 14px;
                     margin-right: 14px;
                 }
+
+                .profile-extra-modal {
+                    padding: 0;
+                }
+
+                .profile-extra-content {
+                    width: 100%;
+                    max-height: 100dvh;
+                    border-radius: 0;
+                    border-left: 0;
+                    border-right: 0;
+                }
             }
         `;
         document.head.appendChild(style);
+    }
+
+    function ensureExtraModal(id, icon, title, subtitle) {
+        let modal = document.getElementById(id);
+        if (modal) return modal;
+        modal = document.createElement('div');
+        modal.id = id;
+        modal.className = 'modal profile-extra-modal';
+        modal.innerHTML = `
+            <div class="modal-content profile-extra-content">
+                <div class="profile-extra-header">
+                    <div class="profile-extra-title">
+                        <span class="profile-extra-icon">${icon}</span>
+                        <div>
+                            <h2>${title}</h2>
+                            <p>${subtitle}</p>
+                        </div>
+                    </div>
+                    <button class="profile-extra-close" type="button" aria-label="Закрыть">×</button>
+                </div>
+                <div class="profile-extra-body" id="${id}Body"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', event => {
+            if (event.target === modal || event.target.closest('.profile-extra-close')) closeExtraModal(id);
+        });
+        return modal;
+    }
+
+    function setHeaderButtonState(type, active) {
+        const id = type === 'customize' ? 'profileCustomizeBtn' : 'profileSettingsBtn';
+        document.getElementById(id)?.classList.toggle('active', Boolean(active));
+    }
+
+    function closeExtraModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.remove('active');
+        if (id === 'profileCustomizeModal') setHeaderButtonState('customize', false);
+        if (id === 'profileSettingsModal') setHeaderButtonState('settings', false);
+    }
+
+    function openCustomizeModal() {
+        const modal = ensureExtraModal('profileCustomizeModal', '🎨', 'Кастомизация', 'Аватар профиля и оформление сайта.');
+        const body = document.getElementById('profileCustomizeModalBody');
+        const avatar = document.querySelector('.avatar-settings');
+        const theme = document.querySelector('.theme-settings');
+        body.innerHTML = '';
+        if (avatar) body.appendChild(avatar);
+        if (theme) body.appendChild(theme);
+        if (!avatar && !theme) body.innerHTML = '<div class="profile-extra-empty">Кастомизация ещё загружается. Откройте окно ещё раз через секунду.</div>';
+        modal.classList.add('active');
+        setHeaderButtonState('customize', true);
+    }
+
+    function openSettingsModal() {
+        const modal = ensureExtraModal('profileSettingsModal', '⚙️', 'Настройки', 'Безопасность аккаунта, 2FA и параметры входа.');
+        const body = document.getElementById('profileSettingsModalBody');
+        const security = document.getElementById('profileSecurityPanel');
+        body.innerHTML = '';
+        if (security) body.appendChild(security);
+        else body.innerHTML = '<div class="profile-extra-empty">Настройки ещё загружаются. Откройте окно ещё раз через секунду.</div>';
+        modal.classList.add('active');
+        setHeaderButtonState('settings', true);
     }
 
     function ensureHeaderActions() {
@@ -246,29 +401,20 @@
         top.appendChild(actions);
 
         actions.addEventListener('click', event => {
-            const modal = document.getElementById('profileModal');
-            if (!modal) return;
             const settings = event.target.closest('#profileSettingsBtn');
             const customize = event.target.closest('#profileCustomizeBtn');
             if (!settings && !customize) return;
             event.preventDefault();
-
-            if (settings) {
-                const willOpen = !modal.classList.contains('profile-settings-open');
-                modal.classList.toggle('profile-settings-open', willOpen);
-                if (willOpen) modal.classList.remove('profile-customize-open');
-            }
-
-            if (customize) {
-                const willOpen = !modal.classList.contains('profile-customize-open');
-                modal.classList.toggle('profile-customize-open', willOpen);
-                if (willOpen) modal.classList.remove('profile-settings-open');
-            }
+            event.stopPropagation();
+            if (settings) openSettingsModal();
+            if (customize) openCustomizeModal();
         });
     }
 
     function init() {
         injectStyles();
+        ensureExtraModal('profileCustomizeModal', '🎨', 'Кастомизация', 'Аватар профиля и оформление сайта.');
+        ensureExtraModal('profileSettingsModal', '⚙️', 'Настройки', 'Безопасность аккаунта, 2FA и параметры входа.');
         ensureHeaderActions();
     }
 
