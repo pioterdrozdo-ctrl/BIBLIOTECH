@@ -16,8 +16,22 @@
                 font-size: 17px;
             }
 
+            .auth-mode-title[hidden] {
+                display: none !important;
+            }
+
             .auth-reset-mode .tabs {
                 display: none !important;
+            }
+
+            .auth-container .form {
+                pointer-events: none;
+            }
+
+            .auth-container .form.active {
+                position: relative;
+                z-index: 2;
+                pointer-events: auto;
             }
 
             .auth-container .reset-step button,
@@ -28,6 +42,7 @@
             }
 
             .auth-container .auth-input-wrap {
+                position: relative;
                 z-index: 1;
             }
 
@@ -75,6 +90,7 @@
                 originalSwitchTab(tab);
             }
             setResetMode(tab === 'reset');
+            makeResetButtonClickable();
         };
     }
 
@@ -95,6 +111,7 @@
         button.style.zIndex = '3';
         button.addEventListener('click', function (event) {
             event.preventDefault();
+            event.stopPropagation();
             if (typeof window.requestPasswordReset === 'function') {
                 window.requestPasswordReset();
             }
@@ -108,17 +125,7 @@
         makeResetButtonClickable();
 
         const resetForm = document.getElementById('resetForm');
-        if (resetForm && resetForm.classList.contains('active')) setResetMode(true);
-
-        if ('MutationObserver' in window) {
-            const observer = new MutationObserver(() => {
-                ensureResetTitle();
-                makeResetButtonClickable();
-                const resetActive = document.getElementById('resetForm')?.classList.contains('active');
-                setResetMode(Boolean(resetActive));
-            });
-            observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden'] });
-        }
+        setResetMode(Boolean(resetForm && resetForm.classList.contains('active')));
     }
 
     if (document.readyState === 'loading') {
