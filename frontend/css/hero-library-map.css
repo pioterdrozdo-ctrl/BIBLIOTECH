@@ -1,7 +1,7 @@
-/* Apple-inspired hero showcase: no external gif, only lightweight CSS animation. */
+/* Hero visual as a live BIBLIOTECH app preview, not an abstract gif/card. */
 .hero-wow .hero-visual {
     position: relative;
-    min-height: clamp(330px, 40vw, 460px);
+    min-height: clamp(340px, 42vw, 470px);
     display: block;
     isolation: isolate;
     perspective: 1200px;
@@ -10,18 +10,14 @@
 .hero-wow .hero-visual::before {
     content: '';
     position: absolute;
-    left: 50%;
-    top: 50%;
-    width: min(390px, 92%);
-    height: min(390px, 92%);
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
+    inset: 16px 6px 8px;
+    border-radius: 34px;
     background:
-        radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--accent) 34%, transparent), transparent 34%),
-        radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--gold) 15%, transparent), transparent 60%);
-    filter: blur(22px);
-    opacity: .72;
-    animation: appleShowcaseGlow 7s ease-in-out infinite;
+        radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 28%),
+        radial-gradient(circle at 82% 74%, color-mix(in srgb, var(--gold) 18%, transparent), transparent 30%),
+        linear-gradient(135deg, color-mix(in srgb, var(--surface) 76%, transparent), color-mix(in srgb, var(--surface-muted) 58%, transparent));
+    border: 1px solid color-mix(in srgb, #fff 12%, var(--border));
+    box-shadow: 0 30px 90px color-mix(in srgb, #000 22%, transparent);
     z-index: -4;
 }
 
@@ -29,251 +25,289 @@
     content: '';
     position: absolute;
     left: 50%;
-    top: 52%;
-    width: min(430px, 96%);
-    height: 230px;
-    transform: translate(-50%, -50%) rotateX(66deg) rotateZ(-10deg);
+    bottom: 0;
+    width: min(330px, 84%);
+    height: 38px;
+    transform: translateX(-50%);
     border-radius: 50%;
-    background:
-        repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--accent) 30%, transparent) 0 3deg, transparent 3deg 13deg),
-        radial-gradient(circle, transparent 49%, color-mix(in srgb, var(--border) 68%, transparent) 50%, transparent 52%);
-    -webkit-mask: radial-gradient(circle, transparent 42%, #000 43%, #000 54%, transparent 55%);
-    mask: radial-gradient(circle, transparent 42%, #000 43%, #000 54%, transparent 55%);
-    opacity: .65;
-    animation: appleShowcaseRing 14s linear infinite;
-    z-index: -2;
+    background: radial-gradient(ellipse, color-mix(in srgb, #000 28%, transparent), transparent 68%);
+    filter: blur(5px);
+    opacity: .55;
+    z-index: -3;
 }
 
 .hero-wow .visual-glow,
-.hero-wow .library-orbit,
 .hero-wow .floating-book {
     display: block;
+}
+
+.hero-wow .library-orbit {
+    display: none;
 }
 
 .hero-wow .visual-glow {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: min(360px, 86%);
-    height: min(360px, 86%);
+    width: min(330px, 78%);
+    height: min(330px, 78%);
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    background:
-        radial-gradient(circle at 35% 30%, color-mix(in srgb, #fff 18%, transparent), transparent 22%),
-        radial-gradient(circle at 62% 72%, color-mix(in srgb, var(--accent-strong) 28%, transparent), transparent 34%);
-    filter: blur(8px);
-    opacity: .68;
-    z-index: -3;
-}
-
-.hero-wow .library-orbit {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: min(335px, 82%);
-    height: min(335px, 82%);
-    border-radius: 34px;
-    border: 1px solid color-mix(in srgb, #fff 10%, var(--border));
-    background: linear-gradient(145deg, color-mix(in srgb, var(--surface) 20%, transparent), transparent);
-    transform: translate(-50%, -50%) rotate(-7deg) skewY(-3deg);
-    opacity: .55;
-    z-index: -1;
-}
-
-.hero-wow .orbit-two {
-    width: min(300px, 76%);
-    height: min(300px, 76%);
-    border-radius: 30px;
-    transform: translate(-50%, -50%) rotate(8deg) skewY(3deg);
-    background: color-mix(in srgb, var(--surface) 14%, transparent);
-    opacity: .45;
+    background: radial-gradient(circle, color-mix(in srgb, var(--accent) 24%, transparent), transparent 62%);
+    filter: blur(20px);
+    opacity: .62;
+    z-index: -2;
 }
 
 .hero-wow .visual-card.main-card {
     position: absolute;
     left: 50%;
-    top: 47%;
-    width: min(280px, 78%);
-    min-height: 230px;
-    display: grid;
-    align-content: center;
-    justify-items: center;
-    gap: 10px;
-    padding: 26px 22px;
-    transform: translate(-50%, -50%) rotateX(8deg) rotateY(-8deg);
-    border: 1px solid color-mix(in srgb, #fff 14%, var(--border));
+    top: 50%;
+    width: min(292px, 78%);
+    min-height: 360px;
+    display: block;
+    padding: 16px;
+    transform: translate(-50%, -50%) rotateX(6deg) rotateY(-8deg);
+    border: 1px solid color-mix(in srgb, #fff 13%, var(--border));
     border-radius: 34px;
-    background:
-        linear-gradient(145deg, color-mix(in srgb, #fff 15%, transparent), transparent 34%),
-        linear-gradient(180deg, color-mix(in srgb, var(--surface) 90%, transparent), color-mix(in srgb, var(--surface-muted) 58%, transparent));
+    background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 92%, transparent), color-mix(in srgb, var(--bg-soft) 82%, transparent));
     box-shadow:
         0 34px 90px color-mix(in srgb, #000 28%, transparent),
         inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent);
-    text-align: center;
     overflow: hidden;
-    backdrop-filter: blur(22px);
-    z-index: 5;
-    animation: appleShowcaseFloat 6.2s ease-in-out infinite;
+    backdrop-filter: blur(20px);
+    z-index: 4;
+    animation: heroAppFloat 6s ease-in-out infinite;
 }
 
 .hero-wow .visual-card.main-card::before {
-    content: '';
+    content: 'Каталог сегодня';
     position: absolute;
-    inset: 12px;
-    border-radius: 26px;
-    border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+    left: 16px;
+    right: 16px;
+    top: 16px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    padding-left: 54px;
+    border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+    border-radius: 18px;
     background:
-        linear-gradient(color-mix(in srgb, var(--border) 34%, transparent) 1px, transparent 1px),
-        linear-gradient(90deg, color-mix(in srgb, var(--border) 34%, transparent) 1px, transparent 1px);
-    background-size: 34px 34px;
-    opacity: .45;
-    pointer-events: none;
+        radial-gradient(circle at 18px 50%, var(--accent) 0 5px, transparent 6px),
+        color-mix(in srgb, var(--surface-muted) 68%, transparent);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 850;
+    letter-spacing: -.01em;
 }
 
 .hero-wow .visual-card.main-card::after {
-    content: '';
+    content: 'Поиск по названию, QR и аренде';
     position: absolute;
-    left: -45%;
-    top: -20%;
-    width: 34%;
-    height: 140%;
-    background: linear-gradient(90deg, transparent, color-mix(in srgb, #fff 26%, transparent), transparent);
-    transform: skewX(-18deg);
-    animation: appleShowcaseLight 5.4s ease-in-out infinite;
-    pointer-events: none;
+    left: 16px;
+    right: 16px;
+    top: 76px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px 0 38px;
+    border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+    border-radius: 999px;
+    background:
+        radial-gradient(circle at 18px 50%, color-mix(in srgb, var(--muted) 70%, transparent) 0 4px, transparent 5px),
+        color-mix(in srgb, var(--bg-soft) 86%, transparent);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 720;
 }
 
 .hero-wow .visual-icon.logo-orb {
-    position: relative;
-    z-index: 2;
-    width: 86px;
-    height: 86px;
+    position: absolute;
+    left: 26px;
+    top: 22px;
+    z-index: 3;
+    width: 34px;
+    height: 34px;
     display: grid;
     place-items: center;
-    border-radius: 24px;
-    background: linear-gradient(145deg, color-mix(in srgb, var(--bg-soft) 80%, #000), color-mix(in srgb, var(--surface) 34%, #000));
-    box-shadow:
-        0 18px 38px color-mix(in srgb, #000 32%, transparent),
-        inset 0 1px 0 color-mix(in srgb, #fff 16%, transparent);
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--surface) 75%, #000);
+    box-shadow: 0 8px 20px color-mix(in srgb, #000 22%, transparent);
 }
 
 .hero-wow .visual-icon img,
 .hero-wow .logo-orb img {
-    width: 76px;
-    height: 76px;
+    width: 30px;
+    height: 30px;
     object-fit: contain;
-    border-radius: 22px;
+    border-radius: 9px;
 }
 
 .hero-wow .visual-card b {
-    position: relative;
-    z-index: 2;
-    margin-top: 4px;
-    font-size: clamp(24px, 3vw, 31px);
-    font-weight: 880;
-    letter-spacing: -.035em;
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    top: 132px;
+    height: 86px;
+    display: block;
+    padding: 16px 16px 16px 86px;
+    border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+    border-radius: 22px;
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, transparent), transparent 46%),
+        color-mix(in srgb, var(--surface-muted) 72%, transparent);
+    color: var(--text);
+    font-size: 0;
+    overflow: hidden;
+}
+
+.hero-wow .visual-card b::before {
+    content: '';
+    position: absolute;
+    left: 16px;
+    top: 15px;
+    width: 48px;
+    height: 56px;
+    border-radius: 8px 12px 12px 8px;
+    background:
+        linear-gradient(90deg, color-mix(in srgb, #000 18%, transparent) 0 7px, transparent 7px),
+        linear-gradient(135deg, var(--accent), var(--accent-strong));
+    box-shadow: 0 10px 24px color-mix(in srgb, #000 18%, transparent);
+}
+
+.hero-wow .visual-card b::after {
+    content: 'Новая книга\A доступна к аренде';
+    white-space: pre;
+    position: absolute;
+    left: 86px;
+    top: 18px;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 850;
+    line-height: 1.25;
+    letter-spacing: -.02em;
 }
 
 .hero-wow .visual-card small {
-    position: relative;
-    z-index: 2;
-    color: var(--muted);
-    font-size: 13px;
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    top: 232px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    color: transparent;
+    font-size: 0;
 }
+
+.hero-wow .visual-card small::before,
+.hero-wow .visual-card small::after {
+    min-height: 54px;
+    display: grid;
+    align-content: center;
+    padding: 11px;
+    border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+    border-radius: 17px;
+    background: color-mix(in srgb, var(--surface-muted) 60%, transparent);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 820;
+    line-height: 1.18;
+}
+
+.hero-wow .visual-card small::before { content: 'QR\A сканер'; white-space: pre; }
+.hero-wow .visual-card small::after { content: 'Отзывы\A читателей'; white-space: pre; }
 
 .hero-wow .floating-book {
     position: absolute;
-    z-index: 8;
-    width: 116px;
-    min-height: 74px;
+    z-index: 7;
     display: grid;
     align-content: center;
-    gap: 4px;
+    gap: 3px;
+    width: 126px;
+    min-height: 70px;
     padding: 12px 13px;
     border: 1px solid color-mix(in srgb, #fff 12%, var(--border));
     border-radius: 22px;
-    background: color-mix(in srgb, var(--surface) 74%, transparent);
-    box-shadow: 0 18px 44px color-mix(in srgb, #000 22%, transparent);
+    background: color-mix(in srgb, var(--surface) 76%, transparent);
+    box-shadow: 0 18px 44px color-mix(in srgb, #000 21%, transparent);
     backdrop-filter: blur(18px);
     font-size: 0;
-    overflow: hidden;
-    animation: appleShowcaseChip 5.8s ease-in-out infinite;
+    animation: heroAppChip 5.4s ease-in-out infinite;
 }
 
 .hero-wow .floating-book::before {
     color: var(--text);
     font-size: 13px;
-    font-weight: 820;
+    font-weight: 850;
     line-height: 1.1;
 }
 
 .hero-wow .floating-book::after {
     color: var(--muted);
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 720;
     line-height: 1.2;
 }
 
 .hero-wow .book-a {
-    left: 0;
-    top: 19%;
-    transform: rotate(-9deg);
+    left: 1%;
+    top: 24%;
+    transform: rotate(-7deg);
 }
 
-.hero-wow .book-a::before { content: 'QR'; }
-.hero-wow .book-a::after { content: 'быстрый вход'; }
+.hero-wow .book-a::before { content: 'Быстрый поиск'; }
+.hero-wow .book-a::after { content: 'по названию и автору'; }
 
 .hero-wow .book-b {
-    right: -2%;
-    top: 26%;
+    right: 0;
+    top: 36%;
     transform: rotate(8deg);
-    animation-delay: -.9s;
+    animation-delay: -1s;
 }
 
-.hero-wow .book-b::before { content: 'Аренда'; }
-.hero-wow .book-b::after { content: 'в один клик'; }
+.hero-wow .book-b::before { content: 'QR-книга'; }
+.hero-wow .book-b::after { content: 'открывается сразу'; }
 
 .hero-wow .book-c {
-    left: 34%;
-    bottom: 4%;
-    transform: rotate(-2deg);
+    left: 11%;
+    bottom: 12%;
+    transform: rotate(5deg);
     animation-delay: -1.8s;
 }
 
-.hero-wow .book-c::before { content: 'Отзывы'; }
-.hero-wow .book-c::after { content: 'живой каталог'; }
+.hero-wow .book-c::before { content: 'Аренда'; }
+.hero-wow .book-c::after { content: 'кнопка на карточке'; }
 
 .hero-wow .visual-stat {
     position: absolute;
-    z-index: 7;
-    width: 118px;
-    min-height: 82px;
+    z-index: 6;
+    right: 7%;
+    bottom: 13%;
+    width: 116px;
+    min-height: 72px;
     display: grid;
     align-content: center;
     padding: 12px 14px;
     border: 1px solid color-mix(in srgb, #fff 12%, var(--border));
-    border-radius: 24px;
-    background: color-mix(in srgb, var(--surface) 66%, transparent);
+    border-radius: 20px;
+    background: color-mix(in srgb, var(--surface) 74%, transparent);
     box-shadow: 0 18px 44px color-mix(in srgb, #000 18%, transparent);
     backdrop-filter: blur(18px);
 }
 
 .hero-wow .stat-a {
+    right: auto;
     left: 7%;
-    bottom: 17%;
-}
-
-.hero-wow .stat-b {
-    right: 8%;
-    bottom: 13%;
+    bottom: 34%;
 }
 
 .hero-wow .visual-stat b {
     color: var(--text);
-    font-size: 31px;
+    font-size: 30px;
     font-weight: 860;
     line-height: 1;
-    letter-spacing: -.05em;
+    letter-spacing: -.045em;
 }
 
 .hero-wow .visual-stat span {
@@ -281,49 +315,30 @@
     color: var(--muted);
     font-size: 10px;
     font-weight: 760;
-    letter-spacing: .1em;
+    letter-spacing: .08em;
     text-transform: uppercase;
 }
 
-@keyframes appleShowcaseFloat {
-    0%, 100% { transform: translate(-50%, -50%) rotateX(8deg) rotateY(-8deg) translateY(0); }
-    50% { transform: translate(-50%, -50%) rotateX(8deg) rotateY(-8deg) translateY(-10px); }
+@keyframes heroAppFloat {
+    0%, 100% { transform: translate(-50%, -50%) rotateX(6deg) rotateY(-8deg) translateY(0); }
+    50% { transform: translate(-50%, -50%) rotateX(6deg) rotateY(-8deg) translateY(-8px); }
 }
 
-@keyframes appleShowcaseChip {
+@keyframes heroAppChip {
     0%, 100% { margin-top: 0; }
-    50% { margin-top: -9px; }
-}
-
-@keyframes appleShowcaseLight {
-    0%, 56% { left: -45%; opacity: 0; }
-    68% { opacity: 1; }
-    100% { left: 120%; opacity: 0; }
-}
-
-@keyframes appleShowcaseGlow {
-    0%, 100% { transform: translate(-50%, -50%) scale(.95); opacity: .58; }
-    50% { transform: translate(-50%, -50%) scale(1.05); opacity: .86; }
-}
-
-@keyframes appleShowcaseRing {
-    from { transform: translate(-50%, -50%) rotateX(66deg) rotateZ(-10deg); }
-    to { transform: translate(-50%, -50%) rotateX(66deg) rotateZ(350deg); }
+    50% { margin-top: -8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .hero-wow .visual-card.main-card,
-    .hero-wow .floating-book,
-    .hero-wow .hero-visual::before,
-    .hero-wow .hero-visual::after,
-    .hero-wow .visual-card.main-card::after {
+    .hero-wow .floating-book {
         animation: none !important;
     }
 }
 
 @media (max-width: 900px) {
     .hero-wow .hero-visual {
-        min-height: 380px;
+        min-height: 420px;
         max-width: 540px;
         margin: 0 auto;
     }
@@ -331,28 +346,28 @@
 
 @media (max-width: 560px) {
     .hero-wow .hero-visual {
-        min-height: 350px;
+        min-height: 390px;
     }
 
     .hero-wow .visual-card.main-card {
-        width: min(250px, 76%);
-        min-height: 210px;
+        width: min(278px, 78%);
+        min-height: 342px;
     }
 
     .hero-wow .floating-book {
-        width: 96px;
-        min-height: 64px;
+        width: 104px;
+        min-height: 62px;
         padding: 10px;
         border-radius: 18px;
     }
 
-    .hero-wow .book-a { left: 2%; top: 18%; }
-    .hero-wow .book-b { right: 2%; top: 26%; }
-    .hero-wow .book-c { left: 33%; bottom: 4%; }
+    .hero-wow .book-a { left: 0; top: 22%; }
+    .hero-wow .book-b { right: 0; top: 39%; }
+    .hero-wow .book-c { left: 6%; bottom: 10%; }
 
     .hero-wow .visual-stat {
-        width: 104px;
-        min-height: 72px;
-        border-radius: 20px;
+        width: 100px;
+        min-height: 66px;
+        border-radius: 18px;
     }
 }
