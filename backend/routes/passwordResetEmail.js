@@ -53,6 +53,45 @@ function hasSmtpConfig() {
     return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
 }
 
+function classifySmtpError(error) {
+    const raw = String(error?.message || error?.response || '').toLowerCase();
+    const responseCode = Number(error?.responseCode || 0);
+    if (!hasSmtpConfig()) {
+        return {
+            reason: 'SMTP_NOT_CONFIGURED',
+            publicMessage: 'В Render не заполнены SMTP_HOST, SMTP_USER или SMTP_PASS.'
+        };
+    }
+    if (error?.code === 'EAUTH' || responseCode === 535 || raw.includes('invalid login') || raw.includes('bad credentials')) {
+        return {
+            reason: 'SMTP_AUTH_FAILED',
+            publicMessage: 'Gmail не принял SMTP_USER или SMTP_PASS. В SMTP_PASS нужен пароль приложения Gmail, не обычный пароль.'
+        };
+    }
+    if (responseCode === 534 || raw.includes('application-specific password') || raw.includes('app password')) {
+        return {
+            reason: 'GMAIL_APP_PASSWORD_REQUIRED',
+            publicMessage: 'Для Gmail нужен пароль приложения. Включите 2FA в аккаунте bibliotech.2fa@gmail.com и создайте App Password.'
+        };
+    }
+    if (raw.includes('self signed') || raw.includes('certificate')) {
+        return {
+            reason: 'SMTP_TLS_FAILED',
+            publicMessage: 'Ошибка TLS/SSL SMTP. Для Gmail используйте SMTP_PORT=465 и SMTP_SECURE=true.'
+        };
+    }
+    if (raw.includes('timeout') || raw.includes('timed out') || error?.code === 'ETIMEDOUT') {
+        return {
+            reason: 'SMTP_TIMEOUT',
+            publicMessage: 'SMTP-сервер не ответил вовремя. Проверьте SMTP_HOST и SMTP_PORT.'
+        };
+    }
+    return {
+        reason: 'SMTP_SEND_FAILED',
+        publicMessage: 'SMTP не отправил письмо. Посмотрите Render Logs: строку [RESET_EMAIL] SMTP failed.'
+    };
+}
+
 function createSmtpTransporter() {
     const port = Number(process.env.SMTP_PORT || 587);
     const secure = String(process.env.SMTP_SECURE || '').toLowerCase() === 'true' || port === 465;
@@ -68,7 +107,7 @@ function createSmtpTransporter() {
 }
 
 async function sendViaSmtp(email, username, code) {
-    if (!hasSmtpConfig()) return { sent: false, reason: 'SMTP_NOT_CONFIGURED' };
+    if (!hasSmtpConfig()) return { sent: false, reason: 'SMTP_NOT_CONFIGURED', publicMessage: 'В Render не заполнены SMTP_HOST, SMTP_USER или SMTP_PASS.' };
     const from = process.env.SMTP_FROM || process.env.EMAIL_FROM || process.env.SMTP_USER;
     const { text, html } = buildMail(username, code);
     const transporter = createSmtpTransporter();
@@ -102,20 +141,23 @@ async function sendViaResend(email, username, code) {
 }
 
 async function sendResetEmail(email, username, code) {
+    let smtpFailure = null;
     try {
         const smtp = await sendViaSmtp(email, username, code);
         if (smtp.sent) return smtp;
+        smtpFailure = smtp;
     } catch (error) {
         console.warn('[RESET_EMAIL] SMTP failed:', error.message);
+        smtpFailure = classifySmtpError(error);
     }
 
     try {
         const resend = await sendViaResend(email, username, code);
         if (resend.sent) return resend;
-        return resend;
+        return smtpFailure || resend;
     } catch (error) {
         console.warn('[RESET_EMAIL] Resend error:', error.message);
-        return { sent: false, reason: 'EMAIL_SEND_FAILED', message: error.message };
+        return smtpFailure || { sent: false, reason: 'EMAIL_SEND_FAILED', message: error.message };
     }
 }
 
@@ -145,7 +187,7 @@ router.post('/password-reset/request', async (req, res) => {
         const delivery = await sendResetEmail(user.email, user.username, code);
         if (!delivery.sent) {
             return res.status(503).json({
-                error: 'Письмо не отправлено: на сервере не настроена почта или провайдер отклонил отправку.',
+                error: delivery.publicMessage || 'Письмо не отправлено: на сервере не настроена почта или провайдер отклонил отправку.',
                 emailSent: false,
                 reason: delivery.reason || 'EMAIL_SEND_FAILED'
             });
