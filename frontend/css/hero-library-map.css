@@ -1,7 +1,7 @@
-/* Premium hero scene: clean 3D book with a real page-turn animation. */
+/* Premium hero scene: clean book sculpture with safe spacing and no overlapping text. */
 .hero-wow .hero-visual {
     position: relative;
-    min-height: clamp(340px, 38vw, 455px);
+    min-height: clamp(350px, 38vw, 450px);
     display: grid;
     place-items: center;
     isolation: isolate;
@@ -25,17 +25,17 @@
     content: '';
     position: absolute;
     left: 50%;
-    top: 52%;
-    width: min(430px, 92%);
-    height: min(430px, 92%);
+    top: 51%;
+    width: min(430px, 88%);
+    height: min(430px, 88%);
     transform: translate(-50%, -50%);
     border-radius: 50%;
     background:
-        radial-gradient(circle at 48% 46%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 42%),
-        radial-gradient(circle at 56% 52%, color-mix(in srgb, var(--gold) 10%, transparent), transparent 65%);
+        radial-gradient(circle at 50% 46%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 45%),
+        radial-gradient(circle at 56% 58%, color-mix(in srgb, var(--gold) 8%, transparent), transparent 70%);
     filter: blur(22px);
-    opacity: .72;
-    animation: heroBookBreath 7.5s ease-in-out infinite;
+    opacity: .64;
+    animation: heroBookBreath 8s ease-in-out infinite;
     z-index: -5;
 }
 
@@ -43,14 +43,14 @@
     content: '';
     position: absolute;
     left: 50%;
-    bottom: 14%;
-    width: min(330px, 72%);
-    height: 34px;
+    bottom: 15%;
+    width: min(330px, 70%);
+    height: 32px;
     transform: translateX(-50%);
     border-radius: 50%;
-    background: radial-gradient(ellipse, color-mix(in srgb, #000 25%, transparent), transparent 70%);
+    background: radial-gradient(ellipse, color-mix(in srgb, #000 22%, transparent), transparent 72%);
     filter: blur(7px);
-    opacity: .42;
+    opacity: .36;
     z-index: -2;
 }
 
@@ -58,38 +58,38 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    width: min(360px, 76%);
-    height: min(360px, 76%);
+    width: min(355px, 74%);
+    height: min(355px, 74%);
     transform: translate(-50%, -50%);
-    border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
     border-radius: 50%;
-    opacity: .36;
+    opacity: .28;
 }
 
 .hero-book-aura::before,
 .hero-book-aura::after {
     content: '';
     position: absolute;
-    inset: 34px;
+    inset: 46px;
     border-radius: 50%;
-    border: 1px dashed color-mix(in srgb, var(--accent) 20%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .hero-book-aura::after {
-    inset: 78px;
-    border-style: solid;
-    opacity: .54;
+    inset: 92px;
+    border-style: dashed;
+    opacity: .42;
 }
 
 .hero-book-orbit {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: min(325px, 72%);
-    height: min(325px, 72%);
+    width: min(320px, 70%);
+    height: min(320px, 70%);
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    animation: heroBookOrbit 22s linear infinite;
+    animation: heroBookOrbit 26s linear infinite;
 }
 
 .hero-book-orbit i {
@@ -98,8 +98,8 @@
     height: 7px;
     border-radius: 50%;
     background: var(--accent);
-    box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 10%, transparent);
-    opacity: .72;
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 9%, transparent);
+    opacity: .58;
 }
 
 .hero-book-orbit i:nth-child(1) {
@@ -108,16 +108,16 @@
 }
 
 .hero-book-orbit i:nth-child(2) {
-    right: 10%;
-    bottom: 17%;
+    right: 12%;
+    bottom: 16%;
     transform: scale(.72);
-    opacity: .46;
+    opacity: .38;
 }
 
 .hero-book-shell {
     position: relative;
-    width: min(390px, 86vw);
-    height: 282px;
+    width: min(400px, 84vw);
+    height: 290px;
     transform-style: preserve-3d;
     animation: heroBookFloat 7s ease-in-out infinite;
 }
@@ -125,27 +125,27 @@
 .hero-book-table {
     position: absolute;
     left: 50%;
-    bottom: 25px;
-    width: 310px;
+    bottom: 24px;
+    width: 318px;
     height: 22px;
     transform: translateX(-50%);
     border-radius: 50%;
-    background: radial-gradient(ellipse, color-mix(in srgb, #000 20%, transparent), transparent 72%);
-    filter: blur(5px);
-    opacity: .36;
+    background: radial-gradient(ellipse, color-mix(in srgb, #000 19%, transparent), transparent 74%);
+    filter: blur(6px);
+    opacity: .34;
 }
 
 .hero-book-page {
     position: absolute;
-    top: 88px;
-    width: 152px;
-    height: 172px;
-    border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+    top: 102px;
+    width: 150px;
+    height: 150px;
+    border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
     background:
-        linear-gradient(90deg, transparent 0 12%, color-mix(in srgb, var(--border) 32%, transparent) 12.4% 12.9%, transparent 13.4% 100%),
-        linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, transparent), color-mix(in srgb, var(--surface-muted) 74%, transparent));
+        linear-gradient(90deg, transparent 0 12%, color-mix(in srgb, var(--border) 26%, transparent) 12.3% 12.8%, transparent 13.4% 100%),
+        linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, transparent), color-mix(in srgb, var(--surface-muted) 72%, transparent));
     box-shadow:
-        0 20px 48px color-mix(in srgb, #000 13%, transparent),
+        0 18px 42px color-mix(in srgb, #000 11%, transparent),
         inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent);
     overflow: hidden;
 }
@@ -154,176 +154,157 @@
     content: '';
     position: absolute;
     left: 24px;
-    right: 20px;
-    top: 28px;
-    height: 74px;
+    right: 22px;
+    top: 26px;
+    height: 78px;
     background: repeating-linear-gradient(
         to bottom,
-        color-mix(in srgb, var(--border) 54%, transparent) 0 1px,
-        transparent 1px 15px
+        color-mix(in srgb, var(--border) 45%, transparent) 0 1px,
+        transparent 1px 16px
     );
-    opacity: .55;
+    opacity: .42;
 }
 
 .hero-book-page::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(105deg, transparent 0 72%, color-mix(in srgb, #fff 10%, transparent) 74%, transparent 84%);
-    opacity: .6;
+    background: linear-gradient(105deg, transparent 0 70%, color-mix(in srgb, #fff 9%, transparent) 74%, transparent 84%);
+    opacity: .5;
 }
 
 .hero-book-left {
-    right: 50%;
-    border-radius: 28px 9px 11px 28px;
+    right: calc(50% - 2px);
+    border-radius: 26px 8px 10px 26px;
     transform-origin: right center;
-    transform: perspective(820px) rotateY(25deg) rotateZ(-1deg);
+    transform: perspective(820px) rotateY(21deg) rotateZ(-1deg);
 }
 
 .hero-book-right {
-    left: 50%;
-    border-radius: 9px 28px 28px 11px;
+    left: calc(50% - 2px);
+    border-radius: 8px 26px 26px 10px;
     transform-origin: left center;
-    transform: perspective(820px) rotateY(-25deg) rotateZ(1deg);
+    transform: perspective(820px) rotateY(-21deg) rotateZ(1deg);
 }
 
 .hero-book-spine {
     position: absolute;
     left: 50%;
-    top: 91px;
-    width: 20px;
-    height: 170px;
+    top: 104px;
+    width: 16px;
+    height: 147px;
     transform: translateX(-50%);
     border-radius: 999px;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 28%, var(--surface)), color-mix(in srgb, var(--accent-strong) 20%, var(--surface-muted)));
-    box-shadow: 0 12px 30px color-mix(in srgb, #000 12%, transparent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 22%, var(--surface)), color-mix(in srgb, var(--accent-strong) 16%, var(--surface-muted)));
+    box-shadow: 0 10px 24px color-mix(in srgb, #000 10%, transparent);
     z-index: 2;
 }
 
 .hero-book-turn {
     position: absolute;
-    left: calc(50% + 3px);
-    top: 88px;
-    width: 145px;
-    height: 172px;
-    border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
-    border-radius: 9px 27px 27px 10px;
+    left: calc(50% - 2px);
+    top: 102px;
+    width: 144px;
+    height: 150px;
+    border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+    border-radius: 8px 25px 25px 10px;
     background:
-        linear-gradient(90deg, color-mix(in srgb, #fff 8%, transparent), transparent 42%),
-        linear-gradient(180deg, color-mix(in srgb, var(--surface) 98%, transparent), color-mix(in srgb, var(--surface-muted) 78%, transparent));
-    box-shadow: 0 20px 45px color-mix(in srgb, #000 13%, transparent);
+        linear-gradient(90deg, color-mix(in srgb, #fff 9%, transparent), transparent 45%),
+        linear-gradient(180deg, color-mix(in srgb, var(--surface) 98%, transparent), color-mix(in srgb, var(--surface-muted) 76%, transparent));
+    box-shadow: 0 18px 40px color-mix(in srgb, #000 11%, transparent);
     transform-origin: left center;
-    transform: perspective(820px) rotateY(-25deg);
+    transform: perspective(820px) rotateY(-21deg);
     opacity: 0;
     z-index: 4;
-    animation: heroPageTurn 8.2s ease-in-out infinite;
+    animation: heroPageTurn 8.4s ease-in-out infinite;
 }
 
 .hero-book-turn::before {
     content: '';
     position: absolute;
     left: 23px;
-    right: 19px;
-    top: 28px;
-    height: 72px;
+    right: 20px;
+    top: 26px;
+    height: 76px;
     background: repeating-linear-gradient(
         to bottom,
-        color-mix(in srgb, var(--border) 46%, transparent) 0 1px,
-        transparent 1px 15px
+        color-mix(in srgb, var(--border) 38%, transparent) 0 1px,
+        transparent 1px 16px
     );
-    opacity: .45;
+    opacity: .36;
 }
 
 .hero-book-logo {
     position: absolute;
     left: 50%;
-    top: 22px;
-    z-index: 6;
-    width: 78px;
-    height: 78px;
+    top: 18px;
+    z-index: 8;
+    width: 76px;
+    height: 76px;
     display: grid;
     place-items: center;
     transform: translateX(-50%);
-    border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
-    border-radius: 26px;
-    background: color-mix(in srgb, var(--surface) 76%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+    border-radius: 25px;
+    background: color-mix(in srgb, var(--surface) 78%, transparent);
     box-shadow:
-        0 18px 42px color-mix(in srgb, #000 18%, transparent),
+        0 18px 42px color-mix(in srgb, #000 16%, transparent),
         inset 0 1px 0 color-mix(in srgb, #fff 16%, transparent);
     backdrop-filter: blur(18px);
     animation: heroLogoBreath 7s ease-in-out infinite;
 }
 
 .hero-book-logo img {
-    width: 66px;
-    height: 66px;
+    width: 64px;
+    height: 64px;
     object-fit: contain;
     border-radius: 20px;
 }
 
 .hero-book-caption {
-    position: absolute;
-    left: 50%;
-    top: 137px;
-    z-index: 7;
-    width: 230px;
-    transform: translateX(-50%);
-    color: var(--text);
-    font-size: 22px;
-    font-weight: 860;
-    letter-spacing: -.045em;
-    text-align: center;
-}
-
-.hero-book-caption small {
-    display: block;
-    margin-top: 4px;
-    color: var(--muted);
-    font-size: 11.5px;
-    font-weight: 650;
-    letter-spacing: 0;
+    display: none !important;
 }
 
 .hero-book-spark {
     position: absolute;
     z-index: 8;
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: var(--accent);
-    box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 10%, transparent);
-    opacity: .7;
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 8%, transparent);
+    opacity: .5;
 }
 
 .hero-book-spark.one {
-    left: 16%;
-    top: 35%;
-    animation: heroSparkOne 7.4s ease-in-out infinite;
+    left: 18%;
+    top: 38%;
+    animation: heroSparkOne 8s ease-in-out infinite;
 }
 
 .hero-book-spark.two {
-    right: 15%;
-    top: 42%;
+    right: 17%;
+    top: 47%;
     transform: scale(.76);
-    animation: heroSparkTwo 7.9s ease-in-out infinite;
+    animation: heroSparkTwo 8.5s ease-in-out infinite;
 }
 
 .hero-book-spark.three {
     left: 50%;
-    bottom: 24%;
+    bottom: 23%;
     transform: translateX(-50%) scale(.68);
-    opacity: .48;
-    animation: heroSparkThree 7.2s ease-in-out infinite;
+    opacity: .34;
+    animation: heroSparkThree 8s ease-in-out infinite;
 }
 
 @keyframes heroBookFloat {
     0%, 100% { transform: translateY(0) rotateX(0deg); }
-    50% { transform: translateY(-10px) rotateX(1.5deg); }
+    50% { transform: translateY(-8px) rotateX(1deg); }
 }
 
 @keyframes heroBookBreath {
-    0%, 100% { transform: translate(-50%, -50%) scale(.96); opacity: .52; }
-    50% { transform: translate(-50%, -50%) scale(1.05); opacity: .78; }
+    0%, 100% { transform: translate(-50%, -50%) scale(.97); opacity: .52; }
+    50% { transform: translate(-50%, -50%) scale(1.04); opacity: .72; }
 }
 
 @keyframes heroBookOrbit {
@@ -333,44 +314,44 @@
 
 @keyframes heroLogoBreath {
     0%, 100% { transform: translateX(-50%) scale(1); }
-    50% { transform: translateX(-50%) scale(1.035); }
+    50% { transform: translateX(-50%) scale(1.025); }
 }
 
 @keyframes heroPageTurn {
-    0%, 52% {
+    0%, 56% {
         opacity: 0;
-        transform: perspective(820px) rotateY(-25deg);
+        transform: perspective(820px) rotateY(-21deg);
     }
-    60% {
-        opacity: .92;
+    63% {
+        opacity: .9;
     }
-    74% {
-        opacity: .98;
-        transform: perspective(820px) rotateY(-108deg);
+    75% {
+        opacity: .96;
+        transform: perspective(820px) rotateY(-96deg);
     }
     88% {
         opacity: 0;
-        transform: perspective(820px) rotateY(-164deg);
+        transform: perspective(820px) rotateY(-154deg);
     }
     100% {
         opacity: 0;
-        transform: perspective(820px) rotateY(-25deg);
+        transform: perspective(820px) rotateY(-21deg);
     }
 }
 
 @keyframes heroSparkOne {
-    0%, 100% { transform: translate(0, 0); opacity: .48; }
-    50% { transform: translate(22px, -14px); opacity: .9; }
+    0%, 100% { transform: translate(0, 0); opacity: .38; }
+    50% { transform: translate(18px, -12px); opacity: .72; }
 }
 
 @keyframes heroSparkTwo {
-    0%, 100% { transform: translate(0, 0) scale(.76); opacity: .44; }
-    50% { transform: translate(-20px, 12px) scale(.76); opacity: .86; }
+    0%, 100% { transform: translate(0, 0) scale(.76); opacity: .34; }
+    50% { transform: translate(-18px, 10px) scale(.76); opacity: .68; }
 }
 
 @keyframes heroSparkThree {
-    0%, 100% { transform: translateX(-50%) translateY(0) scale(.68); opacity: .34; }
-    50% { transform: translateX(-50%) translateY(-16px) scale(.68); opacity: .72; }
+    0%, 100% { transform: translateX(-50%) translateY(0) scale(.68); opacity: .26; }
+    50% { transform: translateX(-50%) translateY(-14px) scale(.68); opacity: .58; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -380,13 +361,13 @@
     .hero-book-logo,
     .hero-book-turn,
     .hero-book-spark {
-        animation: none !important;
+        animation-duration: 14s !important;
     }
 }
 
 @media (max-width: 900px) {
     .hero-wow .hero-visual {
-        min-height: 380px;
+        min-height: 370px;
         max-width: 540px;
         margin: 0 auto;
     }
@@ -394,7 +375,7 @@
 
 @media (max-width: 560px) {
     .hero-wow .hero-visual {
-        min-height: 340px;
+        min-height: 330px;
     }
 
     .hero-book-shell {
@@ -404,18 +385,25 @@
 
     .hero-book-page,
     .hero-book-turn {
-        top: 82px;
-        width: 128px;
-        height: 150px;
+        top: 92px;
+        width: 126px;
+        height: 136px;
     }
 
     .hero-book-spine {
-        top: 84px;
-        height: 148px;
+        top: 94px;
+        height: 133px;
     }
 
-    .hero-book-caption {
-        top: 128px;
-        font-size: 20px;
+    .hero-book-logo {
+        top: 18px;
+        width: 70px;
+        height: 70px;
+        border-radius: 23px;
+    }
+
+    .hero-book-logo img {
+        width: 58px;
+        height: 58px;
     }
 }
