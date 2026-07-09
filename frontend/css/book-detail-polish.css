@@ -11,7 +11,11 @@
     position: relative;
     width: min(1120px, 100%);
     max-height: min(92vh, 920px);
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
     border-radius: clamp(18px, 2.4vw, 28px);
     background:
@@ -20,13 +24,20 @@
     box-shadow: 0 28px 90px rgba(0, 0, 0, 0.38);
 }
 
+.book-detail-modal .view-modal-content.premium-book-modal::-webkit-scrollbar,
+.book-detail-modal .book-detail-info-panel::-webkit-scrollbar,
+.book-detail-modal .book-detail-shell::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
 .book-detail-modal .close-view-btn {
-    position: absolute;
+    position: sticky;
     top: 14px;
-    right: 14px;
-    left: auto;
+    left: calc(100% - 58px);
     z-index: 5;
-    margin: 0;
+    margin: 14px 14px -58px auto;
     width: 44px;
     height: 44px;
     border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
@@ -45,11 +56,10 @@
 }
 
 .book-detail-modal .book-detail-shell {
-    min-height: 0;
-    max-height: min(92vh, 920px);
+    min-height: 560px;
     display: grid;
     grid-template-columns: minmax(260px, 330px) minmax(0, 1fr);
-    overflow: hidden;
+    overflow: visible;
 }
 
 .book-detail-modal .book-detail-cover-panel {
@@ -109,8 +119,9 @@
 .book-detail-modal .book-detail-info-panel {
     min-width: 0;
     padding: clamp(20px, 3.4vw, 40px);
-    overflow-y: auto;
-    scrollbar-width: thin;
+    overflow: visible;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .book-detail-modal .detail-title-row {
@@ -279,6 +290,14 @@
 .book-detail-modal .comments-list {
     max-height: clamp(170px, 24vh, 260px);
     gap: 10px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.book-detail-modal .comments-list::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
 }
 
 .book-detail-modal .comment-item {
@@ -317,12 +336,14 @@
         border-radius: 0;
         border-left: 0;
         border-right: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 
     .book-detail-modal .book-detail-shell {
-        max-height: 100dvh;
+        min-height: auto;
         grid-template-columns: 1fr;
-        overflow-y: auto;
+        overflow: visible;
     }
 
     .book-detail-modal .book-detail-cover-panel {
@@ -382,7 +403,6 @@
 @media (max-width: 560px) {
     .book-detail-modal .close-view-btn {
         top: max(10px, env(safe-area-inset-top));
-        right: 10px;
         width: 40px;
         height: 40px;
         font-size: 22px;
