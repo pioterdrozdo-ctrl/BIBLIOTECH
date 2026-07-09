@@ -166,32 +166,56 @@ function createResetCode() {
 async function sendPasswordResetEmail(email, username, code) {
     const apiKey = process.env.RESEND_API_KEY;
     const from = process.env.EMAIL_FROM;
-    if (!apiKey || !from) return false;
+    if (!apiKey || !from) {
+        return {
+            sent: false,
+            reason: 'EMAIL_NOT_CONFIGURED',
+            message: 'Email delivery is not configured. Set RESEND_API_KEY and EMAIL_FROM on Render.'
+        };
+    }
 
-    const text = `BIBLIOTECH\n\nКод восстановления для ${username}: ${code}\nКод действует 15 минут.`;
+    const safeUsername = String(username || 'пользователя').replace(/[<>]/g, '');
+    const text = `BIBLIOTECH\n\nКод восстановления для ${safeUsername}: ${code}\nКод действует 15 минут.`;
     const html = `<div style="font-family:Arial,sans-serif;line-height:1.5">
         <h2>BIBLIOTECH</h2>
-        <p>Код восстановления для <b>${username}</b>:</p>
+        <p>Код восстановления для <b>${safeUsername}</b>:</p>
         <p style="font-size:26px;font-weight:800;letter-spacing:4px">${code}</p>
         <p>Код действует 15 минут.</p>
     </div>`;
 
-    const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            from,
-            to: [email],
-            subject: 'Код восстановления BIBLIOTECH',
-            text,
-            html
-        })
-    });
+    try {
+        const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                from,
+                to: [email],
+                subject: 'Код восстановления BIBLIOTECH',
+                text,
+                html
+            })
+        });
 
-    return response.ok;
+        if (response.ok) return { sent: true };
+
+        const details = await response.text().catch(() => '');
+        console.warn('[AUTH] password reset email failed:', response.status, details);
+        return {
+            sent: false,
+            reason: 'EMAIL_PROVIDER_REJECTED',
+            message: `Email provider rejected request with status ${response.status}`
+        };
+    } catch (error) {
+        console.warn('[AUTH] password reset email error:', error.message);
+        return {
+            sent: false,
+            reason: 'EMAIL_SEND_FAILED',
+            message: error.message || 'Email send failed'
+        };
+    }
 }
 
 function signToken(user) {
@@ -513,19 +537,36 @@ router.post('/password-reset/request', async (req, res) => {
             [user.id, hashPassword(code), expiresAt]
         );
 
-        const emailSent = await sendPasswordResetEmail(user.email, user.username, code);
+        const delivery = await sendPasswordResetEmail(user.email, user.username, code);
+        if (!delivery.sent && process.env.NODE_ENV === 'production') {
+            return res.status(503).json({
+                error: 'Письмо с кодом не отправлено. На сервере не настроена почта восстановления.',
+                emailSent: false,
+                reason: delivery.reason || 'EMAIL_SEND_FAILED'
+            });
+        }
+
         res.json({
-            message: emailSent ? 'Reset code sent' : 'Reset code created',
-            emailSent,
-            devCode: process.env.NODE_ENV === 'production' || emailSent ? undefined : code
+            message: delivery.sent ? 'Reset code sent' : 'Reset code created',
+            emailSent: delivery.sent,
+            devCode: delivery.sent ? undefined : code,
+            reason: delivery.sent ? undefined : delivery.reason
         });
     } catch (error) {
         try {
             const result = localStore.createPasswordReset(email);
+            if (process.env.NODE_ENV === 'production') {
+                return res.status(503).json({
+                    error: 'Письмо с кодом не отправлено. Сервер временно использует локальное хранилище или почта не настроена.',
+                    emailSent: false,
+                    reason: 'LOCAL_FALLBACK_NO_EMAIL'
+                });
+            }
             res.json({
                 message: result ? 'Reset code created' : 'If email exists, reset code was sent',
                 emailSent: false,
-                devCode: result && process.env.NODE_ENV !== 'production' ? result.code : undefined
+                devCode: result ? result.code : undefined,
+                reason: 'LOCAL_FALLBACK_NO_EMAIL'
             });
         } catch (fallbackError) {
             res.status(500).json({ error: 'Password reset request failed' });
