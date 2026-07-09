@@ -1,0 +1,12 @@
+/* Hide duplicate small badges only inside the opened book detail modal.
+   Catalog cards outside the modal keep their badges. */
+.book-detail-modal #viewMeta,
+.book-detail-modal .view-meta {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.book-detail-modal .detail-grid {
+    margin-bottom: 12px;
+}
