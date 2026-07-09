@@ -72,7 +72,7 @@
     }
 
     if (isAuthPage) {
-        loadScript('js/auth-2fa.js?v=20260709-2fa-login-1', '__bibliotechAuth2faLoading');
+        loadScript('js/auth-2fa.js?v=20260709-2fa-login-2', '__bibliotechAuth2faLoading');
     }
 
     if (isHomePage && !window.__bibliotechBookDetailPolishLoading) {
