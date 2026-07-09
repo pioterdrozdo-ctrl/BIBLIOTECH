@@ -4,9 +4,9 @@
     if (isStandalone) document.documentElement.classList.add('pwa-standalone');
 
     var path = window.location.pathname || '';
-    var isHomePage = /(^|\/)home\.html$/.test(path) || path === '/' || path === '';
+    var isHomePage = /(^|\/)home\.html$/.test(path);
     var isAdminPage = /(^|\/)admin\.html$/.test(path);
-    var isAuthPage = /(^|\/)index\.html$/.test(path) || path === '/';
+    var isAuthPage = /(^|\/)index\.html$/.test(path) || path === '/' || path === '';
 
     function loadScript(src, key) {
         if (window[key]) return;
