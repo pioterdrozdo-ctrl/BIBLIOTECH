@@ -7,6 +7,7 @@ const fs = require('fs');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const securityRoutes = require('./routes/security');
+const passwordResetEmailRoutes = require('./routes/passwordResetEmail');
 const authRoutes = require('./routes/auth');
 const bookRoutes = require('./routes/books');
 const commentRoutes = require('./routes/comments');
@@ -124,6 +125,7 @@ app.use(express.static(frontendPath, {
 
 // Routes
 app.use('/api/auth', securityRoutes);
+app.use('/api/auth', passwordResetEmailRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/books', catalogListRoutes);
 app.use('/api/books', bookRoutes);
