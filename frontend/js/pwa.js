@@ -96,7 +96,7 @@
         loadScript('js/profile-rentals.js?v=20260709-profile-rentals-1', '__bibliotechProfileRentalsLoading');
         loadScript('js/profile-security.js?v=20260709-profile-security-1', '__bibliotechProfileSecurityLoading');
         loadScript('js/profile-twitter.js?v=20260710-profile-modals-1', '__bibliotechProfileTwitterLoading');
-        // Disabled: card-rent-button broke book rendering for regular users.
+        loadScript('js/card-rent-safe.js?v=20260710-card-rent-safe-1', '__bibliotechCardRentSafeLoading');
         // Old profile-compact stays disabled because it moved DOM blocks and could freeze the page.
         // catalog-fix is already injected by backend/server.js for home.html, so do not load it twice here.
     }
