@@ -56,7 +56,7 @@
         window.__bibliotechBookDetailPolishLoading = true;
         var polishLink = document.createElement('link');
         polishLink.rel = 'stylesheet';
-        polishLink.href = 'css/book-detail-polish.css?v=20260709-book-detail-1';
+        polishLink.href = 'css/book-detail-polish.css?v=20260709-book-detail-scroll-1';
         document.head.appendChild(polishLink);
     }
 
