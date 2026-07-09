@@ -17,6 +17,15 @@
         document.head.appendChild(script);
     }
 
+    function loadStylesheet(href, key) {
+        if (window[key]) return;
+        window[key] = true;
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        document.head.appendChild(link);
+    }
+
     function wireAdminProfileLink() {
         var pill = document.getElementById('currentUserPill');
         if (!pill || pill.dataset.profileBridgeReady === 'true') return;
@@ -78,10 +87,8 @@
 
     if (isHomePage && !window.__bibliotechBookDetailPolishLoading) {
         window.__bibliotechBookDetailPolishLoading = true;
-        var polishLink = document.createElement('link');
-        polishLink.rel = 'stylesheet';
-        polishLink.href = 'css/book-detail-polish.css?v=20260709-book-detail-scroll-1';
-        document.head.appendChild(polishLink);
+        loadStylesheet('css/book-detail-polish.css?v=20260709-book-detail-scroll-1', '__bibliotechBookDetailPolishCss');
+        loadStylesheet('css/book-detail-hide-meta.css?v=20260710-hide-inner-badges-1', '__bibliotechBookDetailHideMetaCss');
     }
 
     if (isHomePage) {
