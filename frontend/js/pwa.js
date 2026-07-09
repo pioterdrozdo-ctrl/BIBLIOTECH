@@ -72,6 +72,7 @@
     }
 
     if (isAuthPage) {
+        loadScript('js/auth-reset-fix.js?v=20260709-reset-screen-1', '__bibliotechAuthResetFixLoading');
         loadScript('js/auth-2fa.js?v=20260709-2fa-login-2', '__bibliotechAuth2faLoading');
     }
 
