@@ -78,22 +78,56 @@
     }
 
     .book-detail-modal .detail-grid {
-        gap: 8px;
-        margin: 14px 0 10px;
+        display: grid;
+        grid-template-columns: minmax(160px, 1.45fr) minmax(120px, .95fr) minmax(130px, 1fr) 72px;
+        gap: 7px;
+        margin: 12px 0 10px;
+        padding: 7px;
+        border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border));
+        border-radius: 16px;
+        background: color-mix(in srgb, var(--surface) 72%, transparent);
+        box-shadow: 0 8px 22px color-mix(in srgb, #000 5%, transparent);
     }
 
     .book-detail-modal .detail-cell {
-        min-height: 72px;
-        padding: 11px 12px;
-        border-radius: 14px;
+        min-height: 0;
+        padding: 8px 10px;
+        border-radius: 12px;
+        background: color-mix(in srgb, var(--bg-soft) 82%, transparent);
+        box-shadow: none;
+    }
+
+    .book-detail-modal .detail-cell span {
+        display: block;
+        margin: 0 0 4px;
+        font-size: 10px;
+        line-height: 1.1;
+        opacity: .9;
     }
 
     .book-detail-modal .detail-cell b {
-        margin-top: 5px;
+        display: block;
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.18;
+    }
+
+    .book-detail-modal .detail-cell:last-child {
+        text-align: center;
+        display: grid;
+        place-items: center;
+        gap: 2px;
+    }
+
+    .book-detail-modal .detail-cell:last-child span {
+        margin: 0;
+        font-size: 12px;
+    }
+
+    .book-detail-modal .detail-cell:last-child b {
         font-size: 14px;
     }
 
-    .book-detail-modal .detail-cell span,
     .book-detail-modal .placement-label,
     .book-detail-modal .copies-label,
     .book-detail-modal .comments-title {
