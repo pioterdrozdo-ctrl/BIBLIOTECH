@@ -1,41 +1,46 @@
-/* Unique hero visual: digital library map instead of a plain logo/stat card. */
+/* Apple-inspired hero showcase: no external gif, only lightweight CSS animation. */
 .hero-wow .hero-visual {
     position: relative;
-    min-height: clamp(310px, 37vw, 430px);
+    min-height: clamp(330px, 40vw, 460px);
     display: block;
     isolation: isolate;
-    perspective: 900px;
+    perspective: 1200px;
 }
 
 .hero-wow .hero-visual::before {
     content: '';
     position: absolute;
-    inset: 8px;
-    border-radius: 26px;
+    left: 50%;
+    top: 50%;
+    width: min(390px, 92%);
+    height: min(390px, 92%);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
     background:
-        linear-gradient(color-mix(in srgb, var(--border) 45%, transparent) 1px, transparent 1px),
-        linear-gradient(90deg, color-mix(in srgb, var(--border) 45%, transparent) 1px, transparent 1px),
-        radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 42%),
-        color-mix(in srgb, var(--surface) 42%, transparent);
-    background-size: 42px 42px, 42px 42px, auto, auto;
-    border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
-    box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 10%, transparent), 0 24px 70px color-mix(in srgb, #000 18%, transparent);
-    opacity: .92;
-    transform: rotateX(3deg) rotateY(-5deg);
-    z-index: -3;
+        radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--accent) 34%, transparent), transparent 34%),
+        radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--gold) 15%, transparent), transparent 60%);
+    filter: blur(22px);
+    opacity: .72;
+    animation: appleShowcaseGlow 7s ease-in-out infinite;
+    z-index: -4;
 }
 
 .hero-wow .hero-visual::after {
     content: '';
     position: absolute;
-    inset: 32px 26px;
+    left: 50%;
+    top: 52%;
+    width: min(430px, 96%);
+    height: 230px;
+    transform: translate(-50%, -50%) rotateX(66deg) rotateZ(-10deg);
     border-radius: 50%;
-    border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
-    box-shadow:
-        0 0 0 34px color-mix(in srgb, var(--accent) 5%, transparent),
-        0 0 0 72px color-mix(in srgb, var(--border) 20%, transparent);
-    opacity: .78;
-    animation: heroMapPulse 5.6s ease-in-out infinite;
+    background:
+        repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--accent) 30%, transparent) 0 3deg, transparent 3deg 13deg),
+        radial-gradient(circle, transparent 49%, color-mix(in srgb, var(--border) 68%, transparent) 50%, transparent 52%);
+    -webkit-mask: radial-gradient(circle, transparent 42%, #000 43%, #000 54%, transparent 55%);
+    mask: radial-gradient(circle, transparent 42%, #000 43%, #000 54%, transparent 55%);
+    opacity: .65;
+    animation: appleShowcaseRing 14s linear infinite;
     z-index: -2;
 }
 
@@ -47,253 +52,307 @@
 
 .hero-wow .visual-glow {
     position: absolute;
-    inset: 20% 15%;
-    border-radius: 999px;
-    background: radial-gradient(circle, color-mix(in srgb, var(--accent) 30%, transparent), transparent 62%);
-    filter: blur(18px);
-    opacity: .7;
-    z-index: -1;
+    left: 50%;
+    top: 50%;
+    width: min(360px, 86%);
+    height: min(360px, 86%);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 35% 30%, color-mix(in srgb, #fff 18%, transparent), transparent 22%),
+        radial-gradient(circle at 62% 72%, color-mix(in srgb, var(--accent-strong) 28%, transparent), transparent 34%);
+    filter: blur(8px);
+    opacity: .68;
+    z-index: -3;
 }
 
 .hero-wow .library-orbit {
     position: absolute;
     left: 50%;
-    top: 49%;
-    width: 245px;
-    height: 245px;
-    border: 1px dashed color-mix(in srgb, var(--accent) 28%, transparent);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    opacity: .72;
-    pointer-events: none;
+    top: 50%;
+    width: min(335px, 82%);
+    height: min(335px, 82%);
+    border-radius: 34px;
+    border: 1px solid color-mix(in srgb, #fff 10%, var(--border));
+    background: linear-gradient(145deg, color-mix(in srgb, var(--surface) 20%, transparent), transparent);
+    transform: translate(-50%, -50%) rotate(-7deg) skewY(-3deg);
+    opacity: .55;
+    z-index: -1;
 }
 
 .hero-wow .orbit-two {
-    width: 315px;
-    height: 178px;
-    border-style: solid;
-    border-color: color-mix(in srgb, var(--border) 74%, transparent);
-    transform: translate(-50%, -50%) rotate(-15deg);
-    opacity: .62;
+    width: min(300px, 76%);
+    height: min(300px, 76%);
+    border-radius: 30px;
+    transform: translate(-50%, -50%) rotate(8deg) skewY(3deg);
+    background: color-mix(in srgb, var(--surface) 14%, transparent);
+    opacity: .45;
 }
 
 .hero-wow .visual-card.main-card {
     position: absolute;
     left: 50%;
     top: 47%;
-    width: min(250px, 70%);
-    min-height: 178px;
+    width: min(280px, 78%);
+    min-height: 230px;
     display: grid;
     align-content: center;
     justify-items: center;
-    gap: 8px;
-    padding: 22px 20px;
-    transform: translate(-50%, -50%) rotateX(7deg);
-    border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
-    border-radius: 24px;
+    gap: 10px;
+    padding: 26px 22px;
+    transform: translate(-50%, -50%) rotateX(8deg) rotateY(-8deg);
+    border: 1px solid color-mix(in srgb, #fff 14%, var(--border));
+    border-radius: 34px;
     background:
-        linear-gradient(180deg, color-mix(in srgb, var(--surface) 88%, transparent), color-mix(in srgb, var(--surface-muted) 64%, transparent)),
-        radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 55%);
-    box-shadow: 0 22px 55px color-mix(in srgb, #000 20%, transparent);
+        linear-gradient(145deg, color-mix(in srgb, #fff 15%, transparent), transparent 34%),
+        linear-gradient(180deg, color-mix(in srgb, var(--surface) 90%, transparent), color-mix(in srgb, var(--surface-muted) 58%, transparent));
+    box-shadow:
+        0 34px 90px color-mix(in srgb, #000 28%, transparent),
+        inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent);
     text-align: center;
     overflow: hidden;
-    z-index: 3;
+    backdrop-filter: blur(22px);
+    z-index: 5;
+    animation: appleShowcaseFloat 6.2s ease-in-out infinite;
 }
 
 .hero-wow .visual-card.main-card::before {
-    content: 'LIVE CATALOG';
+    content: '';
     position: absolute;
-    left: 14px;
-    top: 14px;
-    padding: 4px 8px;
-    border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
-    border-radius: 999px;
-    color: var(--accent);
-    background: color-mix(in srgb, var(--surface) 72%, transparent);
-    font-size: 9px;
-    font-weight: 850;
-    letter-spacing: .09em;
+    inset: 12px;
+    border-radius: 26px;
+    border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+    background:
+        linear-gradient(color-mix(in srgb, var(--border) 34%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in srgb, var(--border) 34%, transparent) 1px, transparent 1px);
+    background-size: 34px 34px;
+    opacity: .45;
+    pointer-events: none;
 }
 
 .hero-wow .visual-card.main-card::after {
     content: '';
     position: absolute;
-    left: -35%;
-    top: 0;
-    width: 32%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, color-mix(in srgb, #fff 18%, transparent), transparent);
+    left: -45%;
+    top: -20%;
+    width: 34%;
+    height: 140%;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, #fff 26%, transparent), transparent);
     transform: skewX(-18deg);
-    animation: heroScan 5.8s ease-in-out infinite;
+    animation: appleShowcaseLight 5.4s ease-in-out infinite;
+    pointer-events: none;
 }
 
 .hero-wow .visual-icon.logo-orb {
-    width: 76px;
-    height: 76px;
+    position: relative;
+    z-index: 2;
+    width: 86px;
+    height: 86px;
     display: grid;
     place-items: center;
-    border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
-    border-radius: 20px;
-    background: color-mix(in srgb, var(--bg-soft) 72%, #000);
-    box-shadow: 0 16px 34px color-mix(in srgb, #000 28%, transparent);
+    border-radius: 24px;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--bg-soft) 80%, #000), color-mix(in srgb, var(--surface) 34%, #000));
+    box-shadow:
+        0 18px 38px color-mix(in srgb, #000 32%, transparent),
+        inset 0 1px 0 color-mix(in srgb, #fff 16%, transparent);
+}
+
+.hero-wow .visual-icon img,
+.hero-wow .logo-orb img {
+    width: 76px;
+    height: 76px;
+    object-fit: contain;
+    border-radius: 22px;
 }
 
 .hero-wow .visual-card b {
+    position: relative;
+    z-index: 2;
     margin-top: 4px;
-    font-size: 23px;
-    letter-spacing: .015em;
+    font-size: clamp(24px, 3vw, 31px);
+    font-weight: 880;
+    letter-spacing: -.035em;
 }
 
 .hero-wow .visual-card small {
+    position: relative;
+    z-index: 2;
     color: var(--muted);
     font-size: 13px;
 }
 
 .hero-wow .floating-book {
     position: absolute;
-    z-index: 4;
-    min-width: 82px;
-    min-height: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 7px 12px;
-    border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--surface) 80%, transparent);
-    color: var(--text);
-    box-shadow: 0 14px 28px color-mix(in srgb, #000 13%, transparent);
-    font-size: 0;
-    font-weight: 820;
-    backdrop-filter: blur(12px);
-}
-
-.hero-wow .floating-book::before {
-    font-size: 12px;
-    letter-spacing: .01em;
-}
-
-.hero-wow .book-a {
-    left: 3%;
-    top: 25%;
-    animation: heroChipFloat 4.6s ease-in-out infinite;
-}
-
-.hero-wow .book-a::before { content: 'QR-поиск'; }
-
-.hero-wow .book-b {
-    right: 2%;
-    top: 34%;
-    animation: heroChipFloat 5.2s ease-in-out infinite reverse;
-}
-
-.hero-wow .book-b::before { content: 'Аренда'; }
-
-.hero-wow .book-c {
-    left: 31%;
-    bottom: 14%;
-    animation: heroChipFloat 4.9s ease-in-out infinite;
-}
-
-.hero-wow .book-c::before { content: 'Отзывы'; }
-
-.hero-wow .visual-stat {
-    position: absolute;
-    bottom: 26px;
-    z-index: 2;
-    width: min(168px, 42%);
+    z-index: 8;
+    width: 116px;
     min-height: 74px;
     display: grid;
     align-content: center;
-    padding: 14px 16px;
-    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-    border-radius: 18px;
-    background: color-mix(in srgb, var(--surface) 66%, transparent);
-    box-shadow: none;
-    backdrop-filter: blur(12px);
+    gap: 4px;
+    padding: 12px 13px;
+    border: 1px solid color-mix(in srgb, #fff 12%, var(--border));
+    border-radius: 22px;
+    background: color-mix(in srgb, var(--surface) 74%, transparent);
+    box-shadow: 0 18px 44px color-mix(in srgb, #000 22%, transparent);
+    backdrop-filter: blur(18px);
+    font-size: 0;
+    overflow: hidden;
+    animation: appleShowcaseChip 5.8s ease-in-out infinite;
 }
 
-.hero-wow .stat-a { left: 8%; }
-.hero-wow .stat-b { right: 8%; }
+.hero-wow .floating-book::before {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 820;
+    line-height: 1.1;
+}
+
+.hero-wow .floating-book::after {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.hero-wow .book-a {
+    left: 0;
+    top: 19%;
+    transform: rotate(-9deg);
+}
+
+.hero-wow .book-a::before { content: 'QR'; }
+.hero-wow .book-a::after { content: 'быстрый вход'; }
+
+.hero-wow .book-b {
+    right: -2%;
+    top: 26%;
+    transform: rotate(8deg);
+    animation-delay: -.9s;
+}
+
+.hero-wow .book-b::before { content: 'Аренда'; }
+.hero-wow .book-b::after { content: 'в один клик'; }
+
+.hero-wow .book-c {
+    left: 34%;
+    bottom: 4%;
+    transform: rotate(-2deg);
+    animation-delay: -1.8s;
+}
+
+.hero-wow .book-c::before { content: 'Отзывы'; }
+.hero-wow .book-c::after { content: 'живой каталог'; }
+
+.hero-wow .visual-stat {
+    position: absolute;
+    z-index: 7;
+    width: 118px;
+    min-height: 82px;
+    display: grid;
+    align-content: center;
+    padding: 12px 14px;
+    border: 1px solid color-mix(in srgb, #fff 12%, var(--border));
+    border-radius: 24px;
+    background: color-mix(in srgb, var(--surface) 66%, transparent);
+    box-shadow: 0 18px 44px color-mix(in srgb, #000 18%, transparent);
+    backdrop-filter: blur(18px);
+}
+
+.hero-wow .stat-a {
+    left: 7%;
+    bottom: 17%;
+}
+
+.hero-wow .stat-b {
+    right: 8%;
+    bottom: 13%;
+}
 
 .hero-wow .visual-stat b {
     color: var(--text);
-    font-size: 30px;
-    font-weight: 880;
+    font-size: 31px;
+    font-weight: 860;
     line-height: 1;
+    letter-spacing: -.05em;
 }
 
 .hero-wow .visual-stat span {
     margin-top: 4px;
     color: var(--muted);
-    font-size: 11px;
-    font-weight: 780;
-    letter-spacing: .08em;
+    font-size: 10px;
+    font-weight: 760;
+    letter-spacing: .1em;
     text-transform: uppercase;
 }
 
-@keyframes heroMapPulse {
-    0%, 100% { transform: scale(.98); opacity: .62; }
-    50% { transform: scale(1.03); opacity: .9; }
+@keyframes appleShowcaseFloat {
+    0%, 100% { transform: translate(-50%, -50%) rotateX(8deg) rotateY(-8deg) translateY(0); }
+    50% { transform: translate(-50%, -50%) rotateX(8deg) rotateY(-8deg) translateY(-10px); }
 }
 
-@keyframes heroScan {
-    0%, 58% { left: -35%; opacity: 0; }
+@keyframes appleShowcaseChip {
+    0%, 100% { margin-top: 0; }
+    50% { margin-top: -9px; }
+}
+
+@keyframes appleShowcaseLight {
+    0%, 56% { left: -45%; opacity: 0; }
     68% { opacity: 1; }
     100% { left: 120%; opacity: 0; }
 }
 
-@keyframes heroChipFloat {
-    0%, 100% { transform: translate3d(0, 0, 0); }
-    50% { transform: translate3d(0, -8px, 0); }
+@keyframes appleShowcaseGlow {
+    0%, 100% { transform: translate(-50%, -50%) scale(.95); opacity: .58; }
+    50% { transform: translate(-50%, -50%) scale(1.05); opacity: .86; }
+}
+
+@keyframes appleShowcaseRing {
+    from { transform: translate(-50%, -50%) rotateX(66deg) rotateZ(-10deg); }
+    to { transform: translate(-50%, -50%) rotateX(66deg) rotateZ(350deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-wow .visual-card.main-card,
+    .hero-wow .floating-book,
+    .hero-wow .hero-visual::before,
+    .hero-wow .hero-visual::after,
+    .hero-wow .visual-card.main-card::after {
+        animation: none !important;
+    }
 }
 
 @media (max-width: 900px) {
     .hero-wow .hero-visual {
-        min-height: 360px;
-        max-width: 520px;
+        min-height: 380px;
+        max-width: 540px;
         margin: 0 auto;
     }
 }
 
 @media (max-width: 560px) {
     .hero-wow .hero-visual {
-        min-height: 330px;
-    }
-
-    .hero-wow .hero-visual::before {
-        inset: 4px;
-        border-radius: 22px;
+        min-height: 350px;
     }
 
     .hero-wow .visual-card.main-card {
-        width: min(232px, 76%);
-        min-height: 162px;
-    }
-
-    .hero-wow .library-orbit {
-        width: 220px;
-        height: 220px;
-    }
-
-    .hero-wow .orbit-two {
-        width: 275px;
-        height: 156px;
+        width: min(250px, 76%);
+        min-height: 210px;
     }
 
     .hero-wow .floating-book {
-        min-width: 72px;
-        min-height: 32px;
-        padding: 6px 10px;
+        width: 96px;
+        min-height: 64px;
+        padding: 10px;
+        border-radius: 18px;
     }
 
-    .hero-wow .floating-book::before {
-        font-size: 11px;
-    }
+    .hero-wow .book-a { left: 2%; top: 18%; }
+    .hero-wow .book-b { right: 2%; top: 26%; }
+    .hero-wow .book-c { left: 33%; bottom: 4%; }
 
     .hero-wow .visual-stat {
-        bottom: 18px;
-        min-height: 66px;
-        padding: 12px;
+        width: 104px;
+        min-height: 72px;
+        border-radius: 20px;
     }
 }
