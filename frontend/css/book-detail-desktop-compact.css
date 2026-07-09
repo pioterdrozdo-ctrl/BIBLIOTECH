@@ -1,0 +1,197 @@
+/* Desktop-only compact layout for the opened book card.
+   Mobile/tablet rules from book-detail-polish.css stay untouched. */
+@media (min-width: 901px) {
+    .book-detail-modal {
+        padding: 18px;
+        align-items: center;
+    }
+
+    .book-detail-modal .view-modal-content.premium-book-modal {
+        width: min(980px, calc(100vw - 36px));
+        max-height: min(88vh, 760px);
+        border-radius: 22px;
+    }
+
+    .book-detail-modal .close-view-btn {
+        top: 12px;
+        margin: 12px 12px -54px auto;
+        width: 40px;
+        height: 40px;
+    }
+
+    .book-detail-modal .book-detail-shell {
+        min-height: 0;
+        grid-template-columns: 275px minmax(0, 1fr);
+    }
+
+    .book-detail-modal .book-detail-cover-panel {
+        grid-template-rows: auto auto auto;
+        align-content: start;
+        gap: 12px;
+        padding: 22px 18px;
+    }
+
+    .book-detail-modal .detail-kicker {
+        padding: 5px 9px;
+        font-size: 11px;
+    }
+
+    .book-detail-modal .book-detail-cover-panel .view-cover {
+        min-height: 330px;
+        max-height: 330px;
+        padding: 14px;
+        border-radius: 18px;
+    }
+
+    .book-detail-modal .view-cover img {
+        max-height: 300px;
+        border-radius: 13px;
+    }
+
+    .book-detail-modal .reading-hint-card {
+        padding: 12px;
+        border-radius: 14px;
+        font-size: 13px;
+        line-height: 1.42;
+    }
+
+    .book-detail-modal .book-detail-info-panel {
+        padding: 26px 28px 24px;
+    }
+
+    .book-detail-modal .detail-title-row {
+        gap: 12px;
+        margin-bottom: 10px;
+        padding-right: 42px;
+    }
+
+    .book-detail-modal .view-title {
+        margin-bottom: 8px;
+        font-size: clamp(28px, 3vw, 38px);
+        line-height: 1.03;
+    }
+
+    .book-detail-modal .view-description {
+        max-width: 680px;
+        font-size: 15px;
+        line-height: 1.48;
+    }
+
+    .book-detail-modal .detail-grid {
+        gap: 8px;
+        margin: 14px 0 10px;
+    }
+
+    .book-detail-modal .detail-cell {
+        min-height: 72px;
+        padding: 11px 12px;
+        border-radius: 14px;
+    }
+
+    .book-detail-modal .detail-cell b {
+        margin-top: 5px;
+        font-size: 14px;
+    }
+
+    .book-detail-modal .detail-cell span,
+    .book-detail-modal .placement-label,
+    .book-detail-modal .copies-label,
+    .book-detail-modal .comments-title {
+        font-size: 11px;
+    }
+
+    .book-detail-modal .book-placement-rental {
+        grid-template-columns: minmax(0, 1.1fr) minmax(230px, .8fr);
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .book-detail-modal .book-placement-card,
+    .book-detail-modal .book-rental-card {
+        padding: 12px;
+        border-radius: 14px;
+    }
+
+    .book-detail-modal .book-placement-card small,
+    .book-detail-modal .book-rental-card small {
+        line-height: 1.35;
+    }
+
+    .book-detail-modal .rent-book-btn {
+        min-height: 38px;
+        margin-top: 7px;
+        border-radius: 11px;
+    }
+
+    .book-detail-modal .view-copies.premium-copies {
+        min-height: 54px;
+        margin-bottom: 10px;
+        padding: 9px 12px;
+        border-radius: 14px;
+    }
+
+    .book-detail-modal .copies-control {
+        padding: 3px;
+    }
+
+    .book-detail-modal .copies-control button {
+        width: 34px;
+        height: 34px;
+    }
+
+    .book-detail-modal .copies-count {
+        min-width: 40px;
+        font-size: 18px;
+    }
+
+    .book-detail-modal .book-qr-generator {
+        gap: 10px;
+        padding: 12px;
+        border-radius: 14px;
+    }
+
+    .book-detail-modal .book-qr-main {
+        grid-template-columns: 94px minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .book-detail-modal .book-qr-code {
+        width: 94px;
+        height: 94px;
+        border-radius: 14px;
+    }
+
+    .book-detail-modal .book-qr-copy b {
+        font-size: 16px;
+    }
+
+    .book-detail-modal .book-qr-copy span,
+    .book-detail-modal .book-qr-copy input {
+        font-size: 13px;
+    }
+
+    .book-detail-modal .book-qr-actions button {
+        min-height: 38px;
+    }
+
+    .book-detail-modal .comments-section.premium-comments {
+        margin-top: 10px;
+        padding: 12px;
+        border-radius: 14px;
+    }
+
+    .book-detail-modal .comments-title {
+        margin-bottom: 9px;
+        font-size: 15px;
+    }
+
+    .book-detail-modal .comments-list {
+        max-height: 150px;
+    }
+
+    .book-detail-modal .comment-input-row input,
+    .book-detail-modal #addCommentBtn {
+        min-height: 40px;
+        border-radius: 12px;
+    }
+}
