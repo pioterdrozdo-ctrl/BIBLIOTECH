@@ -23,7 +23,6 @@
         <div class="tabs">
             <button class="tab active" onclick="switchTab('login')">Вход</button>
             <button class="tab" onclick="switchTab('register')">Регистрация</button>
-            <button class="tab" onclick="switchTab('reset')">Восстановить</button>
         </div>
 
         <div id="loginForm" class="form active">
@@ -50,6 +49,7 @@
             <input type="text" id="resetCode" inputmode="numeric" placeholder="Код из письма">
             <input type="password" id="resetPassword" placeholder="Новый пароль">
             <button onclick="confirmPasswordReset()">Сменить пароль</button>
+            <button class="auth-link-btn" onclick="switchTab('login')" type="button">Вернуться ко входу</button>
             <div id="resetInfo" class="success"></div>
             <div id="resetError" class="error"></div>
         </div>
