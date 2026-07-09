@@ -32,6 +32,20 @@ function setActiveAuthTab(tab) {
     }
 }
 
+function showResetStep(step = 'email') {
+    const emailStep = document.getElementById('resetEmailStep');
+    const codeStep = document.getElementById('resetCodeStep');
+    const isCodeStep = step === 'code';
+    emailStep?.classList.toggle('active', !isCodeStep);
+    codeStep?.classList.toggle('active', isCodeStep);
+    clearAuthMessages();
+
+    setTimeout(() => {
+        if (isCodeStep) document.getElementById('resetCode')?.focus();
+        else document.getElementById('resetEmail')?.focus();
+    }, 50);
+}
+
 function switchTab(tab) {
     document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
     setActiveAuthTab(tab);
@@ -42,6 +56,8 @@ function switchTab(tab) {
         document.getElementById('registerForm')?.classList.add('active');
     } else if (tab === 'reset') {
         document.getElementById('resetForm')?.classList.add('active');
+        showResetStep('email');
+        return;
     }
 
     clearAuthMessages();
@@ -149,9 +165,10 @@ async function requestPasswordReset() {
             errorDiv.textContent = data.error || 'Не удалось отправить код';
             return;
         }
+        showResetStep('code');
         infoDiv.textContent = data.devCode
             ? `Код восстановления: ${data.devCode}`
-            : 'Если почта найдена, код отправлен.';
+            : 'Код отправлен. Проверьте почту и введите его ниже.';
     } catch (err) {
         errorDiv.textContent = 'Ошибка соединения с сервером';
         console.error(err);
@@ -166,8 +183,13 @@ async function confirmPasswordReset() {
     const errorDiv = document.getElementById('resetError');
     infoDiv.textContent = '';
     errorDiv.textContent = '';
-    if (!email || !code || !password) {
-        errorDiv.textContent = 'Введите почту, код и новый пароль';
+    if (!email) {
+        showResetStep('email');
+        errorDiv.textContent = 'Сначала введите почту и получите код';
+        return;
+    }
+    if (!code || !password) {
+        errorDiv.textContent = 'Введите код и новый пароль';
         return;
     }
     if (password.length < 4) {
@@ -284,6 +306,7 @@ function setupAuthTheme() {
 
 document.addEventListener('DOMContentLoaded', () => {
     setupAuthTheme();
+    showResetStep('email');
 
     const session = localStorage.getItem(SESSION_KEY);
     if (session && location.pathname.endsWith('index.html')) {
@@ -292,8 +315,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const loginPassword = document.getElementById('loginPassword');
     const regPassword = document.getElementById('regPassword');
+    const resetEmail = document.getElementById('resetEmail');
+    const resetCode = document.getElementById('resetCode');
     const resetPassword = document.getElementById('resetPassword');
     if (loginPassword) loginPassword.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
     if (regPassword) regPassword.addEventListener('keydown', e => { if (e.key === 'Enter') register(); });
+    if (resetEmail) resetEmail.addEventListener('keydown', e => { if (e.key === 'Enter') requestPasswordReset(); });
+    if (resetCode) resetCode.addEventListener('keydown', e => { if (e.key === 'Enter') resetPassword?.focus(); });
     if (resetPassword) resetPassword.addEventListener('keydown', e => { if (e.key === 'Enter') confirmPasswordReset(); });
 });
