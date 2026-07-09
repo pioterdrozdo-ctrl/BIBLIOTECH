@@ -9,10 +9,15 @@
         ['Война и мир', 'Лев Толстой']
     ].map(([title, author]) => `${norm(title)}::${norm(author)}`));
 
+    const MAX_COVER_REQUESTS = 4;
     const coverCache = new Map();
     const activeCoverRequests = new Set();
-    let observerStarted = false;
-    let forceTimer = null;
+    const queuedCoverRequests = new Set();
+    const coverQueue = [];
+    let runningCoverRequests = 0;
+    let observer = null;
+    let observerTarget = null;
+    let scheduled = false;
 
     function norm(value) {
         return String(value || '')
@@ -107,7 +112,55 @@
         cover.appendChild(makeCoverImage(book, coverDataURL));
     }
 
-    function fetchAndSetCardCover(card) {
+    function rememberExistingCover(bookId, img) {
+        tuneCoverImage(img);
+        if (img.src) {
+            coverCache.set(String(bookId), {
+                id: bookId,
+                title: img.alt || '',
+                coverDataURL: img.src
+            });
+        }
+    }
+
+    function requestBookCover(bookId) {
+        if (!bookId || activeCoverRequests.has(bookId) || queuedCoverRequests.has(bookId) || coverCache.has(bookId)) return;
+        queuedCoverRequests.add(bookId);
+        coverQueue.push(bookId);
+        drainCoverQueue();
+    }
+
+    function drainCoverQueue() {
+        while (runningCoverRequests < MAX_COVER_REQUESTS && coverQueue.length) {
+            const bookId = coverQueue.shift();
+            queuedCoverRequests.delete(bookId);
+            if (!bookId || activeCoverRequests.has(bookId) || coverCache.has(bookId)) continue;
+
+            activeCoverRequests.add(bookId);
+            runningCoverRequests += 1;
+            const token = localStorage.getItem('token');
+
+            fetch(`/api/books/${encodeURIComponent(bookId)}`, {
+                headers: { Authorization: token ? `Bearer ${token}` : '' }
+            })
+                .then(response => response.ok ? response.json() : null)
+                .then(book => {
+                    const coverDataURL = getCoverDataURL(book);
+                    if (book && coverDataURL) {
+                        rememberCover(book, coverDataURL);
+                        setCardCover(book, coverDataURL);
+                    }
+                })
+                .catch(() => {})
+                .finally(() => {
+                    activeCoverRequests.delete(bookId);
+                    runningCoverRequests = Math.max(0, runningCoverRequests - 1);
+                    drainCoverQueue();
+                });
+        }
+    }
+
+    function fixCardCover(card) {
         const bookId = card && card.dataset ? String(card.dataset.id || '') : '';
         if (!bookId) return;
 
@@ -116,14 +169,7 @@
 
         const existing = cover.querySelector('img');
         if (existing) {
-            tuneCoverImage(existing);
-            if (existing.src) {
-                coverCache.set(bookId, {
-                    id: bookId,
-                    title: existing.alt || '',
-                    coverDataURL: existing.src
-                });
-            }
+            rememberExistingCover(bookId, existing);
             return;
         }
 
@@ -133,43 +179,48 @@
             return;
         }
 
-        if (activeCoverRequests.has(bookId)) return;
-
-        activeCoverRequests.add(bookId);
-        const token = localStorage.getItem('token');
-        fetch(`/api/books/${encodeURIComponent(bookId)}`, {
-            headers: { Authorization: token ? `Bearer ${token}` : '' }
-        })
-            .then(response => response.ok ? response.json() : null)
-            .then(book => {
-                const coverDataURL = getCoverDataURL(book);
-                if (book && coverDataURL) {
-                    rememberCover(book, coverDataURL);
-                    setCardCover(book, coverDataURL);
-                }
-            })
-            .catch(() => {})
-            .finally(() => {
-                activeCoverRequests.delete(bookId);
-            });
+        requestBookCover(bookId);
     }
 
     function forceCardCoverImages() {
+        scheduled = false;
         removeHomeAdminPanel();
-        document.querySelectorAll('.book-cover-img').forEach(tuneCoverImage);
-        document.querySelectorAll('.book-card[data-id]').forEach(fetchAndSetCardCover);
+        const cards = document.querySelectorAll('.book-card[data-id]');
+        if (!cards.length) return;
+        cards.forEach(fixCardCover);
     }
 
     function scheduleForceCardCoverImages(delay = 0) {
-        clearTimeout(forceTimer);
-        forceTimer = setTimeout(forceCardCoverImages, delay);
+        if (scheduled) return;
+        scheduled = true;
+        const run = forceCardCoverImages;
+        if (delay > 0) {
+            setTimeout(run, delay);
+            return;
+        }
+        if (window.requestAnimationFrame) requestAnimationFrame(run);
+        else setTimeout(run, 0);
+    }
+
+    function getObserverRoot() {
+        return document.getElementById('booksContainer')
+            || document.getElementById('catalog')
+            || document.body;
     }
 
     function startCoverObserver() {
-        if (observerStarted || !document.body || !window.MutationObserver) return;
-        observerStarted = true;
-        const observer = new MutationObserver(() => scheduleForceCardCoverImages(80));
-        observer.observe(document.body, { childList: true, subtree: true });
+        if (!window.MutationObserver || !document.body) return;
+        const target = getObserverRoot();
+        if (!target || target === observerTarget) return;
+
+        if (observer) observer.disconnect();
+        observerTarget = target;
+        observer = new MutationObserver(mutations => {
+            if (mutations.some(item => item.addedNodes && item.addedNodes.length)) {
+                scheduleForceCardCoverImages(80);
+            }
+        });
+        observer.observe(target, { childList: true, subtree: true });
     }
 
     try {
@@ -199,8 +250,8 @@
     if (typeof originalRenderBooks === 'function') {
         window.__bibliotechRenderBooksWithCovers = function renderBooksWithCovers() {
             const result = originalRenderBooks.apply(this, arguments);
+            startCoverObserver();
             scheduleForceCardCoverImages(0);
-            setTimeout(forceCardCoverImages, 150);
             return result;
         };
     }
@@ -258,6 +309,5 @@
         forceCardCoverImages();
     }
     setTimeout(forceCardCoverImages, 300);
-    setTimeout(forceCardCoverImages, 1000);
-    setTimeout(forceCardCoverImages, 2000);
+    setTimeout(forceCardCoverImages, 1200);
 })();
