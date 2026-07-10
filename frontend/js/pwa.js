@@ -145,6 +145,8 @@
         loadStylesheet('css/profile-twitter-restored.css?v=20260710-profile-restored-1', '__bibliotechProfileTwitterRestoredCss');
     }
 
+    loadStylesheet('css/theme-mode-preview.css?v=20260710-theme-mode-preview-1', '__bibliotechThemeModePreviewCss');
+
     // The liquid switch must be the last visual layer on every page.
     loadStylesheet('css/liquid-theme-toggle.css?v=20260710-liquid-theme-1', '__bibliotechLiquidThemeToggleCss');
 
