@@ -16,10 +16,10 @@ const baseUrl = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:4173';
 
     await page.goto(`${baseUrl}/home.html`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => Boolean(window.BibliotechSettings) && Boolean(window.BibliotechProfile));
+    await page.waitForTimeout(500);
     await page.evaluate(() => {
         const originalAdd = DOMTokenList.prototype.add;
         const originalRemove = DOMTokenList.prototype.remove;
-        const originalToggle = DOMTokenList.prototype.toggle;
         const isTarget = list => document.getElementById('accountSettingsModal')?.classList === list;
         DOMTokenList.prototype.add = function (...tokens) {
             if (isTarget(this) && tokens.includes('active')) console.log(`[class:add] ${new Error().stack}`);
@@ -29,23 +29,41 @@ const baseUrl = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:4173';
             if (isTarget(this) && tokens.includes('active')) console.log(`[class:remove] ${new Error().stack}`);
             return originalRemove.apply(this, tokens);
         };
-        DOMTokenList.prototype.toggle = function (token, force) {
-            if (isTarget(this) && token === 'active') console.log(`[class:toggle:${force}] ${new Error().stack}`);
-            return originalToggle.call(this, token, force);
-        };
+        document.addEventListener('click', event => {
+            const target = event.target instanceof Element ? event.target : null;
+            if (target?.closest('#profileSettingsBtn')) console.log(`[settings-click:capture] ${new Error().stack}`);
+        }, true);
         const modal = document.getElementById('accountSettingsModal');
         new MutationObserver(() => console.log(`[class:value] ${modal.className || '(empty)'}`))
             .observe(modal, { attributes: true, attributeFilter: ['class'] });
     });
 
+    for (let iteration = 1; iteration <= 5; iteration += 1) {
+        await page.locator('#currentUserPill').click();
+        await page.waitForSelector('#profileModal.active');
+        await page.locator('#closeProfileModalBtn').click();
+        await page.waitForFunction(() => !document.getElementById('profileModal')?.classList.contains('active'));
+        console.log(`[trace] profile cycle ${iteration}`);
+    }
+
     await page.locator('#currentUserPill').click();
     await page.waitForSelector('#profileModal.active');
+    await page.locator('#profileEditBtn').click();
+    await page.waitForFunction(() => document.getElementById('profileModal')?.dataset.profileView === 'customize');
+    await page.locator('#profileEditBtn').click();
+    await page.waitForFunction(() => document.getElementById('profileModal')?.dataset.profileView === 'overview');
+
+    console.log(`[trace] settings button count=${await page.locator('#profileSettingsBtn').count()}`);
     await page.locator('#profileSettingsBtn').click();
-    await page.waitForSelector('#accountSettingsModal.active');
-    console.log('[trace] opened');
-    await page.locator('#accountSettingsCloseBtn').click();
-    await page.waitForTimeout(600);
-    console.log(`[trace] final=${await page.locator('#accountSettingsModal').getAttribute('class')}`);
+    await page.waitForTimeout(800);
+    console.log(`[trace] settings class after repeated cycles=${await page.locator('#accountSettingsModal').getAttribute('class')}`);
+
+    if (await page.locator('#accountSettingsModal.active').count()) {
+        await page.locator('#accountSettingsCloseBtn').click();
+        await page.waitForTimeout(400);
+        console.log(`[trace] final=${await page.locator('#accountSettingsModal').getAttribute('class')}`);
+    }
+
     await browser.close();
 })().catch(error => {
     console.error(error.stack || error);
