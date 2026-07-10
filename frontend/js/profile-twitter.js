@@ -27,16 +27,21 @@
         if (element && element.textContent !== value) element.textContent = value;
     }
 
+    function removeDuplicateNodes(selector) {
+        const nodes = Array.from(document.querySelectorAll(selector));
+        nodes.slice(1).forEach(node => node.remove());
+    }
+
     function removeLegacyAndRedundantBlocks() {
         document.getElementById('profileTwitterStyles')?.remove();
         document.getElementById('profileCustomizeModal')?.remove();
         document.getElementById('profileSettingsModal')?.remove();
 
-        // These blocks duplicated information already visible in the header or on the statistics page.
+        // These blocks duplicate information already visible in the header or on the statistics page.
         document.querySelector('#profileModal .profile-access-panel')?.remove();
         document.querySelector('#profileModal .profile-grid')?.remove();
-        document.getElementById('profileTwitterActions')?.remove();
-        document.getElementById('profileViewTabs')?.remove();
+        removeDuplicateNodes('#profileTwitterActions');
+        removeDuplicateNodes('#profileViewTabs');
     }
 
     function normalizeIdentity() {
@@ -199,6 +204,37 @@
         organizeDynamicPanels();
     }
 
+    function ensureModernStructure() {
+        removeLegacyAndRedundantBlocks();
+        ensureHeaderAction();
+        ensureViewTabs();
+        refreshStructure();
+        const modal = getModal();
+        if (modal) modal.dataset.profileIteration = 'evolved';
+    }
+
+    function repairAfterLegacyOpen() {
+        const repair = () => {
+            const modal = getModal();
+            if (!modal) return;
+            ensureModernStructure();
+            setView('overview', { scroll: false });
+            modal.classList.add('active');
+        };
+
+        if (typeof queueMicrotask === 'function') queueMicrotask(repair);
+        else Promise.resolve().then(repair);
+    }
+
+    function wireProfileEntry() {
+        const pill = document.getElementById('currentUserPill');
+        if (!pill || pill.dataset.evolvedProfileEntryReady === 'true') return;
+        pill.dataset.evolvedProfileEntryReady = 'true';
+
+        // The legacy listener runs in the same click task. Repair after all listeners, before the browser paints.
+        pill.addEventListener('click', repairAfterLegacyOpen);
+    }
+
     function wireControls() {
         const modal = getModal();
         if (!modal || modal.dataset.twitterProfileReady === 'true') return;
@@ -216,12 +252,14 @@
             setView(next);
         });
 
-        const tabs = document.getElementById('profileViewTabs');
-        tabs?.addEventListener('keydown', event => {
-            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        modal.addEventListener('keydown', event => {
+            const activeTab = event.target.closest?.('.profile-view-tab');
+            const tabs = document.getElementById('profileViewTabs');
+            if (!activeTab || !tabs || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+
             const buttons = Array.from(tabs.querySelectorAll('.profile-view-tab'));
             if (!buttons.length) return;
-            const currentIndex = Math.max(0, buttons.indexOf(document.activeElement));
+            const currentIndex = Math.max(0, buttons.indexOf(activeTab));
             let nextIndex = currentIndex;
 
             if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % buttons.length;
@@ -243,8 +281,15 @@
 
         if ('MutationObserver' in window) {
             new MutationObserver(() => {
-                if (modal.classList.contains('active')) setTimeout(refreshStructure, 0);
-                else setView('overview', { scroll: false });
+                if (modal.classList.contains('active')) {
+                    setTimeout(() => {
+                        ensureModernStructure();
+                        const current = VALID_VIEWS.has(modal.dataset.profileView) ? modal.dataset.profileView : 'overview';
+                        setView(current, { scroll: false });
+                    }, 0);
+                } else {
+                    setView('overview', { scroll: false });
+                }
             }).observe(modal, { attributes: true, attributeFilter: ['class'] });
         }
     }
@@ -253,16 +298,20 @@
         const modal = getModal();
         if (!modal) return;
 
-        removeLegacyAndRedundantBlocks();
-        ensureHeaderAction();
-        ensureViewTabs();
-        refreshStructure();
+        ensureModernStructure();
         wireControls();
+        wireProfileEntry();
         setView('overview', { scroll: false });
 
         // Rentals and security panels are injected by separate modules.
-        setTimeout(refreshStructure, 120);
-        setTimeout(refreshStructure, 420);
+        setTimeout(ensureModernStructure, 120);
+        setTimeout(ensureModernStructure, 420);
+
+        window.BibliotechProfile = {
+            ensure: ensureModernStructure,
+            open: repairAfterLegacyOpen,
+            setView
+        };
     }
 
     if (document.readyState === 'loading') {
