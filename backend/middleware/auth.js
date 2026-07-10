@@ -23,11 +23,16 @@ function sessionMatches(decoded, account = {}) {
 }
 
 async function readAccountAccess(userId) {
-    const result = await pool.query(
-        'SELECT id, role, banned_until, ban_reason, COALESCE(session_version, 1) AS session_version FROM users WHERE id = $1',
-        [userId]
-    );
-    return result.rows[0] || null;
+    const query = 'SELECT id, role, banned_until, ban_reason, COALESCE(session_version, 1) AS session_version FROM users WHERE id = $1';
+    try {
+        const result = await pool.query(query, [userId]);
+        return result.rows[0] || null;
+    } catch (error) {
+        if (error.code !== '42703') throw error;
+        await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS session_version INTEGER DEFAULT 1');
+        const result = await pool.query(query, [userId]);
+        return result.rows[0] || null;
+    }
 }
 
 function sessionExpired(res) {
