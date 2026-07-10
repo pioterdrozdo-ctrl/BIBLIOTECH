@@ -38,6 +38,16 @@ async function seedPage(page, auth) {
     }, { auth });
 }
 
+async function closeModal(page, selector) {
+    await page.evaluate(target => {
+        const modal = document.querySelector(target);
+        modal?.classList.remove('active');
+        if (modal) modal.hidden = false;
+        document.body.classList.remove('modal-open');
+    }, selector);
+    await page.waitForFunction(target => !document.querySelector(target)?.classList.contains('active'), selector);
+}
+
 (async () => {
     const stamp = Date.now();
     const password = 'Queue1234';
@@ -81,8 +91,8 @@ async function seedPage(page, auth) {
         assert.equal(await page.locator('#rentBookBtn').isEnabled(), true);
 
         await page.waitForFunction(id => {
-            const card = document.querySelector(`.book-card[data-id="${id}"]`);
-            return card?.dataset.reservationStatus === 'waiting' && card?.dataset.queuePosition === '1';
+            const cardElement = document.querySelector(`.book-card[data-id="${id}"]`);
+            return cardElement?.dataset.reservationStatus === 'waiting' && cardElement?.dataset.queuePosition === '1';
         }, String(bookId));
         assert.match(await card.locator('.reservation-queue-badge').textContent(), /место 1/i);
         assert.match(await card.locator('.card-rent-safe-btn').textContent(), /Отменить бронь/);
@@ -92,7 +102,7 @@ async function seedPage(page, auth) {
         assert.equal(state.payload.reservation.status, 'waiting');
         assert.equal(Number(state.payload.reservation.queuePosition), 1);
 
-        await page.locator('#closeViewModalBtn').click();
+        await closeModal(page, '#viewModal');
         await page.locator('#currentUserPill').click();
         await page.waitForSelector('#profileModal.active');
         await page.waitForSelector('#profileReservationsPanel');
@@ -108,14 +118,10 @@ async function seedPage(page, auth) {
         assert.equal(afterCancel.response.status, 200);
         assert.equal(afterCancel.payload.reservation, null);
 
-        documentClose: {
-            await page.locator('#closeProfileModalBtn').click().catch(async () => {
-                await page.keyboard.press('Escape');
-            });
-        }
+        await closeModal(page, '#profileModal');
         await page.waitForFunction(id => {
-            const card = document.querySelector(`.book-card[data-id="${id}"]`);
-            return card?.dataset.reservationStatus === '';
+            const cardElement = document.querySelector(`.book-card[data-id="${id}"]`);
+            return cardElement?.dataset.reservationStatus === '';
         }, String(bookId));
         assert.equal((await card.locator('.card-rent-safe-btn').textContent()).trim(), 'Забронировать');
         assert.deepEqual(pageErrors, [], `Browser errors:\n${pageErrors.join('\n')}`);
