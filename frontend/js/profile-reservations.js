@@ -18,6 +18,11 @@
         return localStorage.getItem('token') || '';
     }
 
+    function appState() {
+        try { return typeof state !== 'undefined' ? state : null; }
+        catch { return null; }
+    }
+
     function formatDateTime(value) {
         if (!value) return '—';
         const date = new Date(value);
@@ -29,6 +34,38 @@
     function notify(message, type = 'info') {
         if (typeof window.notify === 'function') window.notify(message, type);
         else console[type === 'error' ? 'error' : 'log'](message);
+    }
+
+    function applyBookSnapshot(bookId, snapshot) {
+        const current = appState();
+        if (!current || !snapshot) return;
+        const index = current.books.findIndex(book => Number(book.id) === Number(bookId));
+        if (index < 0) return;
+        const previous = current.books[index];
+        let migrated = { ...previous, ...snapshot };
+        try {
+            if (typeof migrateBook === 'function') migrated = migrateBook({ ...previous, ...snapshot });
+        } catch {}
+        current.books[index] = {
+            ...previous,
+            ...migrated,
+            ...snapshot,
+            reservation: snapshot.reservation || null,
+            myReservationId: snapshot.myReservationId || snapshot.my_reservation_id || null,
+            my_reservation_id: snapshot.my_reservation_id || snapshot.myReservationId || null,
+            myReservationStatus: snapshot.myReservationStatus || snapshot.my_reservation_status || null,
+            my_reservation_status: snapshot.my_reservation_status || snapshot.myReservationStatus || null,
+            myQueuePosition: snapshot.myQueuePosition || snapshot.my_queue_position || null,
+            my_queue_position: snapshot.my_queue_position || snapshot.myQueuePosition || null,
+            reservationCount: Number(snapshot.reservationCount || snapshot.reservation_count || 0),
+            reservation_count: Number(snapshot.reservation_count || snapshot.reservationCount || 0),
+            reservationWaitingCount: Number(snapshot.reservationWaitingCount || snapshot.reservation_waiting_count || 0),
+            reservation_waiting_count: Number(snapshot.reservation_waiting_count || snapshot.reservationWaitingCount || 0),
+            reservationReadyCount: Number(snapshot.reservationReadyCount || snapshot.reservation_ready_count || 0),
+            reservation_ready_count: Number(snapshot.reservation_ready_count || snapshot.reservationReadyCount || 0)
+        };
+        try { if (typeof saveBooks === 'function') saveBooks(); } catch {}
+        try { if (typeof renderBooks === 'function') renderBooks(); } catch {}
     }
 
     function ensurePanel() {
@@ -77,10 +114,12 @@
                 });
                 const payload = await response.json().catch(() => ({}));
                 if (!response.ok) throw new Error(payload.error || 'Не удалось отменить бронь.');
+                applyBookSnapshot(bookId, payload.book);
                 notify('Бронирование отменено', 'success');
                 await loadReservations();
                 if (window.BibliotechReservationQueue?.refreshBookReservation) {
-                    await window.BibliotechReservationQueue.refreshBookReservation(bookId);
+                    const refreshed = await window.BibliotechReservationQueue.refreshBookReservation(bookId);
+                    if (refreshed) applyBookSnapshot(bookId, refreshed);
                 }
                 document.dispatchEvent(new CustomEvent('bibliotech:reservation-changed', { detail: { bookId, payload } }));
             } catch (error) {
@@ -173,7 +212,7 @@
         document.addEventListener('bibliotech:reservation-changed', () => setTimeout(loadReservations, 80));
     }
 
-    window.BibliotechProfileReservations = { loadReservations, renderReservations };
+    window.BibliotechProfileReservations = { loadReservations, renderReservations, applyBookSnapshot };
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
     else init();
