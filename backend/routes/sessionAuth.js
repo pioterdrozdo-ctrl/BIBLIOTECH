@@ -152,6 +152,10 @@ router.post('/login', async (req, res) => {
         await recordLogin(user, req).catch(error => console.warn('[AUTH] login audit failed:', error.message));
         res.json({ token: issueToken(user, user.remember_session_enabled !== false), user: publicUser(user) });
     } catch (error) {
+        if (pool.isConfigured) {
+            console.error('[AUTH] PostgreSQL login failed:', error.message);
+            return res.status(503).json({ error: 'Authentication storage unavailable' });
+        }
         const authenticated = localStore.authenticateUser(username, password);
         if (!authenticated) return res.status(401).json({ error: 'Invalid credentials' });
         const account = localStore.getAuthState(authenticated.id) || { ...authenticated, session_version: 1, remember_session_enabled: true };
