@@ -78,11 +78,11 @@
                 const payload = await response.json().catch(() => ({}));
                 if (!response.ok) throw new Error(payload.error || 'Не удалось отменить бронь.');
                 notify('Бронирование отменено', 'success');
-                document.dispatchEvent(new CustomEvent('bibliotech:reservation-changed', { detail: { bookId, payload } }));
                 await loadReservations();
                 if (window.BibliotechReservationQueue?.refreshBookReservation) {
                     await window.BibliotechReservationQueue.refreshBookReservation(bookId);
                 }
+                document.dispatchEvent(new CustomEvent('bibliotech:reservation-changed', { detail: { bookId, payload } }));
             } catch (error) {
                 cancelButton.disabled = false;
                 cancelButton.textContent = previous;
