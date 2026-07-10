@@ -1,0 +1,246 @@
+.reservation-queue-badge {
+    border-color: color-mix(in srgb, var(--accent) 36%, var(--border)) !important;
+    background: color-mix(in srgb, var(--accent-soft) 74%, var(--surface)) !important;
+    color: var(--accent-strong) !important;
+}
+
+.reservation-queue-badge.waiting {
+    border-color: color-mix(in srgb, #d97706 38%, var(--border)) !important;
+    background: color-mix(in srgb, #f59e0b 14%, var(--surface)) !important;
+    color: color-mix(in srgb, #b45309 78%, var(--text)) !important;
+}
+
+.reservation-queue-badge.ready {
+    border-color: color-mix(in srgb, #16a34a 42%, var(--border)) !important;
+    background: color-mix(in srgb, #22c55e 15%, var(--surface)) !important;
+    color: color-mix(in srgb, #15803d 82%, var(--text)) !important;
+}
+
+#rentBookBtn.ready-mode,
+.card-rent-safe-btn.ready-mode {
+    border-color: color-mix(in srgb, #16a34a 58%, var(--border));
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: #fff;
+    box-shadow: 0 10px 24px color-mix(in srgb, #16a34a 24%, transparent);
+}
+
+#rentBookBtn.cancel-reservation-mode,
+.card-rent-safe-btn.cancel-reservation-mode {
+    border-color: color-mix(in srgb, #d97706 34%, var(--border));
+    background: color-mix(in srgb, #f59e0b 9%, var(--surface));
+    color: color-mix(in srgb, #b45309 82%, var(--text));
+    box-shadow: none;
+}
+
+.book-card[data-reservation-status="ready"] {
+    border-color: color-mix(in srgb, #16a34a 38%, var(--border));
+    box-shadow: 0 14px 34px color-mix(in srgb, #16a34a 12%, transparent);
+}
+
+.book-card[data-reservation-status="waiting"] {
+    border-color: color-mix(in srgb, #d97706 30%, var(--border));
+}
+
+.profile-reservations-panel {
+    margin-top: 16px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+}
+
+.profile-reservations-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.profile-reservations-head h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.profile-reservations-head p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.profile-reservations-counter {
+    flex: 0 0 auto;
+    min-width: 34px;
+    height: 34px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 900;
+}
+
+.profile-reservations-list {
+    display: grid;
+    gap: 10px;
+    max-height: min(360px, 42vh);
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.profile-reservations-list::-webkit-scrollbar {
+    display: none;
+}
+
+.profile-reservation-card {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 11px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-soft);
+}
+
+.profile-reservation-card.ready {
+    border-color: color-mix(in srgb, #16a34a 38%, var(--border));
+    background: color-mix(in srgb, #22c55e 8%, var(--bg-soft));
+}
+
+.profile-reservation-cover {
+    width: 52px;
+    height: 68px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--surface-muted);
+    color: var(--muted);
+    font-size: 22px;
+}
+
+.profile-reservation-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-reservation-main {
+    min-width: 0;
+}
+
+.profile-reservation-main b,
+.profile-reservation-main small {
+    display: block;
+}
+
+.profile-reservation-main b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-reservation-main small {
+    margin-top: 3px;
+    color: var(--muted);
+    line-height: 1.35;
+}
+
+.profile-reservation-state {
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: color-mix(in srgb, #f59e0b 14%, var(--surface));
+    color: color-mix(in srgb, #b45309 82%, var(--text));
+    font-size: 12px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.profile-reservation-state.ready {
+    background: color-mix(in srgb, #22c55e 15%, var(--surface));
+    color: color-mix(in srgb, #15803d 82%, var(--text));
+}
+
+.profile-reservation-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 9px;
+}
+
+.profile-reservation-actions button {
+    min-height: 32px;
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.profile-reservation-actions button[data-cancel-reservation-id] {
+    color: var(--danger);
+}
+
+.profile-reservations-empty,
+.profile-reservations-error {
+    padding: 14px;
+    border-radius: var(--radius);
+    background: var(--surface-muted);
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.45;
+}
+
+.profile-reservations-error {
+    color: var(--danger);
+    background: var(--danger-soft);
+}
+
+@media (max-width: 560px) {
+    .profile-reservations-panel {
+        padding: 14px;
+    }
+
+    .profile-reservations-head {
+        flex-direction: column;
+    }
+
+    .profile-reservations-counter {
+        align-self: flex-start;
+    }
+
+    .profile-reservation-card {
+        grid-template-columns: 46px minmax(0, 1fr);
+        align-items: start;
+    }
+
+    .profile-reservation-cover {
+        width: 46px;
+        height: 62px;
+    }
+
+    .profile-reservation-state {
+        grid-column: 2;
+        justify-self: start;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #rentBookBtn,
+    .card-rent-safe-btn,
+    .profile-reservation-actions button {
+        transition: none !important;
+    }
+}
