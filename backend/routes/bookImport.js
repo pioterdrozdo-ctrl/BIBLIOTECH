@@ -4,6 +4,7 @@ const express = require('express');
 const multer = require('multer');
 const pool = require('../db/pool');
 const localStore = require('../services/localStore');
+const localBookImportStore = require('../services/localBookImportStore');
 const { authMiddleware, isAdmin } = require('../middleware/auth');
 const { buildBookQrCode } = require('../utils/bookQr');
 const {
@@ -207,7 +208,7 @@ router.post('/commit', authMiddleware, isAdmin, async (req, res) => {
         } else {
             const snapshot = await readSnapshot();
             const preview = buildPreview(stableRows, snapshot.books, snapshot.locations);
-            result = localStore.bulkImportBooks(req.user, preview.rows, duplicateStrategy);
+            result = localBookImportStore.bulkImportBooks(req.user, preview.rows, duplicateStrategy);
         }
         res.status(201).json({
             message: 'Импорт завершён.',
