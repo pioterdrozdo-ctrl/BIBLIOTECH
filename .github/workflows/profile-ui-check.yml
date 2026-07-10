@@ -11,12 +11,14 @@ on:
       - 'backend/services/registerAccountFallback.js'
       - 'backend/server.js'
       - 'frontend/js/profile-twitter.js'
+      - 'frontend/js/profile-customization-modal.js'
       - 'frontend/js/profile-security.js'
       - 'frontend/js/profile-settings-modal.js'
       - 'frontend/js/account-settings-close-guard.js'
       - 'frontend/js/rentals-request-guard.js'
       - 'frontend/js/account-settings-features.js'
       - 'frontend/css/profile-twitter-restored.css'
+      - 'frontend/css/profile-customization-modal.css'
       - 'frontend/css/profile-settings-modal.css'
       - 'frontend/css/account-settings-features.css'
       - 'frontend/js/pwa.js'
@@ -27,6 +29,9 @@ on:
     branches: [main]
     paths:
       - 'backend/**'
+      - 'frontend/js/profile-twitter.js'
+      - 'frontend/js/profile-customization-modal.js'
+      - 'frontend/css/profile-customization-modal.css'
       - 'frontend/js/account-settings-close-guard.js'
       - 'frontend/js/rentals-request-guard.js'
       - 'frontend/js/account-settings-features.js'
@@ -59,6 +64,7 @@ jobs:
           node --check backend/services/registerAccountFallback.js
           node --check backend/server.js
           node --check frontend/js/profile-twitter.js
+          node --check frontend/js/profile-customization-modal.js
           node --check frontend/js/profile-security.js
           node --check frontend/js/profile-settings-modal.js
           node --check frontend/js/account-settings-close-guard.js
