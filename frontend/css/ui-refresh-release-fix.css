@@ -1,0 +1,55 @@
+/* Release fixes discovered during pre-merge review. */
+
+/* The legacy hero patch intentionally hides the right-hand visual with !important.
+   Collapse that empty column instead of leaving a large blank area. */
+.hero-wow .hero-content {
+    grid-template-columns: minmax(0, 1fr) !important;
+    min-height: auto;
+}
+
+.hero-wow .hero--info {
+    width: min(100%, 820px);
+}
+
+.hero-wow .hero-visual {
+    display: none !important;
+    min-height: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Avoid a sticky floating header covering native anchor targets. */
+#top,
+#catalog,
+#profile,
+#reader-zone,
+#about-teaser,
+#insights {
+    scroll-margin-top: 96px;
+}
+
+/* Preserve safe-area spacing when installed as a PWA. */
+@supports (padding-top: env(safe-area-inset-top)) {
+    html.pwa-standalone header {
+        top: max(10px, env(safe-area-inset-top));
+        padding-top: 0;
+    }
+}
+
+@media (max-width: 820px) {
+    .hero-wow .hero-content {
+        padding-block: 30px;
+    }
+}
+
+@media (max-width: 560px) {
+    #top,
+    #catalog,
+    #profile,
+    #reader-zone,
+    #about-teaser,
+    #insights {
+        scroll-margin-top: 82px;
+    }
+}

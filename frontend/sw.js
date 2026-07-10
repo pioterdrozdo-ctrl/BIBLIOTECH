@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v5';
+const CACHE_NAME = 'bibliotech-pwa-v7';
 const APP_SHELL = [
     '/',
     '/index.html',
@@ -8,6 +8,8 @@ const APP_SHELL = [
     '/manifest.webmanifest',
     '/css/auth.css',
     '/css/style.css',
+    '/css/ui-refresh.css',
+    '/css/ui-refresh-release-fix.css',
     '/js/app.js',
     '/js/script.js',
     '/js/catalog-fix.js',
