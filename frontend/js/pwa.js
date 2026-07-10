@@ -72,7 +72,7 @@
         var pill = document.getElementById('currentUserPill');
         if (!pill || pill.dataset.profileBridgeReady === 'true') return;
         pill.dataset.profileBridgeReady = 'true';
-        pill.title = 'Открыть профиль';
+        pill.title = 'Открыть полноценный профиль';
         pill.addEventListener('click', function () {
             try { localStorage.setItem(PROFILE_OPEN_KEY, '1'); } catch (e) {}
             window.location.href = 'home.html#profile';
