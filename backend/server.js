@@ -12,6 +12,7 @@ const securityRoutes = require('./routes/security');
 const passwordResetEmailRoutes = require('./routes/passwordResetEmail');
 const authRoutes = require('./routes/auth');
 const accountRoutes = require('./routes/account');
+const bookImportRoutes = require('./routes/bookImport');
 const bookRoutes = require('./routes/books');
 const commentRoutes = require('./routes/comments');
 const statsRoutes = require('./routes/stats');
@@ -91,7 +92,7 @@ function buildManifest(themeName = 'forest') {
             {
                 name: 'Каталог',
                 short_name: 'Каталог',
-                url: '/home.html?source=pwa-shortcut',
+                url: `/home.html?source=pwa-shortcut&theme=${encodeURIComponent(themeName)}`,
                 icons: [{ src: theme.icon, sizes: '256x256', type: 'image/png' }]
             },
             {
@@ -223,6 +224,7 @@ app.use('/api/auth', securityRoutes);
 app.use('/api/auth', passwordResetEmailRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/account', accountRoutes);
+app.use('/api/books/import', bookImportRoutes);
 app.use('/api/books', catalogListRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/comments', commentRoutes);
