@@ -128,6 +128,20 @@
                 z-index: 1 !important;
             }
 
+            #viewModal.book-detail-modal .view-modal-content.premium-book-modal {
+                max-height: min(88vh, 820px) !important;
+                max-height: min(88dvh, 820px) !important;
+                overflow-x: hidden !important;
+                overflow-y: auto !important;
+                overscroll-behavior: contain !important;
+                -webkit-overflow-scrolling: touch;
+                touch-action: pan-y;
+            }
+
+            #viewModal.book-detail-modal .book-detail-info-panel {
+                overflow: visible !important;
+            }
+
             @media (max-width: 560px) {
                 .modal .profile-extra-close,
                 .modal .profile-close-btn,
@@ -157,6 +171,11 @@
                 #closeViewBtn::before,
                 #closeProfileBtn::before {
                     font-size: 25px !important;
+                }
+
+                #viewModal.book-detail-modal .view-modal-content.premium-book-modal {
+                    max-height: calc(100vh - 16px) !important;
+                    max-height: calc(100dvh - 16px) !important;
                 }
             }
         `;
