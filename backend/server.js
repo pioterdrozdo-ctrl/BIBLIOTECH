@@ -6,9 +6,12 @@ const os = require('os');
 const fs = require('fs');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
+require('./services/registerAccountFallback');
+const sessionAuthRoutes = require('./routes/sessionAuth');
 const securityRoutes = require('./routes/security');
 const passwordResetEmailRoutes = require('./routes/passwordResetEmail');
 const authRoutes = require('./routes/auth');
+const accountRoutes = require('./routes/account');
 const bookRoutes = require('./routes/books');
 const commentRoutes = require('./routes/comments');
 const statsRoutes = require('./routes/stats');
@@ -40,7 +43,8 @@ const criticalUiStyles = [
 
 const homeCriticalStyles = [
     '/css/profile-twitter-restored.css?v=20260710-profile-evolved-2',
-    '/css/profile-settings-modal.css?v=20260710-profile-settings-1'
+    '/css/profile-settings-modal.css?v=20260710-profile-settings-1',
+    '/css/account-settings-features.css?v=20260710-account-settings-1'
 ];
 
 const homeCriticalScripts = [
@@ -48,6 +52,7 @@ const homeCriticalScripts = [
     '/js/profile-twitter.js?v=20260710-profile-settings-1',
     '/js/profile-settings-modal.js?v=20260710-profile-settings-1',
     '/js/profile-security.js?v=20260710-profile-security-modal-1',
+    '/js/account-settings-features.js?v=20260710-account-settings-1',
     '/js/modal-visual-fix.js?v=20260710-modal-visual-fix-2',
     '/js/card-rent-safe.js?v=20260710-card-rent-refined-1',
     '/js/comment-clear-fix.js?v=20260710-comment-clear-1'
@@ -110,9 +115,9 @@ function injectCriticalUiAssets(html, { home = false } = {}) {
         if (scriptTags) {
             const pwaPattern = /<script src="(?:\/)?js\/pwa\.js(?:\?[^\"]*)?"><\/script>/;
             if (pwaPattern.test(html)) {
-                html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-2"></script>`);
+                html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-3"></script>`);
             } else {
-                html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-2"></script>\n</body>`);
+                html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-3"></script>\n</body>`);
             }
         }
     }
@@ -204,9 +209,11 @@ app.use(express.static(frontendPath, {
     }
 }));
 
+app.use('/api/auth', sessionAuthRoutes);
 app.use('/api/auth', securityRoutes);
 app.use('/api/auth', passwordResetEmailRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/account', accountRoutes);
 app.use('/api/books', catalogListRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/comments', commentRoutes);
