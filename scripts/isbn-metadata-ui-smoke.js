@@ -41,34 +41,43 @@ async function seedPage(page, auth) {
     }, { auth });
 }
 
+async function installLookupMock(page, isbn, title) {
+    await page.addInitScript(({ isbn, title }) => {
+        const originalFetch = window.fetch.bind(window);
+        window.fetch = function bibliotechTestFetch(input, init) {
+            const url = typeof input === 'string' ? input : input?.url || '';
+            if (url.includes(`/api/book-metadata/isbn/${isbn}`)) {
+                return Promise.resolve(new Response(JSON.stringify({
+                    message: 'Данные найдены. Проверьте их перед сохранением книги.',
+                    metadata: {
+                        isbn,
+                        title,
+                        author: 'Roald Dahl',
+                        description: 'A clever fox protects his family.',
+                        publisher: 'Puffin',
+                        publicationYear: 1988,
+                        genre: 'Children’s fiction, Foxes',
+                        language: 'Английский',
+                        coverDataURL: 'https://covers.openlibrary.org/b/id/123-L.jpg',
+                        source: 'openlibrary',
+                        sourceUrl: 'https://openlibrary.org/books/OL7353617M'
+                    }
+                }), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' }
+                }));
+            }
+            return originalFetch(input, init);
+        };
+    }, { isbn, title });
+}
+
 async function verifyDesktop(browser, auth, isbn, title) {
     const page = await browser.newPage({ viewport: { width: 1360, height: 900 } });
     const errors = [];
     page.on('pageerror', error => errors.push(error.stack || error.message));
     await seedPage(page, auth);
-
-    await page.route(`**/api/book-metadata/isbn/${isbn}`, async route => {
-        await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({
-                message: 'Данные найдены. Проверьте их перед сохранением книги.',
-                metadata: {
-                    isbn,
-                    title,
-                    author: 'Roald Dahl',
-                    description: 'A clever fox protects his family.',
-                    publisher: 'Puffin',
-                    publicationYear: 1988,
-                    genre: 'Children’s fiction, Foxes',
-                    language: 'Английский',
-                    coverDataURL: 'https://covers.openlibrary.org/b/id/123-L.jpg',
-                    source: 'openlibrary',
-                    sourceUrl: 'https://openlibrary.org/books/OL7353617M'
-                }
-            })
-        });
-    });
+    await installLookupMock(page, isbn, title);
 
     await page.goto(`${baseUrl}/home.html`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#currentUserPill', { state: 'visible' });
