@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const ExcelJS = require('exceljs');
 const {
     parseImportFile,
@@ -10,6 +12,85 @@ const {
     verifyPreviewRows,
     MAX_IMPORT_ROWS
 } = require('../backend/services/bookImport');
+
+const root = path.join(__dirname, '..');
+
+function read(relativePath) {
+    return fs.readFileSync(path.join(root, relativePath), 'utf8');
+}
+
+function assertBalancedCss(source, filename) {
+    const stripped = source
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, '');
+    let balance = 0;
+    for (const char of stripped) {
+        if (char === '{') balance += 1;
+        if (char === '}') balance -= 1;
+        assert.ok(balance >= 0, `${filename}: unexpected closing brace`);
+    }
+    assert.equal(balance, 0, `${filename}: unbalanced braces`);
+}
+
+function validateArchitecture() {
+    const route = read('backend/routes/bookImport.js');
+    const parser = read('backend/services/bookImport.js');
+    const fallback = read('backend/services/localBookImportStore.js');
+    const server = read('backend/server.js');
+    const adminHtml = read('frontend/admin.html');
+    const ui = read('frontend/js/book-import.js');
+    const css = read('frontend/css/book-import.css');
+    const sw = read('frontend/sw.js');
+    const packageJson = JSON.parse(read('package.json'));
+
+    assert.ok(packageJson.dependencies?.exceljs, 'Excel parser dependency is missing');
+    assert.ok(route.includes("router.post('/preview', authMiddleware, isAdmin"), 'preview endpoint is not admin protected');
+    assert.ok(route.includes("router.post('/commit', authMiddleware, isAdmin"), 'commit endpoint is not admin protected');
+    assert.ok(route.includes("upload.single('file')"), 'multipart upload is missing');
+    assert.ok(route.includes("fileSize: 5 * 1024 * 1024"), 'server file size limit is missing');
+    assert.ok(route.includes("await client.query('BEGIN')"), 'PostgreSQL import transaction is missing');
+    assert.ok(route.includes("await client.query('ROLLBACK')"), 'PostgreSQL rollback is missing');
+    assert.ok(route.includes('pg_advisory_xact_lock'), 'concurrent import lock is missing');
+    assert.ok(route.includes('verifyPreviewRows'), 'preview tamper protection is missing');
+    assert.ok(route.includes('localBookImportStore.bulkImportBooks'), 'atomic JSON fallback is not wired');
+    assert.ok(fallback.includes('writeStoreAtomic'), 'JSON import is not atomic');
+    assert.ok(fallback.includes('fs.renameSync'), 'JSON atomic rename is missing');
+
+    assert.ok(parser.includes("new Set(['.csv', '.xlsx'])"), 'CSV/XLSX format restriction is missing');
+    assert.ok(parser.includes('MAX_IMPORT_ROWS = 500'), 'row limit is missing');
+    assert.ok(parser.includes('buildBookKey'), 'duplicate identity key is missing');
+    assert.ok(parser.includes('signPreviewRows'), 'preview signing is missing');
+    assert.ok(parser.includes('timingSafeEqual'), 'constant-time preview signature comparison is missing');
+    assert.ok(parser.includes('Не указано название'), 'title validation is missing');
+    assert.ok(parser.includes('Не указан автор'), 'author validation is missing');
+
+    const importMount = server.indexOf("app.use('/api/books/import', bookImportRoutes)");
+    const bookMount = server.indexOf("app.use('/api/books', bookRoutes)");
+    assert.ok(importMount > 0 && importMount < bookMount, 'import API must be mounted before /api/books/:id routes');
+
+    assert.equal((adminHtml.match(/id="bookImportModal"/g) || []).length, 1, 'import modal is missing or duplicated');
+    assert.equal((adminHtml.match(/id="openBookImportBtn"/g) || []).length, 1, 'import launcher is missing or duplicated');
+    assert.ok(adminHtml.includes('css/book-import.css'), 'import CSS is not loaded');
+    assert.ok(adminHtml.includes('js/book-import.js'), 'import JavaScript is not loaded');
+    assert.ok(adminHtml.includes('bookImportDuplicateStrategy'), 'duplicate strategy control is missing');
+    assert.ok(adminHtml.includes('bookImportPreviewBody'), 'preview table is missing');
+
+    assert.ok(ui.includes('/books/import/preview'), 'UI preview request is missing');
+    assert.ok(ui.includes('/books/import/commit'), 'UI commit request is missing');
+    assert.ok(ui.includes('downloadTemplate'), 'CSV template download is missing');
+    assert.ok(ui.includes('AbortController'), 'request cancellation is missing');
+    assert.ok(ui.includes('duplicateStrategy'), 'duplicate strategy is not submitted');
+    assert.ok(!ui.includes('innerHTML = error.message'), 'raw server errors must not be inserted as HTML');
+
+    assertBalancedCss(css, 'book-import.css');
+    assert.ok(css.includes('@media (max-width: 700px)'), 'mobile import layout is missing');
+    assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'), 'reduced-motion support is missing');
+
+    assert.ok(sw.includes("CACHE_NAME = 'bibliotech-pwa-v22'"), 'PWA cache was not invalidated');
+    assert.ok(sw.includes("'/admin.html'"), 'admin page is not cached');
+    assert.ok(sw.includes("'/css/book-import.css'"), 'import CSS is not cached');
+    assert.ok(sw.includes("'/js/book-import.js'"), 'import JavaScript is not cached');
+}
 
 async function parseCsv(text, name = 'books.csv') {
     return parseImportFile({
@@ -28,6 +109,8 @@ async function buildXlsxFile() {
 }
 
 (async () => {
+    validateArchitecture();
+
     const csv = '\uFEFFНазвание;Автор;Описание;Количество;Доступна;Полка;Место;Заметка\r\n'
         + '"Новая; книга";Новый автор;"Описание с; точкой";2;да;A;01;Первый этаж\r\n'
         + 'Существующая книга;Известный автор;Дубль каталога;4;да;;;;\r\n'
@@ -94,7 +177,7 @@ async function buildXlsxFile() {
         error => error.code === 'TOO_MANY_ROWS'
     );
 
-    console.log('Book import parser OK: CSV, XLSX, validation, locations, duplicates and preview signatures work.');
+    console.log('Book import check OK: architecture, CSV, XLSX, validation, duplicates, transactions, mobile UI and preview signatures work.');
 })().catch(error => {
     console.error(error.stack || error);
     process.exit(1);
