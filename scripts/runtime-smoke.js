@@ -53,18 +53,19 @@ async function checkLoginPage(browser) {
     assert.equal(response?.status(), 200, 'Login page failed to load');
     await page.waitForSelector('body');
     assert.equal(await page.locator('script[src="js/theme-bootstrap.js"]').count(), 1, 'Theme bootstrap is missing on login page');
-    await page.waitForTimeout(300);
+    await page.waitForFunction(() => Boolean(window.BibliotechTheme));
+    await page.waitForTimeout(250);
     await page.close();
 }
 
 async function checkHomeAndProfile(browser) {
-    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     await setSession(page, 'admin');
-    await attachDiagnostics(page, 'home');
+    await attachDiagnostics(page, 'home-desktop');
 
     const response = await page.goto(`${baseUrl}/home.html`, { waitUntil: 'domcontentloaded' });
     assert.equal(response?.status(), 200, 'Home page failed to load');
-    await page.waitForSelector('#currentUserPill');
+    await page.waitForSelector('#currentUserPill', { state: 'visible' });
     await page.waitForFunction(() => Boolean(window.BibliotechTheme));
     await page.waitForTimeout(700);
 
@@ -104,6 +105,29 @@ async function checkHomeAndProfile(browser) {
     await page.close();
 }
 
+async function checkMobileHome(browser) {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await setSession(page, 'admin');
+    await attachDiagnostics(page, 'home-mobile');
+
+    const response = await page.goto(`${baseUrl}/home.html`, { waitUntil: 'domcontentloaded' });
+    assert.equal(response?.status(), 200, 'Mobile home page failed to load');
+    await page.waitForSelector('#menuIcon', { state: 'visible' });
+    await page.locator('#menuIcon').click();
+    await page.waitForSelector('#navMenu.active');
+    await page.waitForSelector('#currentUserPill', { state: 'visible' });
+    await page.locator('#currentUserPill').click();
+    await page.waitForSelector('#profileModal.active');
+    await page.waitForSelector('#profileViewTabs');
+
+    const modalBox = await page.locator('#profileModal .profile-modal-content').boundingBox();
+    assert.ok(modalBox && modalBox.width >= 380, `Mobile profile width is too small: ${modalBox?.width}`);
+    assert.ok(modalBox && modalBox.height >= 800, `Mobile profile height is too small: ${modalBox?.height}`);
+
+    await page.locator('#closeProfileModalBtn').click();
+    await page.close();
+}
+
 async function checkStaticPages(browser) {
     for (const path of ['/stats.html', '/about.html', '/admin.html']) {
         const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
@@ -123,6 +147,7 @@ async function checkStaticPages(browser) {
     try {
         await checkLoginPage(browser);
         await checkHomeAndProfile(browser);
+        await checkMobileHome(browser);
         await checkStaticPages(browser);
     } finally {
         await browser.close();
@@ -130,7 +155,7 @@ async function checkStaticPages(browser) {
 
     assert.deepEqual(criticalFailures, [], `Critical resource failures:\n${criticalFailures.join('\n')}`);
     assert.deepEqual(pageErrors, [], `Browser JavaScript errors:\n${pageErrors.join('\n')}`);
-    console.log('Runtime smoke check OK: server, critical assets, themes, profile and main pages work.');
+    console.log('Runtime smoke check OK: server, critical assets, themes, desktop/mobile profile and main pages work.');
 })().catch(error => {
     console.error(error.stack || error);
     process.exit(1);
