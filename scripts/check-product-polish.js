@@ -7,6 +7,7 @@ const path = require('node:path');
 const root = path.join(__dirname, '..');
 const css = fs.readFileSync(path.join(root, 'frontend/css/product-polish.css'), 'utf8');
 const homeCss = fs.readFileSync(path.join(root, 'frontend/css/home-minimal.css'), 'utf8');
+const reservationCss = fs.readFileSync(path.join(root, 'frontend/css/reservation-queue.css'), 'utf8');
 const js = fs.readFileSync(path.join(root, 'frontend/js/product-polish.js'), 'utf8');
 const pwa = fs.readFileSync(path.join(root, 'frontend/js/pwa.js'), 'utf8');
 const sw = fs.readFileSync(path.join(root, 'frontend/sw.js'), 'utf8');
@@ -27,6 +28,7 @@ function assertBalancedCss(source, filename) {
 
 assertBalancedCss(css, 'product-polish.css');
 assertBalancedCss(homeCss, 'home-minimal.css');
+assertBalancedCss(reservationCss, 'reservation-queue.css');
 assert.ok(css.includes('.auth-product-shell'), 'auth product layout is missing');
 assert.ok(css.includes('.product-hero-actions'), 'home hero actions are not styled');
 assert.ok(css.includes('.product-welcome-modal'), 'first-run experience is not styled');
@@ -34,6 +36,9 @@ assert.ok(css.includes('.admin-users-table'), 'admin interface is not covered by
 assert.ok(css.includes('.book-card'), 'catalog cards are not covered by the design system');
 assert.ok(css.includes('@media (max-width: 560px)'), 'phone polish is missing');
 assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'), 'reduced motion support is missing');
+assert.ok(reservationCss.includes('.reservation-queue-badge'), 'reservation badge styling is missing');
+assert.ok(reservationCss.includes('.profile-reservations-panel'), 'profile reservation styling is missing');
+assert.ok(reservationCss.includes('@media (max-width: 560px)'), 'reservation mobile layout is missing');
 
 assert.ok(homeCss.includes('.hero-wow .hero-content'), 'minimal hero layout is missing');
 assert.ok(homeCss.includes('.product-proof-strip'), 'marketing chip suppression is missing');
@@ -61,17 +66,26 @@ assert.ok(pwa.includes('product-polish.css?v=20260710-product-polish-1'), 'PWA d
 assert.ok(pwa.includes('home-minimal.css?v=20260710-home-minimal-1'), 'PWA does not load minimal home CSS');
 assert.ok(pwa.includes('book-metadata.js?v=20260710-book-metadata-1'), 'PWA does not load ISBN metadata JavaScript');
 assert.ok(pwa.includes('book-metadata.css?v=20260710-book-metadata-1'), 'PWA does not load ISBN metadata CSS');
+assert.ok(pwa.includes('reservation-queue.js?v=20260710-reservation-queue-1'), 'PWA does not load reservation JavaScript');
+assert.ok(pwa.includes('reservation-queue.css?v=20260710-reservation-queue-1'), 'PWA does not load reservation CSS');
+assert.ok(pwa.indexOf('reservation-queue.js') < pwa.indexOf('card-rent-safe.js'), 'reservation controller must load before card actions');
+assert.ok(pwa.indexOf('profile-rentals.js') < pwa.indexOf('profile-reservations.js'), 'profile reservations must load after rental profile');
 assert.ok(pwa.indexOf('product-polish.css') < pwa.indexOf('home-minimal.css'), 'minimal home CSS must load after global product polish');
 
 assert.ok(server.includes("'/css/home-minimal.css?v=20260710-home-minimal-1'"), 'server does not preload minimal home CSS');
 assert.ok(server.includes("'/css/book-metadata.css?v=20260710-book-metadata-1'"), 'server does not preload ISBN metadata CSS');
-assert.ok(server.includes("'/js/book-metadata.js?v=20260710-book-metadata-1'"), 'server does not preload ISBN metadata JavaScript');
+assert.ok(server.includes("'/css/reservation-queue.css?v=20260710-reservation-queue-1'"), 'server does not preload reservation CSS');
+assert.ok(server.includes("'/js/reservation-queue.js?v=20260710-reservation-queue-1'"), 'server does not preload reservation JavaScript');
+assert.ok(server.includes("'/js/profile-reservations.js?v=20260710-profile-reservations-1'"), 'server does not preload profile reservations');
 assert.ok(server.includes("'/js/product-polish.js?v=20260710-product-polish-2'"), 'server does not preload updated product polish JavaScript');
 assert.ok(server.includes('<h1>Каталог библиотеки</h1>'), 'server does not replace the old hero title before first paint');
-assert.ok(server.includes('critical-ui-9'), 'initial HTML cache-busting was not updated');
+assert.ok(server.includes('critical-ui-10'), 'initial HTML cache-busting was not updated');
 
-assert.ok(sw.includes("CACHE_NAME = 'bibliotech-pwa-v24'"), 'PWA cache was not invalidated');
+assert.ok(sw.includes("CACHE_NAME = 'bibliotech-pwa-v25'"), 'PWA cache was not invalidated');
 assert.ok(sw.includes("'/css/home-minimal.css'"), 'PWA shell does not cache minimal home CSS');
+assert.ok(sw.includes("'/css/reservation-queue.css'"), 'PWA shell does not cache reservation CSS');
+assert.ok(sw.includes("'/js/reservation-queue.js'"), 'PWA shell does not cache reservation JavaScript');
+assert.ok(sw.includes("'/js/profile-reservations.js'"), 'PWA shell does not cache profile reservations');
 assert.ok(sw.includes("'/js/product-polish.js'"), 'PWA shell does not cache product polish JavaScript');
 
-console.log('Product polish check OK: minimal home, ISBN assets, auth, first-run, catalog, admin, modal footers, mobile and PWA integration validated.');
+console.log('Product polish check OK: minimal home, ISBN, reservation queue, auth, profile, mobile and PWA integration validated.');
