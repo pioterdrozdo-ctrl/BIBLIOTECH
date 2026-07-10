@@ -127,8 +127,8 @@
 
     if (isHomePage) {
         loadScript('js/profile-rentals.js?v=20260709-profile-rentals-1', '__bibliotechProfileRentalsLoading');
-        loadScript('js/profile-security.js?v=20260709-profile-security-1', '__bibliotechProfileSecurityLoading');
-        loadScript('js/profile-twitter.js?v=20260710-profile-restored-1', '__bibliotechProfileTwitterLoading');
+        loadScript('js/profile-security.js?v=20260710-profile-security-practical-1', '__bibliotechProfileSecurityLoading');
+        loadScript('js/profile-twitter.js?v=20260710-profile-evolved-1', '__bibliotechProfileTwitterLoading');
         loadScript('js/modal-visual-fix.js?v=20260710-modal-visual-fix-2', '__bibliotechModalVisualFixLoading');
         loadScript('js/card-rent-safe.js?v=20260710-card-rent-refined-1', '__bibliotechCardRentSafeLoading');
         loadScript('js/comment-clear-fix.js?v=20260710-comment-clear-1', '__bibliotechCommentClearFixLoading');
@@ -140,9 +140,9 @@
     loadStylesheet('css/ui-refresh.css?v=20260710-ui-refresh-1', '__bibliotechUiRefreshCss');
     loadStylesheet('css/ui-refresh-release-fix.css?v=20260710-ui-release-fix-2', '__bibliotechUiReleaseFixCss');
 
-    // Profile rules intentionally load after the global refresh to preserve the restored layout.
+    // Profile rules intentionally load after the global refresh to preserve the evolved layout.
     if (isHomePage) {
-        loadStylesheet('css/profile-twitter-restored.css?v=20260710-profile-restored-1', '__bibliotechProfileTwitterRestoredCss');
+        loadStylesheet('css/profile-twitter-restored.css?v=20260710-profile-evolved-1', '__bibliotechProfileTwitterRestoredCss');
     }
 
     loadStylesheet('css/theme-mode-preview.css?v=20260710-theme-mode-preview-1', '__bibliotechThemeModePreviewCss');

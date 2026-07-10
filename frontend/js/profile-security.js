@@ -171,14 +171,14 @@
         panel.innerHTML = `
             <div class="profile-security-head">
                 <div>
-                    <h3>🔐 Безопасность</h3>
-                    <p>Двухфакторная аутентификация и дополнительные параметры аккаунта.</p>
+                    <h3>Безопасность аккаунта</h3>
+                    <p>Защита входа и управление текущей сессией.</p>
                 </div>
                 <span class="security-status-badge" id="securityStatusBadge">Проверка...</span>
             </div>
             <div class="profile-security-grid">
                 <div class="security-option-card">
-                    <div><b>Двухфакторная аутентификация</b><small>Код из Google Authenticator, Microsoft Authenticator, 2FAS или другого приложения.</small></div>
+                    <div><b>Двухфакторная аутентификация</b><small>Подтверждайте вход кодом из приложения-аутентификатора.</small></div>
                     <button class="security-primary" id="twofaStartBtn" type="button">Настроить</button>
                 </div>
                 <div class="twofa-setup-box" id="twofaSetupBox">
@@ -200,16 +200,8 @@
                     <div class="twofa-actions"><input id="twofaDisableCode" inputmode="numeric" placeholder="Код 2FA"><button class="security-danger" id="twofaDisableBtn" type="button">Отключить</button></div>
                 </div>
                 <div class="security-option-card">
-                    <div><b>Уведомления о входе</b><small>Сохранять настройку для будущих уведомлений о новых входах.</small></div>
-                    <button class="security-switch" id="loginAlertsToggle" type="button" aria-label="Уведомления о входе"></button>
-                </div>
-                <div class="security-option-card">
-                    <div><b>Приватный профиль</b><small>Скрывать лишние данные профиля от других пользователей, когда появятся публичные профили.</small></div>
-                    <button class="security-switch" id="privateProfileToggle" type="button" aria-label="Приватный профиль"></button>
-                </div>
-                <div class="security-option-card">
-                    <div><b>Запоминать сессию</b><small>Если выключить, срок входа будет короче.</small></div>
-                    <button class="security-switch" id="rememberSessionToggle" type="button" aria-label="Запоминать сессию"></button>
+                    <div><b>Запоминать вход</b><small>Оставаться в аккаунте на этом устройстве дольше.</small></div>
+                    <button class="security-switch" id="rememberSessionToggle" type="button" aria-label="Запоминать вход"></button>
                 </div>
             </div>
             <div class="security-message" id="securityMessage"></div>
@@ -241,8 +233,6 @@
         if (start) start.textContent = enabled ? 'Перенастроить' : 'Настроить';
         const disableCard = document.getElementById('twofaDisableCard');
         if (disableCard) disableCard.hidden = !enabled;
-        setSwitch('loginAlertsToggle', settings.loginAlertsEnabled);
-        setSwitch('privateProfileToggle', settings.profilePrivateEnabled);
         setSwitch('rememberSessionToggle', settings.rememberSessionEnabled !== false);
         window.__bibliotechSecuritySettings = settings;
     }
@@ -267,7 +257,7 @@
         ensurePanel();
         const session = getSession();
         if (!session || session.guest) {
-            renderSettings({ twoFactorEnabled: false, loginAlertsEnabled: false, profilePrivateEnabled: false, rememberSessionEnabled: false });
+            renderSettings({ twoFactorEnabled: false, rememberSessionEnabled: false });
             setMessage('Настройки безопасности доступны после входа в аккаунт.');
             return;
         }
@@ -284,10 +274,13 @@
 
     async function saveOptions() {
         const current = window.__bibliotechSecuritySettings || {};
+        const rememberToggle = document.getElementById('rememberSessionToggle');
         const body = {
-            loginAlertsEnabled: document.getElementById('loginAlertsToggle')?.classList.contains('active'),
-            profilePrivateEnabled: document.getElementById('privateProfileToggle')?.classList.contains('active'),
-            rememberSessionEnabled: document.getElementById('rememberSessionToggle')?.classList.contains('active')
+            loginAlertsEnabled: Boolean(current.loginAlertsEnabled),
+            profilePrivateEnabled: Boolean(current.profilePrivateEnabled),
+            rememberSessionEnabled: rememberToggle
+                ? rememberToggle.classList.contains('active')
+                : current.rememberSessionEnabled !== false
         };
         try {
             const response = await fetch(`${API_URL}/auth/security/options`, {
@@ -296,10 +289,10 @@
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'save failed');
             renderSettings(data.settings || { ...current, ...body });
-            setMessage('Настройки сохранены.', 'ok');
+            setMessage('Настройка сохранена.', 'ok');
         } catch {
             renderSettings(current);
-            setMessage('Не удалось сохранить настройки.', 'error');
+            setMessage('Не удалось сохранить настройку.', 'error');
         }
     }
 
@@ -357,11 +350,9 @@
         document.getElementById('twofaStartBtn')?.addEventListener('click', startTwoFactorSetup);
         document.getElementById('twofaEnableBtn')?.addEventListener('click', enableTwoFactor);
         document.getElementById('twofaDisableBtn')?.addEventListener('click', disableTwoFactor);
-        ['loginAlertsToggle', 'privateProfileToggle', 'rememberSessionToggle'].forEach(id => {
-            document.getElementById(id)?.addEventListener('click', event => {
-                event.currentTarget.classList.toggle('active');
-                saveOptions();
-            });
+        document.getElementById('rememberSessionToggle')?.addEventListener('click', event => {
+            event.currentTarget.classList.toggle('active');
+            saveOptions();
         });
     }
 

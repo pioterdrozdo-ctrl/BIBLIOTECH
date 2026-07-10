@@ -1,4 +1,7 @@
 (function () {
+    'use strict';
+
+    const SESSION_KEY = 'bibliotech_current_user';
     const VALID_VIEWS = new Set(['overview', 'customize', 'settings']);
 
     function getModal() {
@@ -9,58 +12,135 @@
         return document.querySelector('#profileModal .profile-modal-content');
     }
 
-    function removeLegacyExtraModals() {
+    function getSession() {
+        try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
+        catch { return null; }
+    }
+
+    function getRole() {
+        const session = getSession();
+        if (!session || session.guest) return 'guest';
+        return session.role === 'admin' ? 'admin' : 'user';
+    }
+
+    function setText(element, value) {
+        if (element && element.textContent !== value) element.textContent = value;
+    }
+
+    function removeLegacyAndRedundantBlocks() {
         document.getElementById('profileTwitterStyles')?.remove();
         document.getElementById('profileCustomizeModal')?.remove();
         document.getElementById('profileSettingsModal')?.remove();
+
+        // These blocks duplicated information already visible in the header or on the statistics page.
+        document.querySelector('#profileModal .profile-access-panel')?.remove();
+        document.querySelector('#profileModal .profile-grid')?.remove();
+        document.getElementById('profileTwitterActions')?.remove();
+        document.getElementById('profileViewTabs')?.remove();
     }
 
-    function ensureHeaderActions() {
-        const top = document.querySelector('#profileModal .profile-modal-top');
-        if (!top) return;
+    function normalizeIdentity() {
+        const identity = document.querySelector('#profileModal .profile-identity');
+        const nameRow = document.querySelector('#profileModal .profile-name-row');
+        const kicker = document.querySelector('#profileModal .profile-kicker');
+        const badge = document.getElementById('profileModeBadge');
+        const note = document.getElementById('profileRoleNote');
+        if (!identity || !nameRow || !kicker) return;
 
-        let actions = document.getElementById('profileTwitterActions');
-        if (!actions) {
-            actions = document.createElement('div');
-            actions.className = 'profile-twitter-actions';
-            actions.id = 'profileTwitterActions';
-            actions.innerHTML = `
-                <button class="profile-twitter-action" id="profileCustomizeBtn" type="button"
-                        data-profile-view-target="customize" aria-label="Оформление профиля" aria-expanded="false">
-                    <span class="profile-twitter-action-icon" aria-hidden="true">✏️</span>
-                    <span class="profile-twitter-action-label">Изменить</span>
-                </button>
-                <button class="profile-twitter-action" id="profileSettingsBtn" type="button"
-                        data-profile-view-target="settings" aria-label="Настройки безопасности" aria-expanded="false">
-                    <span class="profile-twitter-action-icon" aria-hidden="true">⚙️</span>
-                    <span class="profile-twitter-action-label">Настройки</span>
-                </button>
-            `;
-            top.appendChild(actions);
+        const session = getSession();
+        const role = getRole();
+        const rawName = session?.guest ? 'guest' : (session?.username || 'reader');
+        const handle = '@' + String(rawName).trim().replace(/\s+/g, '_').toLowerCase();
+
+        kicker.classList.add('profile-handle');
+        setText(kicker, handle);
+        if (nameRow.nextElementSibling !== kicker) nameRow.insertAdjacentElement('afterend', kicker);
+
+        const roleCopy = {
+            admin: {
+                badge: 'Администратор',
+                note: 'Ведёт каталог BIBLIOTECH и отвечает за его содержание.'
+            },
+            user: {
+                badge: 'Читатель',
+                note: 'Читает, арендует книги и участвует в обсуждениях.'
+            },
+            guest: {
+                badge: 'Гость',
+                note: 'Просматривает каталог без сохранения личной истории.'
+            }
+        }[role];
+
+        if (badge) {
+            setText(badge, roleCopy.badge);
+            badge.dataset.profileRole = role;
+            badge.classList.toggle('guest', role === 'guest');
+            badge.classList.toggle('user', role === 'user');
+            badge.classList.toggle('admin', role === 'admin');
         }
+        setText(note, roleCopy.note);
+        getModal()?.setAttribute('data-profile-role', role);
+    }
+
+    function ensureHeaderAction() {
+        const top = document.querySelector('#profileModal .profile-modal-top');
+        if (!top || document.getElementById('profileTwitterActions')) return;
+
+        const actions = document.createElement('div');
+        actions.className = 'profile-twitter-actions';
+        actions.id = 'profileTwitterActions';
+        actions.innerHTML = `
+            <button class="profile-twitter-action" id="profileEditBtn" type="button"
+                    data-profile-view-target="customize" aria-label="Изменить профиль" aria-expanded="false">
+                <span class="profile-twitter-action-icon" aria-hidden="true">✎</span>
+                <span class="profile-twitter-action-label">Изменить профиль</span>
+            </button>
+        `;
+        top.appendChild(actions);
     }
 
     function ensureViewTabs() {
         const content = getContent();
         const top = document.querySelector('#profileModal .profile-modal-top');
-        if (!content || !top) return;
+        if (!content || !top || document.getElementById('profileViewTabs')) return;
 
-        let tabs = document.getElementById('profileViewTabs');
-        if (!tabs) {
-            tabs = document.createElement('div');
-            tabs.className = 'profile-view-tabs';
-            tabs.id = 'profileViewTabs';
-            tabs.setAttribute('role', 'tablist');
-            tabs.setAttribute('aria-label', 'Разделы профиля');
-            tabs.innerHTML = `
-                <button class="profile-view-tab" type="button" role="tab"
-                        data-profile-view-target="overview" aria-selected="true">📚 Мои книги</button>
-                <button class="profile-view-tab" type="button" role="tab"
-                        data-profile-view-target="customize" aria-selected="false">🎨 Оформление</button>
-                <button class="profile-view-tab" type="button" role="tab"
-                        data-profile-view-target="settings" aria-selected="false">🔐 Безопасность</button>
-            `;
-            top.insertAdjacentElement('afterend', tabs);
+        const role = getRole();
+        const tabs = document.createElement('div');
+        tabs.className = 'profile-view-tabs';
+        tabs.id = 'profileViewTabs';
+        tabs.dataset.tabCount = role === 'guest' ? '1' : '2';
+        tabs.setAttribute('role', 'tablist');
+        tabs.setAttribute('aria-label', 'Разделы профиля');
+        tabs.innerHTML = `
+            <button class="profile-view-tab" type="button" role="tab"
+                    data-profile-view-target="overview" aria-selected="true">Моя библиотека</button>
+            ${role === 'guest' ? '' : `
+            <button class="profile-view-tab" type="button" role="tab"
+                    data-profile-view-target="settings" aria-selected="false">Безопасность</button>`}
+        `;
+        top.insertAdjacentElement('afterend', tabs);
+    }
+
+    function refineSectionCopy() {
+        setText(document.querySelector('#profileModal .avatar-settings h3'), 'Фото профиля');
+        setText(document.querySelector('#profileModal .avatar-settings p'), 'Загрузите изображение или выберите один из готовых символов.');
+        setText(document.querySelector('#profileModal .theme-settings h3'), 'Цвет интерфейса');
+        setText(document.querySelector('#profileModal .theme-settings p'), 'Выберите палитру. Кнопка солнца и луны меняет только её яркость.');
+        setText(document.getElementById('profileLogoutBtn'), 'Выйти из аккаунта');
+    }
+
+    function organizeDynamicPanels() {
+        const content = getContent();
+        const security = document.getElementById('profileSecurityPanel');
+        const actions = document.querySelector('#profileModal .profile-actions');
+        const rentals = document.getElementById('profileRentalsPanel');
+        if (!content) return;
+
+        if (rentals) rentals.dataset.profileSection = 'overview';
+        if (security) security.dataset.profileSection = 'settings';
+        if (actions) {
+            actions.dataset.profileSection = 'settings';
+            if (security && actions.previousElementSibling !== security) security.insertAdjacentElement('afterend', actions);
         }
     }
 
@@ -74,6 +154,12 @@
                 button.tabIndex = selected ? 0 : -1;
             } else {
                 button.setAttribute('aria-expanded', String(selected));
+                const label = button.querySelector('.profile-twitter-action-label');
+                const icon = button.querySelector('.profile-twitter-action-icon');
+                const editing = view === 'customize';
+                setText(label, editing ? 'Готово' : 'Изменить профиль');
+                setText(icon, editing ? '✓' : '✎');
+                button.setAttribute('aria-label', editing ? 'Завершить редактирование' : 'Изменить профиль');
             }
         });
     }
@@ -82,7 +168,10 @@
         const modal = getModal();
         if (!modal) return;
 
-        const view = VALID_VIEWS.has(nextView) ? nextView : 'overview';
+        const role = getRole();
+        let view = VALID_VIEWS.has(nextView) ? nextView : 'overview';
+        if (role === 'guest' && view === 'settings') view = 'overview';
+
         modal.dataset.profileView = view;
         modal.classList.toggle('profile-customize-open', view === 'customize');
         modal.classList.toggle('profile-settings-open', view === 'settings');
@@ -96,13 +185,18 @@
             const content = getContent();
             const tabs = document.getElementById('profileViewTabs');
             if (content && tabs) {
-                const top = Math.max(0, tabs.offsetTop - 2);
                 content.scrollTo({
-                    top,
+                    top: Math.max(0, tabs.offsetTop - 2),
                     behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
                 });
             }
         }
+    }
+
+    function refreshStructure() {
+        normalizeIdentity();
+        refineSectionCopy();
+        organizeDynamicPanels();
     }
 
     function wireControls() {
@@ -118,7 +212,7 @@
 
             const requested = target.dataset.profileViewTarget;
             const current = modal.dataset.profileView || 'overview';
-            const next = requested === current && requested !== 'overview' ? 'overview' : requested;
+            const next = requested === current && requested === 'customize' ? 'overview' : requested;
             setView(next);
         });
 
@@ -126,6 +220,7 @@
         tabs?.addEventListener('keydown', event => {
             if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
             const buttons = Array.from(tabs.querySelectorAll('.profile-view-tab'));
+            if (!buttons.length) return;
             const currentIndex = Math.max(0, buttons.indexOf(document.activeElement));
             let nextIndex = currentIndex;
 
@@ -148,7 +243,8 @@
 
         if ('MutationObserver' in window) {
             new MutationObserver(() => {
-                if (!modal.classList.contains('active')) setView('overview', { scroll: false });
+                if (modal.classList.contains('active')) setTimeout(refreshStructure, 0);
+                else setView('overview', { scroll: false });
             }).observe(modal, { attributes: true, attributeFilter: ['class'] });
         }
     }
@@ -157,11 +253,16 @@
         const modal = getModal();
         if (!modal) return;
 
-        removeLegacyExtraModals();
-        ensureHeaderActions();
+        removeLegacyAndRedundantBlocks();
+        ensureHeaderAction();
         ensureViewTabs();
+        refreshStructure();
         wireControls();
         setView('overview', { scroll: false });
+
+        // Rentals and security panels are injected by separate modules.
+        setTimeout(refreshStructure, 120);
+        setTimeout(refreshStructure, 420);
     }
 
     if (document.readyState === 'loading') {
