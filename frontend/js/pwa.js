@@ -106,6 +106,9 @@
         // catalog-fix is already injected by backend/server.js for home.html, so do not load it twice here.
     }
 
+    // Load the visual refresh last so it can refine every page without changing application logic.
+    loadStylesheet('css/ui-refresh.css?v=20260710-ui-refresh-1', '__bibliotechUiRefreshCss');
+
     if (!('serviceWorker' in navigator)) return;
 
     window.addEventListener('load', function () {
