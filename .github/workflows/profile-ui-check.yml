@@ -13,6 +13,7 @@ on:
       - 'frontend/js/profile-twitter.js'
       - 'frontend/js/profile-security.js'
       - 'frontend/js/profile-settings-modal.js'
+      - 'frontend/js/account-settings-close-guard.js'
       - 'frontend/js/account-settings-features.js'
       - 'frontend/css/profile-twitter-restored.css'
       - 'frontend/css/profile-settings-modal.css'
@@ -25,6 +26,7 @@ on:
     branches: [main]
     paths:
       - 'backend/**'
+      - 'frontend/js/account-settings-close-guard.js'
       - 'frontend/js/account-settings-features.js'
       - 'frontend/css/account-settings-features.css'
       - 'frontend/js/profile-settings-modal.js'
@@ -57,6 +59,7 @@ jobs:
           node --check frontend/js/profile-twitter.js
           node --check frontend/js/profile-security.js
           node --check frontend/js/profile-settings-modal.js
+          node --check frontend/js/account-settings-close-guard.js
           node --check frontend/js/account-settings-features.js
           node --check frontend/js/pwa.js
           node --check frontend/sw.js
