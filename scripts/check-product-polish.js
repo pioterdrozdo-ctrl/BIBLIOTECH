@@ -51,7 +51,7 @@ assert.ok(server.includes("'/js/product-polish.js?v=20260710-product-polish-1'")
 assert.ok(server.includes('const criticalUiScripts'), 'server does not provide global critical scripts');
 assert.ok(server.includes('critical-ui-7'), 'initial HTML cache-busting was not updated');
 
-assert.ok(sw.includes("CACHE_NAME = 'bibliotech-pwa-v21'"), 'PWA cache was not invalidated');
+assert.ok(sw.includes("CACHE_NAME = 'bibliotech-pwa-v22'"), 'PWA cache was not invalidated');
 assert.ok(sw.includes("'/css/product-polish.css'"), 'PWA shell does not cache product polish CSS');
 assert.ok(sw.includes("'/js/product-polish.js'"), 'PWA shell does not cache product polish JavaScript');
 
