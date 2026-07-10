@@ -44,14 +44,15 @@ const criticalUiStyles = [
 ];
 
 const criticalUiScripts = [
-    '/js/product-polish.js?v=20260710-product-polish-1'
+    '/js/product-polish.js?v=20260710-product-polish-2'
 ];
 
 const homeCriticalStyles = [
     '/css/profile-twitter-restored.css?v=20260710-profile-evolved-2',
     '/css/profile-customization-modal.css?v=20260710-profile-customize-modal-1',
     '/css/profile-settings-modal.css?v=20260710-profile-settings-1',
-    '/css/account-settings-features.css?v=20260710-account-settings-1'
+    '/css/account-settings-features.css?v=20260710-account-settings-1',
+    '/css/home-minimal.css?v=20260710-home-minimal-1'
 ];
 
 const homeCriticalScripts = [
@@ -125,9 +126,9 @@ function injectCriticalUiAssets(html, { home = false } = {}) {
     if (scriptTags) {
         const pwaPattern = /<script src="(?:\/)?js\/pwa\.js(?:\?[^\"]*)?"><\/script>/;
         if (pwaPattern.test(html)) {
-            html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-7"></script>`);
+            html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-8"></script>`);
         } else {
-            html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-7"></script>\n</body>`);
+            html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-8"></script>\n</body>`);
         }
     }
 
@@ -153,6 +154,15 @@ function prepareFrontendHtml(fileName, { home = false } = {}) {
             /<script src="js\/script\.js(?:\?[^\"]*)?"><\/script>/,
             '<script src="/js/script.js?v=20260707-2"></script>\n<script src="/js/catalog-fix.js?v=20260707-2"></script>'
         );
+        html = html
+            .replace('<h2>ДОБРО ПОЖАЛОВАТЬ</h2>', '<h2>BIBLIOTECH</h2>')
+            .replace('<h1>Книжный каталог<br>BIBLIOTECH</h1>', '<h1>Каталог библиотеки</h1>')
+            .replace('Откройте для себя мир книг. Ищите, читайте, комментируйте — всё в одном месте. Ваша личная библиотека всегда с вами.', 'Поиск, выдача и учёт книг в одном месте.')
+            .replace('<button class="btn" id="openAddBookBtnHero">+ Добавить книгу</button>', '')
+            .replace('<h1>📚 Книжный шкаф</h1>', '<h1>Каталог</h1>')
+            .replace('<p>Каталог с фильтрами, поиском и комментариями</p>', '<p>Поиск и управление книгами</p>')
+            .replace('<label>🔍 Умный поиск</label>', '<label>Поиск</label>')
+            .replace('placeholder="Название, автор, описание или комментарий..."', 'placeholder="Название, автор или описание"');
     }
 
     return injectCriticalUiAssets(html, { home });
