@@ -6,12 +6,14 @@ const path = require('node:path');
 
 const root = path.join(__dirname, '..');
 const profileJs = fs.readFileSync(path.join(root, 'frontend/js/profile-twitter.js'), 'utf8');
+const customizeJs = fs.readFileSync(path.join(root, 'frontend/js/profile-customization-modal.js'), 'utf8');
 const settingsJs = fs.readFileSync(path.join(root, 'frontend/js/profile-settings-modal.js'), 'utf8');
 const closeGuardJs = fs.readFileSync(path.join(root, 'frontend/js/account-settings-close-guard.js'), 'utf8');
 const rentalsGuardJs = fs.readFileSync(path.join(root, 'frontend/js/rentals-request-guard.js'), 'utf8');
 const featuresJs = fs.readFileSync(path.join(root, 'frontend/js/account-settings-features.js'), 'utf8');
 const securityJs = fs.readFileSync(path.join(root, 'frontend/js/profile-security.js'), 'utf8');
 const profileCss = fs.readFileSync(path.join(root, 'frontend/css/profile-twitter-restored.css'), 'utf8');
+const customizeCss = fs.readFileSync(path.join(root, 'frontend/css/profile-customization-modal.css'), 'utf8');
 const settingsCss = fs.readFileSync(path.join(root, 'frontend/css/profile-settings-modal.css'), 'utf8');
 const featuresCss = fs.readFileSync(path.join(root, 'frontend/css/account-settings-features.css'), 'utf8');
 const pwaJs = fs.readFileSync(path.join(root, 'frontend/js/pwa.js'), 'utf8');
@@ -39,9 +41,22 @@ function assertBalancedCss(css, filename) {
 
 assert.equal(count(profileJs, 'id="profileEditBtn"'), 1, 'profile must have one edit action');
 assert.equal(count(profileJs, 'id="profileSettingsBtn"'), 1, 'profile must have one settings action');
+assert.ok(profileJs.includes('data-open-profile-customize'), 'profile edit action must open the separate customization modal');
+assert.ok(!profileJs.includes('data-profile-view-target="customize"'), 'inline customization view must be removed');
+assert.ok(!profileJs.includes('document.getElementById(\'profileCustomizeModal\')?.remove()'), 'profile repair must not delete the real customization modal');
 assert.ok(!profileJs.includes('data-profile-view-target="settings"'), 'security must not return to profile tabs');
 assert.ok(profileJs.includes("modal.dataset.profileIteration = 'evolved'"), 'profile iteration marker is missing');
 assert.ok(profileJs.includes('queueMicrotask(repair)'), 'legacy click repair must run before browser paint');
+
+assert.equal(count(customizeJs, "modal.id = 'profileCustomizeModal'"), 1, 'customization modal must be created once');
+assert.ok(customizeJs.includes('profileBioInput'), 'profile bio customization is missing');
+assert.ok(customizeJs.includes('profileBannerInput'), 'custom banner upload is missing');
+assert.ok(customizeJs.includes('data-profile-banner'), 'banner presets are missing');
+assert.ok(customizeJs.includes('MAX_BIO_LENGTH = 160'), 'profile bio limit is missing');
+assert.ok(customizeJs.includes('compressBanner'), 'banner compression is missing');
+assert.ok(customizeJs.includes("document.querySelector('#profileModal .theme-settings')"), 'legacy palette removal is missing');
+assert.ok(!customizeJs.includes('themePresetGrid'), 'site palette must not be duplicated in profile customization');
+assert.ok(customizeJs.includes('snapshot.avatar'), 'cancel must be able to restore the avatar');
 
 assert.equal(count(settingsJs, "modal.id = 'accountSettingsModal'"), 1, 'settings modal must be created once');
 assert.ok(settingsJs.includes('data-settings-section="account"'), 'account section is missing');
@@ -79,19 +94,21 @@ assert.ok(accountRoute.includes('session_version'), 'server-side session revocat
 assert.ok(sessionAuth.includes('ver: Number(user.session_version || 1)'), 'versioned login token is missing');
 
 assertBalancedCss(profileCss, 'profile-twitter-restored.css');
+assertBalancedCss(customizeCss, 'profile-customization-modal.css');
 assertBalancedCss(settingsCss, 'profile-settings-modal.css');
 assertBalancedCss(featuresCss, 'account-settings-features.css');
+assert.ok(customizeCss.includes('@media (max-width: 700px)'), 'customization mobile layout is missing');
 assert.ok(featuresCss.includes('@media (max-width: 700px)'), 'complete settings mobile layout is missing');
 
 assert.ok(pwaJs.indexOf('rentals-request-guard.js') < pwaJs.indexOf('profile-rentals.js'), 'PWA must load the rental guard before profile rentals');
+assert.ok(pwaJs.indexOf('profile-twitter.js') < pwaJs.indexOf('profile-customization-modal.js'), 'PWA must load customization after the profile controller');
+assert.ok(pwaJs.includes('profile-customization-modal.css'), 'customization CSS is not loaded');
 assert.ok(pwaJs.includes('account-settings-features.js'), 'complete settings controller is not loaded');
-assert.ok(pwaJs.includes('account-settings-close-guard.js'), 'settings action guard is not loaded');
-assert.ok(pwaJs.includes('account-settings-features.css'), 'complete settings CSS is not loaded');
 assert.ok(serverJs.includes('/api/account'), 'account API is not mounted');
-assert.ok(serverJs.indexOf('/js/rentals-request-guard.js') < serverJs.indexOf('/js/profile-rentals.js'), 'initial HTML must load the rental guard first');
-assert.ok(serverJs.includes('/js/account-settings-features.js'), 'complete settings must be delivered in initial HTML');
-assert.ok(serverJs.includes('/css/account-settings-features.css'), 'complete settings CSS must be delivered in initial HTML');
-assert.ok(swJs.includes("CACHE_NAME = 'bibliotech-pwa-v19'"), 'PWA cache was not invalidated');
-assert.ok(swJs.includes('/js/rentals-request-guard.js'), 'PWA shell does not cache the rental request guard');
+assert.ok(serverJs.indexOf('/js/profile-twitter.js') < serverJs.indexOf('/js/profile-customization-modal.js'), 'initial HTML must load customization after profile');
+assert.ok(serverJs.includes('/css/profile-customization-modal.css'), 'customization CSS must be delivered in initial HTML');
+assert.ok(swJs.includes("CACHE_NAME = 'bibliotech-pwa-v20'"), 'PWA cache was not invalidated');
+assert.ok(swJs.includes('/js/profile-customization-modal.js'), 'PWA shell does not cache customization JavaScript');
+assert.ok(swJs.includes('/css/profile-customization-modal.css'), 'PWA shell does not cache customization CSS');
 
-console.log('Account settings check OK: sessions, notifications, privacy, library, immediate modal transitions and rental request throttling validated.');
+console.log('Profile check OK: separate customization, bio, banner, account settings, sessions and mobile layouts validated.');

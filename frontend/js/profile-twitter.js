@@ -2,7 +2,6 @@
     'use strict';
 
     const SESSION_KEY = 'bibliotech_current_user';
-    const VALID_VIEWS = new Set(['overview', 'customize']);
 
     function getModal() {
         return document.getElementById('profileModal');
@@ -34,9 +33,7 @@
 
     function removeLegacyAndRedundantBlocks() {
         document.getElementById('profileTwitterStyles')?.remove();
-        document.getElementById('profileCustomizeModal')?.remove();
         document.getElementById('profileSettingsModal')?.remove();
-
         document.querySelector('#profileModal .profile-access-panel')?.remove();
         document.querySelector('#profileModal .profile-grid')?.remove();
         removeDuplicateNodes('#profileTwitterActions');
@@ -84,6 +81,7 @@
         }
         setText(note, roleCopy.note);
         getModal()?.setAttribute('data-profile-role', role);
+        window.BibliotechProfileCustomize?.apply?.();
     }
 
     function ensureHeaderActions() {
@@ -100,7 +98,7 @@
 
         actions.innerHTML = `
             <button class="profile-twitter-action profile-edit-trigger" id="profileEditBtn" type="button"
-                    data-profile-view-target="customize" aria-label="Изменить профиль" aria-expanded="false">
+                    data-open-profile-customize aria-label="Открыть оформление профиля">
                 <span class="profile-twitter-action-icon" aria-hidden="true">✎</span>
                 <span class="profile-twitter-action-label">Изменить</span>
             </button>
@@ -136,8 +134,6 @@
     function refineSectionCopy() {
         setText(document.querySelector('#profileModal .avatar-settings h3'), 'Фото профиля');
         setText(document.querySelector('#profileModal .avatar-settings p'), 'Загрузите изображение или выберите один из готовых символов.');
-        setText(document.querySelector('#profileModal .theme-settings h3'), 'Цвет интерфейса');
-        setText(document.querySelector('#profileModal .theme-settings p'), 'Выберите палитру. Кнопка солнца и луны меняет только её яркость.');
         setText(document.getElementById('profileLogoutBtn'), 'Выйти из аккаунта');
     }
 
@@ -145,53 +141,19 @@
         const rentals = document.getElementById('profileRentalsPanel');
         if (rentals) rentals.dataset.profileSection = 'overview';
         window.BibliotechSettings?.adopt?.();
+        window.BibliotechProfileCustomize?.ensure?.();
     }
 
-    function syncControls(view) {
-        document.querySelectorAll('#profileModal [data-profile-view-target]').forEach(button => {
-            const selected = button.dataset.profileViewTarget === view;
-            button.classList.toggle('active', selected);
-
-            if (button.classList.contains('profile-view-tab')) {
-                button.setAttribute('aria-selected', String(selected));
-                button.tabIndex = selected ? 0 : -1;
-                return;
-            }
-
-            button.setAttribute('aria-expanded', String(selected));
-            const label = button.querySelector('.profile-twitter-action-label');
-            const icon = button.querySelector('.profile-twitter-action-icon');
-            const editing = view === 'customize';
-            setText(label, editing ? 'Готово' : 'Изменить');
-            setText(icon, editing ? '✓' : '✎');
-            button.setAttribute('aria-label', editing ? 'Завершить редактирование' : 'Изменить профиль');
-        });
-    }
-
-    function setView(nextView, options = {}) {
+    function setView() {
         const modal = getModal();
         if (!modal) return;
-
-        const view = VALID_VIEWS.has(nextView) ? nextView : 'overview';
-        modal.dataset.profileView = view;
-        modal.classList.toggle('profile-customize-open', view === 'customize');
-        modal.classList.remove('profile-settings-open');
-        syncControls(view);
-
-        if (options.focusTab) {
-            document.querySelector(`#profileModal .profile-view-tab[data-profile-view-target="${view}"]`)?.focus();
-        }
-
-        if (options.scroll !== false) {
-            const content = getContent();
-            const tabs = document.getElementById('profileViewTabs');
-            if (content && tabs) {
-                content.scrollTo({
-                    top: Math.max(0, tabs.offsetTop - 2),
-                    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
-                });
-            }
-        }
+        modal.dataset.profileView = 'overview';
+        modal.classList.remove('profile-customize-open', 'profile-settings-open');
+        document.querySelectorAll('#profileModal .profile-view-tab').forEach(button => {
+            button.classList.toggle('active', button.dataset.profileViewTarget === 'overview');
+            button.setAttribute('aria-selected', String(button.dataset.profileViewTarget === 'overview'));
+            button.tabIndex = button.dataset.profileViewTarget === 'overview' ? 0 : -1;
+        });
     }
 
     function refreshStructure() {
@@ -213,16 +175,16 @@
         const modal = getModal();
         if (!modal) return;
         ensureModernStructure();
-        setView('overview', { scroll: false });
+        setView();
         modal.classList.add('active');
     }
 
-    function openCustomize() {
-        const modal = getModal();
-        if (!modal) return;
+    function openCustomize(trigger = null) {
         ensureModernStructure();
-        modal.classList.add('active');
-        setView('customize', { scroll: false });
+        getModal()?.classList.remove('active');
+        const launch = () => window.BibliotechProfileCustomize?.open?.(trigger);
+        if (window.BibliotechProfileCustomize?.open) launch();
+        else setTimeout(launch, 0);
     }
 
     function repairAfterLegacyOpen() {
@@ -244,23 +206,10 @@
         modal.dataset.twitterProfileReady = 'true';
 
         modal.addEventListener('click', event => {
-            const target = event.target.closest('[data-profile-view-target]');
+            const target = event.target.closest('.profile-view-tab[data-profile-view-target="overview"]');
             if (!target || !modal.contains(target)) return;
             event.preventDefault();
-            event.stopPropagation();
-
-            const requested = target.dataset.profileViewTarget;
-            const current = modal.dataset.profileView || 'overview';
-            const next = requested === current && requested === 'customize' ? 'overview' : requested;
-            setView(next);
-        });
-
-        document.addEventListener('keydown', event => {
-            if (event.key !== 'Escape' || !modal.classList.contains('active')) return;
-            if ((modal.dataset.profileView || 'overview') === 'overview') return;
-            event.preventDefault();
-            event.stopPropagation();
-            setView('overview');
+            setView();
         });
 
         if ('MutationObserver' in window) {
@@ -273,11 +222,10 @@
                 if (isActive) {
                     setTimeout(() => {
                         ensureModernStructure();
-                        const current = VALID_VIEWS.has(modal.dataset.profileView) ? modal.dataset.profileView : 'overview';
-                        setView(current, { scroll: false });
+                        setView();
                     }, 0);
-                } else if ((modal.dataset.profileView || 'overview') !== 'overview') {
-                    setView('overview', { scroll: false });
+                } else {
+                    setView();
                 }
             }).observe(modal, { attributes: true, attributeFilter: ['class'] });
         }
@@ -290,7 +238,7 @@
         ensureModernStructure();
         wireControls();
         wireProfileEntry();
-        setView('overview', { scroll: false });
+        setView();
 
         setTimeout(ensureModernStructure, 120);
         setTimeout(ensureModernStructure, 420);

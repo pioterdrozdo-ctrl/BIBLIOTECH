@@ -42,18 +42,23 @@ async function verifyInitialHtmlAssets() {
 
         if (pagePath === '/home.html') {
             const profileCss = html.indexOf('/css/profile-twitter-restored.css');
+            const customizeCss = html.indexOf('/css/profile-customization-modal.css');
             const settingsCss = html.indexOf('/css/profile-settings-modal.css');
             const profileScript = html.indexOf('/js/profile-twitter.js');
+            const customizeScript = html.indexOf('/js/profile-customization-modal.js');
             const settingsScript = html.indexOf('/js/profile-settings-modal.js');
             const securityScript = html.indexOf('/js/profile-security.js');
             const pwaScript = html.indexOf('/js/pwa.js');
             assert.ok(profileCss > 0 && profileCss < headEnd, 'Profile CSS is not present in the initial head');
-            assert.ok(settingsCss > 0 && settingsCss < headEnd, 'Settings CSS is not present in the initial head');
+            assert.ok(customizeCss > profileCss && customizeCss < headEnd, 'Customization CSS is not present after profile CSS');
+            assert.ok(settingsCss > customizeCss && settingsCss < headEnd, 'Settings CSS is not present after customization CSS');
             assert.ok(profileScript > bodyStart, 'Profile controller is not present in the initial HTML');
-            assert.ok(settingsScript > profileScript, 'Settings controller must load after the profile controller');
+            assert.ok(customizeScript > profileScript, 'Customization controller must load after the profile controller');
+            assert.ok(settingsScript > customizeScript, 'Settings controller must load after customization');
             assert.ok(securityScript > settingsScript, 'Security controller must load after the settings mount exists');
-            assert.ok(pwaScript > securityScript, 'Profile settings stack must load before pwa.js');
+            assert.ok(pwaScript > securityScript, 'Profile stack must load before pwa.js');
             assert.equal((html.match(/\/js\/profile-twitter\.js/g) || []).length, 1, 'Profile controller is duplicated in initial HTML');
+            assert.equal((html.match(/\/js\/profile-customization-modal\.js/g) || []).length, 1, 'Customization controller is duplicated in initial HTML');
             assert.equal((html.match(/\/js\/profile-settings-modal\.js/g) || []).length, 1, 'Settings controller is duplicated in initial HTML');
             assert.equal((html.match(/\/js\/profile-security\.js/g) || []).length, 1, 'Security controller is duplicated in initial HTML');
         }
@@ -103,7 +108,20 @@ async function assertEvolvedProfile(page, label) {
     assert.equal(await page.locator('#profileViewTabs [data-profile-view-target="settings"]').count(), 0, `${label}: security remained duplicated inside profile`);
     assert.equal(await page.locator('#profileModal .profile-access-panel').count(), 0, `${label}: legacy admin access panel returned`);
     assert.equal(await page.locator('#profileModal .profile-grid').count(), 0, `${label}: legacy global statistics returned`);
+    assert.equal(await page.locator('#profileModal .theme-settings').count(), 0, `${label}: duplicated palette remained inside profile`);
     assert.equal(await page.locator('script[src*="profile-twitter.js"]').count(), 1, `${label}: profile controller was loaded more than once`);
+}
+
+async function assertCustomizationModal(page, label) {
+    await page.waitForSelector('#profileCustomizeModal.active');
+    assert.equal(await page.locator('#profileCustomizeModal').count(), 1, `${label}: customization modal is duplicated`);
+    assert.equal(await page.locator('#profileCustomizeModal #profileCustomizeAvatarMount .avatar-settings').count(), 1, `${label}: avatar editor is not mounted`);
+    assert.equal(await page.locator('#profileCustomizeModal #profileBioInput').count(), 1, `${label}: profile bio editor is missing`);
+    assert.equal(await page.locator('#profileCustomizeModal [data-profile-banner]').count(), 6, `${label}: banner presets are incomplete`);
+    assert.equal(await page.locator('#profileCustomizeModal #profileBannerInput').count(), 1, `${label}: custom banner upload is missing`);
+    assert.equal(await page.locator('#profileCustomizeModal #themePresetGrid').count(), 0, `${label}: site palette was duplicated in customization`);
+    assert.equal(await page.locator('#profileModal.active').count(), 0, `${label}: profile remained open behind customization`);
+    assert.equal(await page.locator('script[src*="profile-customization-modal.js"]').count(), 1, `${label}: customization controller was loaded more than once`);
 }
 
 async function assertSettingsModal(page, label) {
@@ -138,12 +156,14 @@ async function checkHomeProfileAndSettings(browser) {
     await page.waitForSelector('#currentUserPill', { state: 'visible' });
     await page.waitForFunction(() => Boolean(window.BibliotechTheme)
         && Boolean(window.BibliotechProfile)
+        && Boolean(window.BibliotechProfileCustomize)
         && Boolean(window.BibliotechSettings)
         && Boolean(window.BibliotechSecurity));
     await page.waitForTimeout(500);
 
     assert.equal(await page.locator('link[href*="ui-refresh.css"]').count(), 1, 'Global refresh CSS is duplicated');
     assert.equal(await page.locator('link[href*="profile-twitter-restored.css"]').count(), 1, 'Profile CSS is duplicated');
+    assert.equal(await page.locator('link[href*="profile-customization-modal.css"]').count(), 1, 'Customization CSS is duplicated');
     assert.equal(await page.locator('link[href*="profile-settings-modal.css"]').count(), 1, 'Settings CSS is duplicated');
 
     const beforeTheme = await page.evaluate(() => window.BibliotechTheme.getState());
@@ -165,11 +185,17 @@ async function checkHomeProfileAndSettings(browser) {
     await assertEvolvedProfile(page, 'functional profile open');
 
     await page.locator('#profileEditBtn').click();
-    await page.waitForFunction(() => document.getElementById('profileModal')?.dataset.profileView === 'customize');
-    assert.equal(await page.locator('#profileModal .avatar-settings').isVisible(), true, 'Avatar editor is not visible');
-    assert.equal(await page.locator('#profileModal .theme-settings').isVisible(), true, 'Palette editor is not visible');
-    await page.locator('#profileEditBtn').click();
-    await page.waitForFunction(() => document.getElementById('profileModal')?.dataset.profileView === 'overview');
+    await assertCustomizationModal(page, 'customization open');
+    await page.locator('#profileBioInput').fill('Читаю техническую литературу и собираю полезные книги по программированию.');
+    await page.locator('[data-profile-banner="sunset"]').click();
+    await page.locator('#profileCustomizeSaveBtn').click();
+    await page.waitForFunction(() => !document.getElementById('profileCustomizeModal')?.classList.contains('active'));
+
+    await page.locator('#currentUserPill').click();
+    await page.waitForSelector('#profileModal.active');
+    await page.waitForFunction(() => document.getElementById('profileBio')?.textContent.includes('техническую литературу'));
+    assert.equal(await page.locator('#profileBio').isVisible(), true, 'Saved profile bio is not visible');
+    assert.equal(await page.locator('#profileModal').getAttribute('data-profile-banner'), 'sunset', 'Saved profile banner was not applied');
 
     for (let iteration = 1; iteration <= 3; iteration += 1) {
         await page.locator('#profileSettingsBtn').click();
@@ -194,11 +220,9 @@ async function checkHomeProfileAndSettings(browser) {
 
     await page.locator('#accountSettingsModal [data-settings-section="account"]').click();
     await page.locator('#accountSettingsEditProfileBtn').click();
-    await page.waitForSelector('#profileModal.active');
-    await page.waitForFunction(() => document.getElementById('profileModal')?.dataset.profileView === 'customize');
-    assert.equal(await page.locator('#accountSettingsModal.active').count(), 0, 'Settings modal stayed open behind profile editor');
-
-    await page.locator('#closeProfileModalBtn').click();
+    await assertCustomizationModal(page, 'customization from settings');
+    assert.equal(await page.locator('#accountSettingsModal.active').count(), 0, 'Settings modal stayed open behind customization');
+    await page.locator('#profileCustomizeCancelBtn').click();
     await page.close();
 }
 
@@ -210,6 +234,7 @@ async function checkMobileHome(browser) {
     const response = await page.goto(`${baseUrl}/home.html`, { waitUntil: 'domcontentloaded' });
     assert.equal(response?.status(), 200, 'Mobile home page failed to load');
     await page.waitForSelector('#menuIcon', { state: 'visible' });
+    await page.waitForFunction(() => Boolean(window.BibliotechProfileCustomize));
     await page.locator('#menuIcon').click();
     await page.waitForSelector('#navMenu.active');
     await page.waitForSelector('#currentUserPill', { state: 'visible' });
@@ -221,6 +246,15 @@ async function checkMobileHome(browser) {
     assert.ok(profileBox && profileBox.width >= 380, `Mobile profile width is too small: ${profileBox?.width}`);
     assert.ok(profileBox && profileBox.height >= 800, `Mobile profile height is too small: ${profileBox?.height}`);
 
+    await page.locator('#profileEditBtn').click();
+    await assertCustomizationModal(page, 'mobile customization');
+    const customizeBox = await page.locator('#profileCustomizeModal .profile-customize-dialog').boundingBox();
+    assert.ok(customizeBox && customizeBox.width >= 380, `Mobile customization width is too small: ${customizeBox?.width}`);
+    assert.ok(customizeBox && customizeBox.height >= 800, `Mobile customization height is too small: ${customizeBox?.height}`);
+    await page.locator('#profileCustomizeCancelBtn').click();
+
+    await page.locator('#currentUserPill').click();
+    await page.waitForSelector('#profileModal.active');
     await page.locator('#profileSettingsBtn').click();
     await assertSettingsModal(page, 'mobile settings');
     const settingsBox = await page.locator('#accountSettingsModal .account-settings-dialog').boundingBox();
@@ -262,7 +296,7 @@ async function checkStaticPages(browser) {
 
     assert.deepEqual(criticalFailures, [], `Critical resource failures:\n${criticalFailures.join('\n')}`);
     assert.deepEqual(pageErrors, [], `Browser JavaScript errors:\n${pageErrors.join('\n')}`);
-    console.log('Runtime smoke check OK: separate settings modal, account/security sections, repeated opens, themes and mobile layouts work.');
+    console.log('Runtime smoke check OK: profile customization, settings, repeated opens, themes and mobile layouts work.');
 })().catch(error => {
     console.error(error.stack || error);
     process.exit(1);
