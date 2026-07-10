@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v24';
+const CACHE_NAME = 'bibliotech-pwa-v25';
 const APP_SHELL = [
     '/',
     '/index.html',
@@ -14,6 +14,7 @@ const APP_SHELL = [
     '/css/product-polish.css',
     '/css/home-minimal.css',
     '/css/book-metadata.css',
+    '/css/reservation-queue.css',
     '/css/book-import.css',
     '/css/profile-twitter-restored.css',
     '/css/profile-customization-modal.css',
@@ -28,16 +29,19 @@ const APP_SHELL = [
     '/js/pwa.js',
     '/js/product-polish.js',
     '/js/book-metadata.js',
+    '/js/reservation-queue.js',
     '/js/admin.js',
     '/js/book-import.js',
     '/js/rentals-request-guard.js',
     '/js/profile-rentals.js',
+    '/js/profile-reservations.js',
     '/js/profile-twitter.js',
     '/js/profile-customization-modal.js',
     '/js/profile-settings-modal.js',
     '/js/account-settings-close-guard.js',
     '/js/profile-security.js',
     '/js/account-settings-features.js',
+    '/js/card-rent-safe.js',
     '/vendor/jsQR.js',
     '/vendor/qrcode-generator.js',
     '/img/appicon.png',
