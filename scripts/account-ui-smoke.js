@@ -16,6 +16,27 @@ async function login() {
     return payload;
 }
 
+async function seedCatalogBook(token) {
+    const response = await fetch(`${baseUrl}/api/books`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+            title: `Проверка настроек ${Date.now()}`,
+            author: 'BIBLIOTECH Test',
+            description: 'Временная книга для сквозной проверки личной библиотеки.',
+            copies: 2,
+            available: true
+        })
+    });
+    const payload = await response.json().catch(() => ({}));
+    assert.equal(response.status, 201, `Catalog seed failed: ${JSON.stringify(payload)}`);
+    assert.ok(payload.id, 'Catalog seed did not return a book id');
+    return payload;
+}
+
 async function seedPage(page, auth) {
     await page.addInitScript(({ auth }) => {
         localStorage.setItem('token', auth.token);
@@ -140,6 +161,7 @@ async function verifyMobile(browser, auth) {
 
 (async () => {
     const auth = await login();
+    await seedCatalogBook(auth.token);
     const browser = await chromium.launch({ headless: true });
     try {
         await verifyDesktop(browser, auth);
