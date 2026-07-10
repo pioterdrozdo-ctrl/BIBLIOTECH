@@ -1,0 +1,54 @@
+name: Theme controller check
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/js/theme-bootstrap.js'
+      - 'frontend/js/pwa.js'
+      - 'frontend/css/liquid-theme-toggle.css'
+      - 'scripts/check-theme-controller.js'
+      - '.github/workflows/theme-controller-check.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/js/theme-bootstrap.js'
+      - 'frontend/js/pwa.js'
+      - 'frontend/css/liquid-theme-toggle.css'
+      - 'scripts/check-theme-controller.js'
+
+permissions:
+  contents: read
+
+jobs:
+  check-themes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check JavaScript syntax
+        run: |
+          node --check frontend/js/theme-bootstrap.js
+          node --check frontend/js/pwa.js
+          node --check frontend/sw.js
+          node --check scripts/check-theme-controller.js
+      - name: Test all palette and brightness combinations
+        run: node scripts/check-theme-controller.js
+      - name: Check liquid CSS structure
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const css = fs.readFileSync('frontend/css/liquid-theme-toggle.css', 'utf8');
+          const stripped = css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, '');
+          let balance = 0;
+          for (const char of stripped) {
+            if (char === '{') balance += 1;
+            if (char === '}') balance -= 1;
+            if (balance < 0) throw new Error('Unexpected closing brace in liquid-theme-toggle.css');
+          }
+          if (balance !== 0) throw new Error('Unbalanced braces in liquid-theme-toggle.css');
+          if (!css.includes('backdrop-filter')) throw new Error('Liquid glass fallback is missing');
+          console.log('Liquid theme toggle CSS structure OK.');
+          NODE
