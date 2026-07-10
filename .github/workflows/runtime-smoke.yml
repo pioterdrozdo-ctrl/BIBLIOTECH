@@ -8,6 +8,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'scripts/runtime-smoke.js'
+      - 'scripts/debug-settings-close.js'
       - 'scripts/account-ui-smoke.js'
       - 'scripts/account-api-smoke.js'
       - '.github/workflows/runtime-smoke.yml'
@@ -58,6 +59,11 @@ jobs:
           done
           cat /tmp/runtime-artifacts/bibliotech-server.log
           exit 1
+      - name: Trace settings close lifecycle
+        continue-on-error: true
+        env:
+          SMOKE_BASE_URL: http://127.0.0.1:4173
+        run: node scripts/debug-settings-close.js 2>&1 | tee /tmp/runtime-artifacts/settings-close-trace.log
       - name: Test real pages in Chromium
         env:
           SMOKE_BASE_URL: http://127.0.0.1:4173
