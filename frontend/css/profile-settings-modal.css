@@ -1,0 +1,508 @@
+/* Dedicated account settings surface. It intentionally does not duplicate profile editing controls. */
+
+.profile-twitter-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-twitter-action.profile-settings-trigger {
+    background: color-mix(in srgb, var(--surface) 82%, var(--accent-soft));
+}
+
+.profile-twitter-action.profile-settings-trigger .profile-twitter-action-icon {
+    font-size: 18px;
+}
+
+body.account-settings-open {
+    overflow: hidden;
+}
+
+#accountSettingsModal {
+    position: fixed;
+    inset: 0;
+    z-index: 2300;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(2, 8, 5, 0.64);
+    backdrop-filter: blur(15px) saturate(130%);
+    -webkit-backdrop-filter: blur(15px) saturate(130%);
+}
+
+#accountSettingsModal.active {
+    display: flex;
+}
+
+.account-settings-dialog {
+    width: min(920px, 100%);
+    max-height: min(88dvh, 820px);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+    border-radius: 26px;
+    background:
+        radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--accent-soft) 54%, transparent), transparent 30%),
+        var(--surface);
+    color: var(--text);
+    box-shadow: 0 42px 130px rgba(0, 0, 0, 0.45);
+}
+
+.account-settings-header {
+    min-height: 82px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 18px 20px 17px 24px;
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    backdrop-filter: blur(18px) saturate(135%);
+}
+
+.account-settings-title-wrap {
+    min-width: 0;
+}
+
+.account-settings-kicker {
+    margin: 0 0 3px;
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 950;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.account-settings-header h2 {
+    margin: 0;
+    font-size: clamp(24px, 3vw, 32px);
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+}
+
+.account-settings-header p:not(.account-settings-kicker) {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.account-settings-close {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface-muted);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 1;
+    transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+}
+
+.account-settings-close:hover {
+    transform: rotate(5deg) scale(1.03);
+    border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+    background: var(--accent-soft);
+}
+
+.account-settings-layout {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 230px minmax(0, 1fr);
+}
+
+.account-settings-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 18px 14px;
+    border-right: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg-soft) 72%, var(--surface));
+}
+
+.account-settings-nav-button {
+    width: 100%;
+    min-height: 50px;
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    padding: 8px 11px;
+    border: 1px solid transparent;
+    border-radius: 15px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.account-settings-nav-button:hover {
+    transform: translateX(2px);
+    background: var(--surface-muted);
+    color: var(--text);
+}
+
+.account-settings-nav-button.active {
+    border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.account-settings-nav-icon {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--surface) 76%, transparent);
+    font-size: 18px;
+}
+
+.account-settings-nav-label {
+    min-width: 0;
+}
+
+.account-settings-nav-label b,
+.account-settings-nav-label small {
+    display: block;
+}
+
+.account-settings-nav-label b {
+    color: inherit;
+    font-size: 14px;
+}
+
+.account-settings-nav-label small {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.25;
+}
+
+.account-settings-content {
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    padding: 22px;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+}
+
+.account-settings-section {
+    display: none;
+    animation: accountSettingsIn 0.18s ease both;
+}
+
+.account-settings-section.active {
+    display: block;
+}
+
+.account-settings-section-head {
+    margin-bottom: 17px;
+}
+
+.account-settings-section-head h3 {
+    margin: 0;
+    font-size: 23px;
+    letter-spacing: -0.025em;
+}
+
+.account-settings-section-head p {
+    max-width: 620px;
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.account-settings-user-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 19px;
+    background: var(--bg-soft);
+}
+
+.account-settings-avatar {
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 3px solid var(--surface);
+    border-radius: 50%;
+    background: var(--surface-muted);
+    box-shadow: var(--shadow-soft);
+    font-size: 27px;
+}
+
+.account-settings-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.account-settings-user-copy {
+    min-width: 0;
+}
+
+.account-settings-user-copy b,
+.account-settings-user-copy span {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.account-settings-user-copy b {
+    color: var(--text);
+    font-size: 18px;
+}
+
+.account-settings-user-copy span {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.account-settings-role {
+    padding: 7px 10px;
+    border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.account-settings-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.account-settings-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 15px;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    background: var(--surface);
+}
+
+.account-settings-row-copy b,
+.account-settings-row-copy span {
+    display: block;
+}
+
+.account-settings-row-copy b {
+    color: var(--text);
+    font-size: 14px;
+}
+
+.account-settings-row-copy span {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.account-settings-action {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 13px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--surface-muted);
+    color: var(--text);
+    cursor: pointer;
+    font-weight: 850;
+}
+
+.account-settings-action:hover {
+    border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.account-settings-logout-slot {
+    margin-top: 14px;
+}
+
+#accountSettingsModal .profile-actions {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+}
+
+#accountSettingsModal #profileLogoutBtn {
+    width: 100%;
+    min-height: 47px;
+    border: 1px solid color-mix(in srgb, var(--danger) 32%, var(--border));
+    border-radius: 15px;
+    background: var(--danger-soft);
+    color: var(--danger);
+    cursor: pointer;
+    font-weight: 900;
+}
+
+#accountSettingsModal #profileSecurityPanel {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+#accountSettingsModal .profile-security-head {
+    display: none !important;
+}
+
+#accountSettingsModal .profile-security-grid {
+    display: grid;
+    gap: 11px;
+}
+
+#accountSettingsModal .security-option-card,
+#accountSettingsModal .twofa-setup-box {
+    border-radius: 17px;
+}
+
+#accountSettingsModal .security-message {
+    margin-top: 12px;
+}
+
+@keyframes accountSettingsIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 700px) {
+    #accountSettingsModal {
+        align-items: stretch;
+        padding: 0;
+    }
+
+    .account-settings-dialog {
+        width: 100%;
+        min-height: 100dvh;
+        max-height: 100dvh;
+        border: 0;
+        border-radius: 0;
+    }
+
+    .account-settings-header {
+        min-height: 76px;
+        padding-top: max(15px, env(safe-area-inset-top));
+        padding-right: max(14px, env(safe-area-inset-right));
+        padding-left: max(17px, env(safe-area-inset-left));
+    }
+
+    .account-settings-header p:not(.account-settings-kicker) {
+        display: none;
+    }
+
+    .account-settings-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .account-settings-nav {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 9px 11px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .account-settings-nav-button {
+        grid-template-columns: auto minmax(0, 1fr);
+        min-height: 47px;
+        padding: 6px 9px;
+    }
+
+    .account-settings-nav-button:hover {
+        transform: none;
+    }
+
+    .account-settings-nav-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .account-settings-nav-label small {
+        display: none;
+    }
+
+    .account-settings-content {
+        padding: 17px 13px max(24px, env(safe-area-inset-bottom));
+    }
+
+    .account-settings-user-card {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .account-settings-role {
+        grid-column: 1 / -1;
+        width: fit-content;
+    }
+
+    .account-settings-row {
+        grid-template-columns: 1fr;
+    }
+
+    .account-settings-action {
+        width: 100%;
+    }
+}
+
+@media (max-width: 420px) {
+    .profile-twitter-actions {
+        gap: 6px;
+    }
+
+    .profile-twitter-action.profile-settings-trigger,
+    .profile-twitter-action.profile-edit-trigger {
+        width: 44px;
+        min-width: 44px;
+        padding: 0;
+        border-radius: 50%;
+    }
+
+    .profile-twitter-action.profile-settings-trigger .profile-twitter-action-label,
+    .profile-twitter-action.profile-edit-trigger .profile-twitter-action-label {
+        display: none;
+    }
+
+    .account-settings-title-wrap h2 {
+        font-size: 23px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .account-settings-section,
+    .account-settings-close,
+    .account-settings-nav-button {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
+    }
+}
