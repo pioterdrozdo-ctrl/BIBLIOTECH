@@ -59,15 +59,19 @@ assert.ok(!js.includes('themePresetGrid'), 'product polish must not duplicate th
 assert.ok(pwa.includes('product-polish.js?v=20260710-product-polish-2'), 'PWA does not load updated product polish JavaScript');
 assert.ok(pwa.includes('product-polish.css?v=20260710-product-polish-1'), 'PWA does not load product polish CSS');
 assert.ok(pwa.includes('home-minimal.css?v=20260710-home-minimal-1'), 'PWA does not load minimal home CSS');
+assert.ok(pwa.includes('book-metadata.js?v=20260710-book-metadata-1'), 'PWA does not load ISBN metadata JavaScript');
+assert.ok(pwa.includes('book-metadata.css?v=20260710-book-metadata-1'), 'PWA does not load ISBN metadata CSS');
 assert.ok(pwa.indexOf('product-polish.css') < pwa.indexOf('home-minimal.css'), 'minimal home CSS must load after global product polish');
 
 assert.ok(server.includes("'/css/home-minimal.css?v=20260710-home-minimal-1'"), 'server does not preload minimal home CSS');
+assert.ok(server.includes("'/css/book-metadata.css?v=20260710-book-metadata-1'"), 'server does not preload ISBN metadata CSS');
+assert.ok(server.includes("'/js/book-metadata.js?v=20260710-book-metadata-1'"), 'server does not preload ISBN metadata JavaScript');
 assert.ok(server.includes("'/js/product-polish.js?v=20260710-product-polish-2'"), 'server does not preload updated product polish JavaScript');
 assert.ok(server.includes('<h1>Каталог библиотеки</h1>'), 'server does not replace the old hero title before first paint');
-assert.ok(server.includes('critical-ui-8'), 'initial HTML cache-busting was not updated');
+assert.ok(server.includes('critical-ui-9'), 'initial HTML cache-busting was not updated');
 
 assert.ok(sw.includes("CACHE_NAME = 'bibliotech-pwa-v24'"), 'PWA cache was not invalidated');
 assert.ok(sw.includes("'/css/home-minimal.css'"), 'PWA shell does not cache minimal home CSS');
 assert.ok(sw.includes("'/js/product-polish.js'"), 'PWA shell does not cache product polish JavaScript');
 
-console.log('Product polish check OK: minimal home, auth, first-run, catalog, admin, modal footers, mobile and PWA integration validated.');
+console.log('Product polish check OK: minimal home, ISBN assets, auth, first-run, catalog, admin, modal footers, mobile and PWA integration validated.');
