@@ -31,6 +31,26 @@ const manifestThemes = {
     mono: { icon: '/img/appicon-mono.png', themeColor: '#111111', backgroundColor: '#111111' }
 };
 
+const criticalUiStyles = [
+    '/css/ui-refresh.css?v=20260710-ui-refresh-1',
+    '/css/ui-refresh-release-fix.css?v=20260710-ui-release-fix-2',
+    '/css/theme-mode-preview.css?v=20260710-theme-mode-preview-1',
+    '/css/liquid-theme-toggle.css?v=20260710-liquid-theme-2'
+];
+
+const homeCriticalStyles = [
+    '/css/profile-twitter-restored.css?v=20260710-profile-evolved-2'
+];
+
+const homeCriticalScripts = [
+    '/js/profile-rentals.js?v=20260709-profile-rentals-1',
+    '/js/profile-security.js?v=20260710-profile-security-practical-1',
+    '/js/profile-twitter.js?v=20260710-profile-evolved-2',
+    '/js/modal-visual-fix.js?v=20260710-modal-visual-fix-2',
+    '/js/card-rent-safe.js?v=20260710-card-rent-refined-1',
+    '/js/comment-clear-fix.js?v=20260710-comment-clear-1'
+];
+
 function buildManifest(themeName = 'forest') {
     const theme = manifestThemes[themeName] || manifestThemes.light;
     return {
@@ -68,6 +88,72 @@ function buildManifest(themeName = 'forest') {
     };
 }
 
+function injectCriticalUiAssets(html, { home = false } = {}) {
+    const styles = [...criticalUiStyles, ...(home ? homeCriticalStyles : [])];
+    const styleTags = styles
+        .filter(asset => !html.includes(asset.split('?')[0]))
+        .map(asset => `<link rel="stylesheet" href="${asset}" data-bibliotech-critical="true">`)
+        .join('\n    ');
+
+    if (styleTags && html.includes('</head>')) {
+        html = html.replace('</head>', `    ${styleTags}\n</head>`);
+    }
+
+    if (home) {
+        const scriptTags = homeCriticalScripts
+            .filter(asset => !html.includes(asset.split('?')[0]))
+            .map(asset => `<script src="${asset}" data-bibliotech-critical="true"></script>`)
+            .join('\n');
+
+        if (scriptTags) {
+            const pwaPattern = /<script src="(?:\/)?js\/pwa\.js(?:\?[^\"]*)?"><\/script>/;
+            if (pwaPattern.test(html)) {
+                html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-1"></script>`);
+            } else {
+                html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-1"></script>\n</body>`);
+            }
+        }
+    }
+
+    return html;
+}
+
+function prepareFrontendHtml(fileName, { home = false } = {}) {
+    const htmlPath = path.join(frontendPath, fileName);
+    let html = fs.readFileSync(htmlPath, 'utf8');
+
+    if (home) {
+        html = html.replace(
+            "if (!rawSession) window.location.href = 'index.html';",
+            `if (!rawSession) {
+                try {
+                    const target = window.location.pathname + window.location.search + window.location.hash;
+                    if (target && target !== '/home.html') localStorage.setItem('bibliotech_post_login_url', target);
+                } catch (e) {}
+                window.location.href = 'index.html';
+            }`
+        );
+        html = html.replace(
+            /<script src="js\/script\.js(?:\?[^\"]*)?"><\/script>/,
+            '<script src="/js/script.js?v=20260707-2"></script>\n<script src="/js/catalog-fix.js?v=20260707-2"></script>'
+        );
+    }
+
+    return injectCriticalUiAssets(html, { home });
+}
+
+function sendFrontendPage(fileName, options = {}) {
+    return (req, res, next) => {
+        try {
+            res.setHeader('Cache-Control', 'no-cache');
+            res.type('html');
+            res.send(prepareFrontendHtml(fileName, options));
+        } catch (error) {
+            next(error);
+        }
+    };
+}
+
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -96,30 +182,16 @@ app.get('/manifest.webmanifest', (req, res) => {
     res.send(JSON.stringify(buildManifest(themeName)));
 });
 
-app.get('/home.html', (req, res) => {
-    const htmlPath = path.join(frontendPath, 'home.html');
-    let html = fs.readFileSync(htmlPath, 'utf8');
-    html = html.replace(
-        "if (!rawSession) window.location.href = 'index.html';",
-        `if (!rawSession) {
-            try {
-                const target = window.location.pathname + window.location.search + window.location.hash;
-                if (target && target !== '/home.html') localStorage.setItem('bibliotech_post_login_url', target);
-            } catch (e) {}
-            window.location.href = 'index.html';
-        }`
-    );
-    html = html.replace(
-        /<script src="js\/script\.js(?:\?[^\"]*)?"><\/script>/,
-        '<script src="js/script.js?v=20260707-2"></script>\n<script src="js/catalog-fix.js?v=20260707-2"></script>'
-    );
-    res.setHeader('Cache-Control', 'no-cache');
-    res.type('html');
-    res.send(html);
-});
+// Serve the final visual layer in the initial HTML so the browser never paints an old iteration first.
+app.get(['/', '/index.html'], sendFrontendPage('index.html'));
+app.get('/home.html', sendFrontendPage('home.html', { home: true }));
+app.get('/stats.html', sendFrontendPage('stats.html'));
+app.get('/about.html', sendFrontendPage('about.html'));
+app.get('/admin.html', sendFrontendPage('admin.html'));
 
 app.use(express.static(frontendPath, {
     extensions: ['html'],
+    index: false,
     maxAge: isProduction ? '1h' : 0,
     setHeaders: (res, filePath) => {
         const ext = path.extname(filePath);
@@ -153,26 +225,11 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// ОТДАЕМ HTML
-app.get('/', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-});
-
-app.get('/about.html', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'about.html'));
-});
-
-app.get('/stats.html', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'stats.html'));
-});
-
 app.use('/api', (req, res) => {
     res.status(404).json({ error: 'API endpoint not found' });
 });
 
-app.get('*', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-});
+app.get('*', sendFrontendPage('index.html'));
 
 // Error handling
 app.use((err, req, res, next) => {

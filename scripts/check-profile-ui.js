@@ -9,6 +9,7 @@ const profileJs = fs.readFileSync(path.join(root, 'frontend/js/profile-twitter.j
 const securityJs = fs.readFileSync(path.join(root, 'frontend/js/profile-security.js'), 'utf8');
 const profileCss = fs.readFileSync(path.join(root, 'frontend/css/profile-twitter-restored.css'), 'utf8');
 const pwaJs = fs.readFileSync(path.join(root, 'frontend/js/pwa.js'), 'utf8');
+const serverJs = fs.readFileSync(path.join(root, 'backend/server.js'), 'utf8');
 
 function count(text, value) {
     return text.split(value).length - 1;
@@ -35,6 +36,9 @@ assert.ok(profileJs.includes("querySelector('#profileModal .profile-grid')?.remo
 assert.equal(count(profileJs, 'data-profile-view-target="overview"'), 1, 'overview tab must be unique');
 assert.equal(count(profileJs, 'data-profile-view-target="settings"'), 1, 'security tab must be unique');
 assert.ok(!profileJs.includes('data-profile-view-target="customize" aria-selected'), 'customize must not be duplicated as a tab');
+assert.ok(profileJs.includes("modal.dataset.profileIteration = 'evolved'"), 'profile iteration marker is missing');
+assert.ok(profileJs.includes('queueMicrotask(repair)'), 'legacy click repair must run before browser paint');
+assert.ok(profileJs.includes('removeDuplicateNodes'), 'repeated profile opens must remove duplicate controls');
 
 assert.ok(!securityJs.includes('id="loginAlertsToggle"'), 'non-functional login alert control must not be rendered');
 assert.ok(!securityJs.includes('id="privateProfileToggle"'), 'future private-profile control must not be rendered');
@@ -48,7 +52,11 @@ assert.ok(profileCss.includes('@media (max-width: 620px)'), 'phone layout is mis
 assert.ok(profileCss.includes('min-height: 100dvh'), 'full-height phone profile is missing');
 assertBalancedCss(profileCss, 'profile-twitter-restored.css');
 
-assert.ok(pwaJs.includes('profile-evolved-1'), 'evolved profile cache version is not loaded');
+assert.ok(pwaJs.includes('profile-evolved-2'), 'stable evolved profile cache version is not loaded');
 assert.ok(pwaJs.includes('profile-security-practical-1'), 'practical security cache version is not loaded');
+assert.ok(pwaJs.includes("hasAsset('script[src]'"), 'duplicate script prevention is missing');
+assert.ok(pwaJs.includes("hasAsset('link[rel=\"stylesheet\"][href]'"), 'duplicate stylesheet prevention is missing');
+assert.ok(serverJs.includes('homeCriticalStyles'), 'profile CSS must be delivered in initial HTML');
+assert.ok(serverJs.includes('homeCriticalScripts'), 'profile controller must be delivered in initial HTML');
 
-console.log('Profile UI check OK: hierarchy, duplicate removal, practical controls and mobile CSS validated.');
+console.log('Profile UI check OK: hierarchy, first-paint loading, repeated-open stability and mobile CSS validated.');
