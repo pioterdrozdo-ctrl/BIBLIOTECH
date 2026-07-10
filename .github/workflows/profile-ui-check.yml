@@ -1,11 +1,22 @@
-name: Profile UI check
+name: Profile and account settings check
 
 on:
   pull_request:
     paths:
+      - 'backend/routes/account.js'
+      - 'backend/routes/sessionAuth.js'
+      - 'backend/routes/rentals.js'
+      - 'backend/middleware/auth.js'
+      - 'backend/services/localAccountStore.js'
+      - 'backend/services/registerAccountFallback.js'
+      - 'backend/server.js'
       - 'frontend/js/profile-twitter.js'
       - 'frontend/js/profile-security.js'
+      - 'frontend/js/profile-settings-modal.js'
+      - 'frontend/js/account-settings-features.js'
       - 'frontend/css/profile-twitter-restored.css'
+      - 'frontend/css/profile-settings-modal.css'
+      - 'frontend/css/account-settings-features.css'
       - 'frontend/js/pwa.js'
       - 'frontend/sw.js'
       - 'scripts/check-profile-ui.js'
@@ -13,9 +24,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'frontend/js/profile-twitter.js'
+      - 'backend/**'
+      - 'frontend/js/account-settings-features.js'
+      - 'frontend/css/account-settings-features.css'
+      - 'frontend/js/profile-settings-modal.js'
       - 'frontend/js/profile-security.js'
-      - 'frontend/css/profile-twitter-restored.css'
       - 'frontend/js/pwa.js'
       - 'frontend/sw.js'
       - 'scripts/check-profile-ui.js'
@@ -26,18 +39,27 @@ permissions:
 jobs:
   check-profile:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 7
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Check JavaScript syntax
         run: |
+          node --check backend/routes/account.js
+          node --check backend/routes/sessionAuth.js
+          node --check backend/routes/rentals.js
+          node --check backend/middleware/auth.js
+          node --check backend/services/localAccountStore.js
+          node --check backend/services/registerAccountFallback.js
+          node --check backend/server.js
           node --check frontend/js/profile-twitter.js
           node --check frontend/js/profile-security.js
+          node --check frontend/js/profile-settings-modal.js
+          node --check frontend/js/account-settings-features.js
           node --check frontend/js/pwa.js
           node --check frontend/sw.js
           node --check scripts/check-profile-ui.js
-      - name: Validate profile hierarchy and CSS
+      - name: Validate profile and account settings structure
         run: node scripts/check-profile-ui.js
