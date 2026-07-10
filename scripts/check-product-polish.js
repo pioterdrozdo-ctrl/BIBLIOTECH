@@ -45,7 +45,7 @@ assert.ok(js.includes('enhanceHomeHero'), 'home refinement is missing');
 assert.ok(js.includes("title.textContent = 'Каталог библиотеки'"), 'minimal hero title is missing');
 assert.ok(js.includes("copy.textContent = 'Поиск, выдача и учёт книг в одном месте.'"), 'direct hero description is missing');
 assert.ok(js.includes('legacyButton?.remove()'), 'duplicate add-book action is not removed');
-assert.ok(js.includes("Перейти к книгам"), 'single catalog action is missing');
+assert.ok(js.includes('Перейти к книгам'), 'single catalog action is missing');
 assert.ok(!js.includes('Книги под контролем'), 'old marketing slogan remained in the controller');
 assert.ok(!js.includes('product-proof-chip'), 'marketing proof chips remained in the controller');
 assert.ok(js.includes('maybeShowWelcome'), 'first-run experience is missing');
@@ -66,7 +66,7 @@ assert.ok(server.includes("'/js/product-polish.js?v=20260710-product-polish-2'")
 assert.ok(server.includes('<h1>Каталог библиотеки</h1>'), 'server does not replace the old hero title before first paint');
 assert.ok(server.includes('critical-ui-8'), 'initial HTML cache-busting was not updated');
 
-assert.ok(sw.includes("CACHE_NAME = 'bibliotech-pwa-v23'"), 'PWA cache was not invalidated');
+assert.ok(sw.includes("CACHE_NAME = 'bibliotech-pwa-v24'"), 'PWA cache was not invalidated');
 assert.ok(sw.includes("'/css/home-minimal.css'"), 'PWA shell does not cache minimal home CSS');
 assert.ok(sw.includes("'/js/product-polish.js'"), 'PWA shell does not cache product polish JavaScript');
 
