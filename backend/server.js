@@ -6,9 +6,12 @@ const os = require('os');
 const fs = require('fs');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
+require('./services/registerAccountFallback');
+const sessionAuthRoutes = require('./routes/sessionAuth');
 const securityRoutes = require('./routes/security');
 const passwordResetEmailRoutes = require('./routes/passwordResetEmail');
 const authRoutes = require('./routes/auth');
+const accountRoutes = require('./routes/account');
 const bookRoutes = require('./routes/books');
 const commentRoutes = require('./routes/comments');
 const statsRoutes = require('./routes/stats');
@@ -40,14 +43,18 @@ const criticalUiStyles = [
 
 const homeCriticalStyles = [
     '/css/profile-twitter-restored.css?v=20260710-profile-evolved-2',
-    '/css/profile-settings-modal.css?v=20260710-profile-settings-1'
+    '/css/profile-settings-modal.css?v=20260710-profile-settings-1',
+    '/css/account-settings-features.css?v=20260710-account-settings-1'
 ];
 
 const homeCriticalScripts = [
+    '/js/rentals-request-guard.js?v=20260710-rentals-guard-1',
     '/js/profile-rentals.js?v=20260709-profile-rentals-1',
     '/js/profile-twitter.js?v=20260710-profile-settings-1',
-    '/js/profile-settings-modal.js?v=20260710-profile-settings-1',
+    '/js/profile-settings-modal.js?v=20260710-profile-settings-2',
+    '/js/account-settings-close-guard.js?v=20260710-account-settings-close-1',
     '/js/profile-security.js?v=20260710-profile-security-modal-1',
+    '/js/account-settings-features.js?v=20260710-account-settings-1',
     '/js/modal-visual-fix.js?v=20260710-modal-visual-fix-2',
     '/js/card-rent-safe.js?v=20260710-card-rent-refined-1',
     '/js/comment-clear-fix.js?v=20260710-comment-clear-1'
@@ -110,9 +117,9 @@ function injectCriticalUiAssets(html, { home = false } = {}) {
         if (scriptTags) {
             const pwaPattern = /<script src="(?:\/)?js\/pwa\.js(?:\?[^\"]*)?"><\/script>/;
             if (pwaPattern.test(html)) {
-                html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-2"></script>`);
+                html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-5"></script>`);
             } else {
-                html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-2"></script>\n</body>`);
+                html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-5"></script>\n</body>`);
             }
         }
     }
@@ -167,7 +174,6 @@ app.set('trust proxy', 1);
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(limiter);
 
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -204,9 +210,13 @@ app.use(express.static(frontendPath, {
     }
 }));
 
+// Only API traffic counts toward the rate limit. Static assets and PWA cache refreshes must never block login.
+app.use('/api', limiter);
+app.use('/api/auth', sessionAuthRoutes);
 app.use('/api/auth', securityRoutes);
 app.use('/api/auth', passwordResetEmailRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/account', accountRoutes);
 app.use('/api/books', catalogListRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/comments', commentRoutes);
@@ -253,6 +263,7 @@ async function initDatabase() {
         await pool.query(`
             ALTER TABLE books ADD COLUMN IF NOT EXISTS qr_code VARCHAR(32);
             ALTER TABLE books ADD COLUMN IF NOT EXISTS location_id INTEGER;
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS session_version INTEGER DEFAULT 1;
             CREATE UNIQUE INDEX IF NOT EXISTS idx_books_qr_code ON books(qr_code);
             UPDATE books SET qr_code = 'BT' || LPAD(id::text, 6, '0') WHERE qr_code IS NULL;
         `);

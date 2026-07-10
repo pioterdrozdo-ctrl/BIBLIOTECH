@@ -13,14 +13,23 @@ async function ensureRentalSchema() {
             user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
             username VARCHAR(50),
             rented_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            returned_at TIMESTAMP
+            returned_at TIMESTAMP,
+            due_at TIMESTAMP
         );
+        ALTER TABLE book_rentals ADD COLUMN IF NOT EXISTS due_at TIMESTAMP;
+        UPDATE book_rentals
+        SET due_at = rented_at + INTERVAL '14 days'
+        WHERE due_at IS NULL AND returned_at IS NULL;
         CREATE INDEX IF NOT EXISTS idx_book_rentals_book_id ON book_rentals(book_id);
         CREATE INDEX IF NOT EXISTS idx_book_rentals_user_id ON book_rentals(user_id);
     `);
 }
 
 function mapRental(row) {
+    const rentedAt = row.rented_at ? new Date(row.rented_at) : null;
+    const fallbackDue = rentedAt && !Number.isNaN(rentedAt.getTime())
+        ? new Date(rentedAt.getTime() + 14 * 86400000).toISOString()
+        : null;
     return {
         id: row.id,
         book_id: row.book_id,
@@ -30,8 +39,9 @@ function mapRental(row) {
         user_id: row.user_id,
         username: row.username || 'Пользователь',
         rented_at: row.rented_at,
+        due_at: row.due_at || fallbackDue,
         returned_at: row.returned_at || null,
-        status: row.returned_at ? 'returned' : 'active'
+        status: row.returned_at ? 'returned' : (row.due_at && new Date(row.due_at) < new Date() ? 'overdue' : 'active')
     };
 }
 

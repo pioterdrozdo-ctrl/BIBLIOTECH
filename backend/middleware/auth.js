@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const pool = require('../db/pool');
+const localAccountStore = require('../services/localAccountStore');
 
 function getJwtSecret() {
     const secret = process.env.JWT_SECRET;
@@ -15,12 +16,31 @@ function isFrozen(user = {}) {
     return !Number.isNaN(bannedUntil.getTime()) && bannedUntil > new Date();
 }
 
+function sessionMatches(decoded, account = {}) {
+    const tokenVersion = Number(decoded.ver || 1);
+    const accountVersion = Number(account.session_version || 1);
+    return tokenVersion === accountVersion;
+}
+
 async function readAccountAccess(userId) {
-    const result = await pool.query(
-        'SELECT id, role, banned_until, ban_reason FROM users WHERE id = $1',
-        [userId]
-    );
-    return result.rows[0] || null;
+    const query = 'SELECT id, role, banned_until, ban_reason, COALESCE(session_version, 1) AS session_version FROM users WHERE id = $1';
+    try {
+        const result = await pool.query(query, [userId]);
+        return result.rows[0] || null;
+    } catch (error) {
+        if (error.code !== '42703') throw error;
+        await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS session_version INTEGER DEFAULT 1');
+        const result = await pool.query(query, [userId]);
+        return result.rows[0] || null;
+    }
+}
+
+function sessionExpired(res) {
+    return res.status(403).json({
+        error: 'Session expired',
+        code: 'SESSION_EXPIRED',
+        message: 'Сеанс завершён. Войдите в аккаунт снова.'
+    });
 }
 
 const authMiddleware = async (req, res, next) => {
@@ -36,9 +56,8 @@ const authMiddleware = async (req, res, next) => {
 
         try {
             const account = await readAccountAccess(decoded.id);
-            if (!account) {
-                return res.status(403).json({ error: 'Account not found' });
-            }
+            if (!account) return res.status(403).json({ error: 'Account not found' });
+            if (!sessionMatches(decoded, account)) return sessionExpired(res);
             if (isFrozen(account)) {
                 return res.status(403).json({
                     error: 'Account frozen',
@@ -48,11 +67,15 @@ const authMiddleware = async (req, res, next) => {
                 });
             }
             req.user.role = account.role || req.user.role;
+            req.user.ver = Number(account.session_version || 1);
         } catch (dbError) {
             console.warn('[AUTH] account access check failed:', dbError.message);
-            if (pool.isConfigured) {
-                return res.status(503).json({ error: 'Account access check unavailable' });
-            }
+            if (pool.isConfigured) return res.status(503).json({ error: 'Account access check unavailable' });
+            const account = localAccountStore.getAuthState(decoded.id);
+            if (!account) return res.status(403).json({ error: 'Account not found' });
+            if (!sessionMatches(decoded, account)) return sessionExpired(res);
+            req.user.role = account.role || req.user.role;
+            req.user.ver = Number(account.session_version || 1);
         }
 
         next();
@@ -70,11 +93,22 @@ const optionalAuthMiddleware = async (req, res, next) => {
         req.user = decoded;
         try {
             const account = await readAccountAccess(decoded.id);
-            if (!account || isFrozen(account)) req.user = null;
-            else req.user.role = account.role || req.user.role;
+            if (!account || isFrozen(account) || !sessionMatches(decoded, account)) req.user = null;
+            else {
+                req.user.role = account.role || req.user.role;
+                req.user.ver = Number(account.session_version || 1);
+            }
         } catch (dbError) {
             console.warn('[AUTH] optional account access check failed:', dbError.message);
             if (pool.isConfigured) req.user = null;
+            else {
+                const account = localAccountStore.getAuthState(decoded.id);
+                if (!account || !sessionMatches(decoded, account)) req.user = null;
+                else {
+                    req.user.role = account.role || req.user.role;
+                    req.user.ver = Number(account.session_version || 1);
+                }
+            }
         }
     } catch (error) {
         req.user = null;
