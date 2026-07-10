@@ -119,8 +119,12 @@
         if (typeof window.openBook !== 'function') return;
         window.openBook(bookId);
         window.setTimeout(() => {
-            const rentButton = document.getElementById('rentBookBtn');
-            if (rentButton && !rentButton.disabled) rentButton.click();
+            const controller = window.BibliotechReservationQueue;
+            if (controller?.performReservationAction) controller.performReservationAction();
+            else {
+                const rentButton = document.getElementById('rentBookBtn');
+                if (rentButton && !rentButton.disabled) rentButton.click();
+            }
         }, 120);
     }
 
@@ -128,6 +132,15 @@
         if (window.__bibliotechCardRentSafeClickBound) return;
         window.__bibliotechCardRentSafeClickBound = true;
         document.addEventListener('click', event => {
+            const detailButton = event.target.closest('#rentBookBtn');
+            const controller = window.BibliotechReservationQueue;
+            if (detailButton && controller?.performReservationAction) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                if (!detailButton.disabled) controller.performReservationAction();
+                return;
+            }
+
             const button = event.target.closest('.card-rent-safe-btn');
             if (!button) return;
             event.preventDefault();
