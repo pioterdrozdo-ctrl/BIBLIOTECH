@@ -23,6 +23,10 @@
         return session.role === 'admin' ? 'admin' : 'user';
     }
 
+    function setText(element, value) {
+        if (element && element.textContent !== value) element.textContent = value;
+    }
+
     function removeLegacyAndRedundantBlocks() {
         document.getElementById('profileTwitterStyles')?.remove();
         document.getElementById('profileCustomizeModal')?.remove();
@@ -49,8 +53,8 @@
         const handle = '@' + String(rawName).trim().replace(/\s+/g, '_').toLowerCase();
 
         kicker.classList.add('profile-handle');
-        kicker.textContent = handle;
-        nameRow.insertAdjacentElement('afterend', kicker);
+        setText(kicker, handle);
+        if (nameRow.nextElementSibling !== kicker) nameRow.insertAdjacentElement('afterend', kicker);
 
         const roleCopy = {
             admin: {
@@ -68,20 +72,19 @@
         }[role];
 
         if (badge) {
-            badge.textContent = roleCopy.badge;
+            setText(badge, roleCopy.badge);
             badge.dataset.profileRole = role;
             badge.classList.toggle('guest', role === 'guest');
             badge.classList.toggle('user', role === 'user');
             badge.classList.toggle('admin', role === 'admin');
         }
-        if (note) note.textContent = roleCopy.note;
-
+        setText(note, roleCopy.note);
         getModal()?.setAttribute('data-profile-role', role);
     }
 
     function ensureHeaderAction() {
         const top = document.querySelector('#profileModal .profile-modal-top');
-        if (!top) return;
+        if (!top || document.getElementById('profileTwitterActions')) return;
 
         const actions = document.createElement('div');
         actions.className = 'profile-twitter-actions';
@@ -99,7 +102,7 @@
     function ensureViewTabs() {
         const content = getContent();
         const top = document.querySelector('#profileModal .profile-modal-top');
-        if (!content || !top) return;
+        if (!content || !top || document.getElementById('profileViewTabs')) return;
 
         const role = getRole();
         const tabs = document.createElement('div');
@@ -119,17 +122,11 @@
     }
 
     function refineSectionCopy() {
-        const avatarTitle = document.querySelector('#profileModal .avatar-settings h3');
-        const avatarDescription = document.querySelector('#profileModal .avatar-settings p');
-        const themeTitle = document.querySelector('#profileModal .theme-settings h3');
-        const themeDescription = document.querySelector('#profileModal .theme-settings p');
-        const logout = document.getElementById('profileLogoutBtn');
-
-        if (avatarTitle) avatarTitle.textContent = 'Фото профиля';
-        if (avatarDescription) avatarDescription.textContent = 'Загрузите изображение или выберите один из готовых символов.';
-        if (themeTitle) themeTitle.textContent = 'Цвет интерфейса';
-        if (themeDescription) themeDescription.textContent = 'Выберите палитру. Кнопка солнца и луны меняет только её яркость.';
-        if (logout) logout.textContent = 'Выйти из аккаунта';
+        setText(document.querySelector('#profileModal .avatar-settings h3'), 'Фото профиля');
+        setText(document.querySelector('#profileModal .avatar-settings p'), 'Загрузите изображение или выберите один из готовых символов.');
+        setText(document.querySelector('#profileModal .theme-settings h3'), 'Цвет интерфейса');
+        setText(document.querySelector('#profileModal .theme-settings p'), 'Выберите палитру. Кнопка солнца и луны меняет только её яркость.');
+        setText(document.getElementById('profileLogoutBtn'), 'Выйти из аккаунта');
     }
 
     function organizeDynamicPanels() {
@@ -160,8 +157,8 @@
                 const label = button.querySelector('.profile-twitter-action-label');
                 const icon = button.querySelector('.profile-twitter-action-icon');
                 const editing = view === 'customize';
-                if (label) label.textContent = editing ? 'Готово' : 'Изменить профиль';
-                if (icon) icon.textContent = editing ? '✓' : '✎';
+                setText(label, editing ? 'Готово' : 'Изменить профиль');
+                setText(icon, editing ? '✓' : '✎');
                 button.setAttribute('aria-label', editing ? 'Завершить редактирование' : 'Изменить профиль');
             }
         });
@@ -245,17 +242,10 @@
         });
 
         if ('MutationObserver' in window) {
-            new MutationObserver(mutations => {
-                const classChanged = mutations.some(mutation => mutation.type === 'attributes');
-                const childrenChanged = mutations.some(mutation => mutation.type === 'childList');
-                if (childrenChanged) refreshStructure();
-                if (classChanged && modal.classList.contains('active')) {
-                    setTimeout(refreshStructure, 0);
-                }
-                if (classChanged && !modal.classList.contains('active')) {
-                    setView('overview', { scroll: false });
-                }
-            }).observe(modal, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
+            new MutationObserver(() => {
+                if (modal.classList.contains('active')) setTimeout(refreshStructure, 0);
+                else setView('overview', { scroll: false });
+            }).observe(modal, { attributes: true, attributeFilter: ['class'] });
         }
     }
 
@@ -269,6 +259,10 @@
         refreshStructure();
         wireControls();
         setView('overview', { scroll: false });
+
+        // Rentals and security panels are injected by separate modules.
+        setTimeout(refreshStructure, 120);
+        setTimeout(refreshStructure, 420);
     }
 
     if (document.readyState === 'loading') {
