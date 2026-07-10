@@ -142,9 +142,10 @@
     }
 
     if (isHomePage) {
+        loadScript('js/rentals-request-guard.js?v=20260710-rentals-guard-1', '__bibliotechRentalsRequestGuardLoading');
         loadScript('js/profile-rentals.js?v=20260709-profile-rentals-1', '__bibliotechProfileRentalsLoading');
         loadScript('js/profile-twitter.js?v=20260710-profile-settings-1', '__bibliotechProfileTwitterLoading');
-        loadScript('js/profile-settings-modal.js?v=20260710-profile-settings-1', '__bibliotechProfileSettingsLoading');
+        loadScript('js/profile-settings-modal.js?v=20260710-profile-settings-2', '__bibliotechProfileSettingsLoading');
         loadScript('js/account-settings-close-guard.js?v=20260710-account-settings-close-1', '__bibliotechAccountSettingsCloseGuardLoading');
         loadScript('js/profile-security.js?v=20260710-profile-security-modal-1', '__bibliotechProfileSecurityLoading');
         loadScript('js/account-settings-features.js?v=20260710-account-settings-1', '__bibliotechAccountSettingsFeaturesLoading');
