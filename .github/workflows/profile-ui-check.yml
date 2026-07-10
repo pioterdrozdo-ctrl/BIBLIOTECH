@@ -1,0 +1,43 @@
+name: Profile UI check
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/js/profile-twitter.js'
+      - 'frontend/js/profile-security.js'
+      - 'frontend/css/profile-twitter-restored.css'
+      - 'frontend/js/pwa.js'
+      - 'frontend/sw.js'
+      - 'scripts/check-profile-ui.js'
+      - '.github/workflows/profile-ui-check.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/js/profile-twitter.js'
+      - 'frontend/js/profile-security.js'
+      - 'frontend/css/profile-twitter-restored.css'
+      - 'frontend/js/pwa.js'
+      - 'frontend/sw.js'
+      - 'scripts/check-profile-ui.js'
+
+permissions:
+  contents: read
+
+jobs:
+  check-profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check JavaScript syntax
+        run: |
+          node --check frontend/js/profile-twitter.js
+          node --check frontend/js/profile-security.js
+          node --check frontend/js/pwa.js
+          node --check frontend/sw.js
+          node --check scripts/check-profile-ui.js
+      - name: Validate profile hierarchy and CSS
+        run: node scripts/check-profile-ui.js
