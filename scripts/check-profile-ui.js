@@ -46,7 +46,8 @@ assert.equal(count(settingsJs, "modal.id = 'accountSettingsModal'"), 1, 'setting
 assert.ok(settingsJs.includes('data-settings-section="account"'), 'account section is missing');
 assert.ok(settingsJs.includes('data-settings-section="security"'), 'security section is missing');
 assert.ok(!settingsJs.includes('themePresetGrid'), 'palette controls must not be duplicated in settings');
-assert.ok(closeGuardJs.includes("document.addEventListener('click', closeSettings, true)"), 'capture-phase settings close guard is missing');
+assert.ok(closeGuardJs.includes("document.addEventListener('click', handleSettingsAction, true)"), 'capture-phase settings action guard is missing');
+assert.ok(closeGuardJs.includes('accountSettingsEditProfileBtn'), 'settings-to-profile transition guard is missing');
 
 for (const section of ['devices', 'notifications', 'privacy', 'library', 'data']) {
     assert.ok(featuresJs.includes(`data-settings-section="${section}"`) || featuresJs.includes(`navButton('${section}'`), `${section} section is missing`);
@@ -77,11 +78,11 @@ assertBalancedCss(featuresCss, 'account-settings-features.css');
 assert.ok(featuresCss.includes('@media (max-width: 700px)'), 'complete settings mobile layout is missing');
 
 assert.ok(pwaJs.includes('account-settings-features.js'), 'complete settings controller is not loaded');
-assert.ok(pwaJs.includes('account-settings-close-guard.js'), 'settings close guard is not loaded');
+assert.ok(pwaJs.includes('account-settings-close-guard.js'), 'settings action guard is not loaded');
 assert.ok(pwaJs.includes('account-settings-features.css'), 'complete settings CSS is not loaded');
 assert.ok(serverJs.includes('/api/account'), 'account API is not mounted');
 assert.ok(serverJs.includes('/js/account-settings-features.js'), 'complete settings must be delivered in initial HTML');
 assert.ok(serverJs.includes('/css/account-settings-features.css'), 'complete settings CSS must be delivered in initial HTML');
 assert.ok(swJs.includes("CACHE_NAME = 'bibliotech-pwa-v18'"), 'PWA cache was not invalidated');
 
-console.log('Account settings check OK: sessions, notifications, privacy, library, data controls and modal lifecycle validated.');
+console.log('Account settings check OK: sessions, notifications, privacy, library, data controls and modal transitions validated.');
