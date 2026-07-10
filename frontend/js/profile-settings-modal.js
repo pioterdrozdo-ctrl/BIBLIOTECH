@@ -162,12 +162,8 @@
             panel.hidden = !active;
         });
 
-        if (section === 'security') {
-            window.BibliotechSecurity?.load?.();
-        }
-        if (options.focusTab) {
-            modal.querySelector(`[data-settings-section="${section}"]`)?.focus();
-        }
+        if (section === 'security') window.BibliotechSecurity?.load?.();
+        if (options.focusTab) modal.querySelector(`[data-settings-section="${section}"]`)?.focus();
     }
 
     function open(section = 'account', trigger = null) {
@@ -190,7 +186,7 @@
         modal.classList.remove('active');
         modal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('account-settings-open');
-        if (options.restoreFocus !== false && lastTrigger?.isConnected) lastTrigger.focus();
+        if (options.restoreFocus !== false && lastTrigger?.isConnected) lastTrigger.focus({ preventScroll: true });
     }
 
     function openProfileEditor() {
@@ -207,20 +203,26 @@
         if (modal.dataset.settingsReady === 'true') return;
         modal.dataset.settingsReady = 'true';
 
+        const closeButton = modal.querySelector('#accountSettingsCloseBtn');
+        closeButton?.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            close();
+        }, true);
+
         modal.addEventListener('click', event => {
+            if (event.target === modal) {
+                event.preventDefault();
+                close();
+                return;
+            }
             const sectionButton = event.target.closest('[data-settings-section]');
             if (sectionButton && modal.contains(sectionButton)) {
                 event.preventDefault();
                 setSection(sectionButton.dataset.settingsSection);
                 return;
             }
-            if (event.target === modal || event.target.closest('#accountSettingsCloseBtn')) {
-                close();
-                return;
-            }
-            if (event.target.closest('#accountSettingsEditProfileBtn')) {
-                openProfileEditor();
-            }
+            if (event.target.closest('#accountSettingsEditProfileBtn')) openProfileEditor();
         });
 
         modal.addEventListener('keydown', event => {
@@ -243,7 +245,7 @@
         ensureModal();
         document.addEventListener('click', event => {
             const trigger = event.target.closest('#profileSettingsBtn, [data-open-account-settings]');
-            if (!trigger) return;
+            if (!trigger || trigger.closest('#accountSettingsModal')) return;
             event.preventDefault();
             event.stopPropagation();
             open(trigger.dataset.settingsSection || 'account', trigger);
