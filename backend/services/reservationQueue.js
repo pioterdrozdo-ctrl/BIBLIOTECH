@@ -213,7 +213,6 @@ async function reconcileReservationQueues({ bookId = null } = {}) {
     try {
         await client.query('BEGIN');
         await ensureReservationSchema(client);
-        const expired = await expireReadyReservations(client, bookId);
         const params = [];
         let bookFilter = '';
         if (bookId !== null && bookId !== undefined) {
@@ -221,18 +220,20 @@ async function reconcileReservationQueues({ bookId = null } = {}) {
             bookFilter = `AND b.id = $${params.length}`;
         }
         const books = await client.query(`
-            SELECT DISTINCT b.id
+            SELECT b.id
             FROM books b
             LEFT JOIN book_reservations r ON r.book_id = b.id AND r.status IN ('waiting', 'ready')
             WHERE (r.id IS NOT NULL OR b.available IS DISTINCT FROM (COALESCE(b.copies, 0) > 0))
               ${bookFilter}
+            GROUP BY b.id
             ORDER BY b.id
-            FOR UPDATE OF b
         `, params);
         const promoted = [];
+        const expired = [];
         for (const row of books.rows) {
             const result = await promoteBookReservations(client, row.id);
             promoted.push(...result.promoted);
+            expired.push(...result.expired);
         }
         await client.query('COMMIT');
         return { promoted, expired };
@@ -266,19 +267,19 @@ async function getReservationSummaries(client, bookIds = [], userId = null) {
 
     const waitingPositions = new Map();
     for (const row of result.rows) {
-        const bookId = Number(row.book_id);
-        const summary = summaries.get(bookId) || { reservationCount: 0, waitingCount: 0, readyCount: 0, myReservation: null };
+        const currentBookId = Number(row.book_id);
+        const summary = summaries.get(currentBookId) || { reservationCount: 0, waitingCount: 0, readyCount: 0, myReservation: null };
         summary.reservationCount += 1;
         if (row.status === 'waiting') {
             summary.waitingCount += 1;
-            const position = (waitingPositions.get(bookId) || 0) + 1;
-            waitingPositions.set(bookId, position);
+            const position = (waitingPositions.get(currentBookId) || 0) + 1;
+            waitingPositions.set(currentBookId, position);
             if (userId && Number(row.user_id) === Number(userId)) summary.myReservation = mapReservation(row, position);
         } else {
             summary.readyCount += 1;
             if (userId && Number(row.user_id) === Number(userId)) summary.myReservation = mapReservation(row, 1);
         }
-        summaries.set(bookId, summary);
+        summaries.set(currentBookId, summary);
     }
     return summaries;
 }
