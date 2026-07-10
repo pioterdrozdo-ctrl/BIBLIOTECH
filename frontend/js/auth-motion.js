@@ -35,7 +35,7 @@
     function animateElement(element, distance = 6) {
         if (!element || prefersReducedMotion() || lastInput === 'keyboard' || !element.animate) return;
 
-        element.getAnimations().forEach(animation => animation.cancel());
+        element.getAnimations?.().forEach(animation => animation.cancel());
         element.animate(
             [
                 { opacity: 0, transform: `translateY(${distance}px)` },
