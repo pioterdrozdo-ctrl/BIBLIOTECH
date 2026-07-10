@@ -23,6 +23,25 @@ async function must(path, options = {}, expected = 200) {
     return result.payload;
 }
 
+async function ensureCatalogBook(token) {
+    const books = await must('/api/books', { token });
+    if (Array.isArray(books) && books.length > 0) return books[0];
+
+    const created = await must('/api/books', {
+        token,
+        method: 'POST',
+        body: {
+            title: `Проверка API ${Date.now()}`,
+            author: 'BIBLIOTECH Test',
+            description: 'Временная книга для проверки API личной библиотеки.',
+            copies: 1,
+            available: true
+        }
+    }, 201);
+    assert.ok(created.id, 'catalog seed did not return a book id');
+    return created;
+}
+
 (async () => {
     const login = await must('/api/auth/login', {
         method: 'POST',
@@ -53,9 +72,8 @@ async function must(path, options = {}, expected = 200) {
     });
     assert.equal(privacy.privateProfile, false);
 
-    const books = await must('/api/books', { token });
-    assert.ok(Array.isArray(books) && books.length > 0, 'catalog is empty in account smoke test');
-    const bookId = books[0].id;
+    const book = await ensureCatalogBook(token);
+    const bookId = book.id;
 
     await must(`/api/account/library/${bookId}`, {
         token,
