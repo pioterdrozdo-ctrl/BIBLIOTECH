@@ -167,8 +167,10 @@
     function importCount() {
         if (!previewState?.summary) return 0;
         const strategy = getElement('bookImportDuplicateStrategy')?.value || 'skip';
-        return Number(previewState.summary.ready || 0)
-            + (strategy === 'merge_copies' ? Number(previewState.summary.duplicateCatalog || 0) : 0);
+        const mergeableDuplicates = strategy === 'merge_copies'
+            ? (previewState.rows || []).filter(row => row.duplicate?.type === 'catalog' && Number(row.data?.copies || 0) > 0).length
+            : 0;
+        return Number(previewState.summary.ready || 0) + mergeableDuplicates;
     }
 
     function canCommit() {
