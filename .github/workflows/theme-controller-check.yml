@@ -5,7 +5,9 @@ on:
     paths:
       - 'frontend/js/theme-bootstrap.js'
       - 'frontend/js/pwa.js'
+      - 'frontend/sw.js'
       - 'frontend/css/liquid-theme-toggle.css'
+      - 'frontend/css/theme-mode-preview.css'
       - 'scripts/check-theme-controller.js'
       - '.github/workflows/theme-controller-check.yml'
   push:
@@ -13,7 +15,9 @@ on:
     paths:
       - 'frontend/js/theme-bootstrap.js'
       - 'frontend/js/pwa.js'
+      - 'frontend/sw.js'
       - 'frontend/css/liquid-theme-toggle.css'
+      - 'frontend/css/theme-mode-preview.css'
       - 'scripts/check-theme-controller.js'
 
 permissions:
@@ -36,19 +40,26 @@ jobs:
           node --check scripts/check-theme-controller.js
       - name: Test all palette and brightness combinations
         run: node scripts/check-theme-controller.js
-      - name: Check liquid CSS structure
+      - name: Check theme CSS structure
         run: |
           node - <<'NODE'
           const fs = require('node:fs');
-          const css = fs.readFileSync('frontend/css/liquid-theme-toggle.css', 'utf8');
-          const stripped = css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, '');
-          let balance = 0;
-          for (const char of stripped) {
-            if (char === '{') balance += 1;
-            if (char === '}') balance -= 1;
-            if (balance < 0) throw new Error('Unexpected closing brace in liquid-theme-toggle.css');
+          const files = [
+            'frontend/css/liquid-theme-toggle.css',
+            'frontend/css/theme-mode-preview.css'
+          ];
+          for (const file of files) {
+            const css = fs.readFileSync(file, 'utf8');
+            const stripped = css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, '');
+            let balance = 0;
+            for (const char of stripped) {
+              if (char === '{') balance += 1;
+              if (char === '}') balance -= 1;
+              if (balance < 0) throw new Error(`Unexpected closing brace in ${file}`);
+            }
+            if (balance !== 0) throw new Error(`Unbalanced braces in ${file}`);
           }
-          if (balance !== 0) throw new Error('Unbalanced braces in liquid-theme-toggle.css');
-          if (!css.includes('backdrop-filter')) throw new Error('Liquid glass fallback is missing');
-          console.log('Liquid theme toggle CSS structure OK.');
+          const liquidCss = fs.readFileSync('frontend/css/liquid-theme-toggle.css', 'utf8');
+          if (!liquidCss.includes('backdrop-filter')) throw new Error('Liquid glass fallback is missing');
+          console.log('Theme CSS structure OK.');
           NODE
