@@ -76,7 +76,21 @@ async function verifyDesktop(browser, auth, existingTitle, newTitle) {
     assert.equal(await page.locator('#bookImportStrategyBlock').isVisible(), true, 'duplicate strategy is not shown');
 
     await page.locator('#bookImportDuplicateStrategy').selectOption('merge_copies');
-    await page.waitForFunction(() => document.getElementById('bookImportCommitBtn')?.textContent.includes('2'));
+    const strategyState = await page.evaluate(() => ({
+        value: document.getElementById('bookImportDuplicateStrategy')?.value,
+        buttonText: document.getElementById('bookImportCommitBtn')?.textContent?.trim(),
+        buttonDisabled: document.getElementById('bookImportCommitBtn')?.disabled,
+        readyRows: document.querySelectorAll('#bookImportPreviewBody .book-import-status.ready').length,
+        duplicateRows: document.querySelectorAll('#bookImportPreviewBody .book-import-status.duplicate').length,
+        duplicateCopies: Array.from(document.querySelectorAll('#bookImportPreviewBody tr'))
+            .filter(row => row.querySelector('.book-import-status.duplicate'))
+            .map(row => row.children[4]?.textContent?.trim())
+    }));
+    console.log(`Import strategy state: ${JSON.stringify(strategyState)}`);
+    assert.equal(strategyState.value, 'merge_copies', `Duplicate strategy was not selected: ${JSON.stringify(strategyState)}`);
+    assert.equal(strategyState.buttonText, 'Добавить книги · 2', `Import count is incorrect: ${JSON.stringify(strategyState)}`);
+    assert.equal(strategyState.buttonDisabled, false, `Import button stayed disabled: ${JSON.stringify(strategyState)}`);
+
     await page.locator('#bookImportCommitBtn').click();
     await page.waitForSelector('#bookImportResultStage:not([hidden])', { timeout: 20000 });
     assert.equal(await page.locator('#bookImportResultGrid article').count(), 4, 'import result summary is incomplete');
