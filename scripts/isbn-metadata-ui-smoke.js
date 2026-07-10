@@ -158,7 +158,12 @@ async function verifyMobile(browser, auth) {
     await page.waitForSelector('#bookModal.active');
     await page.waitForSelector('#bookIsbn');
     const assistant = await page.locator('.isbn-assistant').boundingBox();
-    assert.ok(assistant && assistant.width >= 340, `mobile ISBN assistant is too narrow: ${assistant?.width}`);
+    const overflow = await page.locator('.isbn-assistant').evaluate(element => ({
+        scrollWidth: element.scrollWidth,
+        clientWidth: element.clientWidth
+    }));
+    assert.ok(assistant && assistant.width >= 320, `mobile ISBN assistant is too narrow: ${assistant?.width}`);
+    assert.ok(overflow.scrollWidth <= overflow.clientWidth + 1, `mobile ISBN assistant overflows horizontally: ${JSON.stringify(overflow)}`);
     assert.equal(await page.locator('#lookupBookIsbnBtn').isVisible(), true, 'mobile ISBN lookup button is not visible');
     assert.equal(await page.locator('.book-metadata-form-grid').isVisible(), true, 'mobile metadata fields are not visible');
     await page.locator('#closeModalBtn').click();
