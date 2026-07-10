@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v17';
+const CACHE_NAME = 'bibliotech-pwa-v18';
 const APP_SHELL = [
     '/',
     '/index.html',
@@ -23,6 +23,7 @@ const APP_SHELL = [
     '/js/profile-rentals.js',
     '/js/profile-twitter.js',
     '/js/profile-settings-modal.js',
+    '/js/account-settings-close-guard.js',
     '/js/profile-security.js',
     '/js/account-settings-features.js',
     '/vendor/jsQR.js',
