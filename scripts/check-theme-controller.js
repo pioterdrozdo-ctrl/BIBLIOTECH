@@ -33,10 +33,13 @@ class Element {
         this.style = {
             values: {},
             colorScheme: '',
-            setProperty: (name, value) => { this.style.values[name] = value; }
+            setProperty: (name, value) => { this.style.values[name] = value; },
+            getPropertyValue: name => this.style.values[name] || ''
         };
     }
     setAttribute(name, value) { this.attributes[name] = String(value); }
+    getAttribute(name) { return Object.prototype.hasOwnProperty.call(this.attributes, name) ? this.attributes[name] : null; }
+    hasAttribute(name) { return Object.prototype.hasOwnProperty.call(this.attributes, name); }
     removeAttribute(name) { delete this.attributes[name]; }
     appendChild(child) { this.children.push(child); child.parentNode = this; return child; }
     addEventListener() {}
@@ -68,6 +71,7 @@ function createRuntime(seed = {}, search = '') {
     let themeMeta = null;
 
     const document = {
+        baseURI: 'http://localhost/',
         documentElement: html,
         body,
         head,
@@ -104,14 +108,10 @@ function createRuntime(seed = {}, search = '') {
         window,
         document,
         localStorage,
+        URL,
         URLSearchParams,
         CustomEvent: class CustomEvent {
             constructor(type, options = {}) { this.type = type; this.detail = options.detail; }
-        },
-        MutationObserver: class MutationObserver {
-            constructor(callback) { this.callback = callback; }
-            observe() {}
-            disconnect() {}
         },
         setTimeout,
         clearTimeout,

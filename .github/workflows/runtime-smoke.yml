@@ -1,0 +1,76 @@
+name: Runtime smoke check
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/runtime-smoke.js'
+      - '.github/workflows/runtime-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/runtime-smoke.js'
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install application
+        run: npm install
+      - name: Install browser test runtime
+        run: |
+          npm install --no-save playwright@1.52.0
+          npx playwright install --with-deps chromium
+      - name: Start server
+        env:
+          NODE_ENV: production
+          PORT: 4173
+          JWT_SECRET: runtime-smoke-secret
+        run: |
+          mkdir -p /tmp/runtime-artifacts
+          node backend/server.js > /tmp/runtime-artifacts/bibliotech-server.log 2>&1 &
+          echo $! > /tmp/bibliotech-server.pid
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent http://127.0.0.1:4173/api/health > /tmp/runtime-artifacts/health.json; then
+              cat /tmp/runtime-artifacts/health.json
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/runtime-artifacts/bibliotech-server.log
+          exit 1
+      - name: Test real pages in Chromium
+        env:
+          SMOKE_BASE_URL: http://127.0.0.1:4173
+        run: |
+          set -o pipefail
+          node scripts/runtime-smoke.js 2>&1 | tee /tmp/runtime-artifacts/runtime-smoke.log
+      - name: Upload runtime diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-diagnostics
+          path: /tmp/runtime-artifacts
+          if-no-files-found: warn
+          retention-days: 3
+      - name: Print server log
+        if: always()
+        run: cat /tmp/runtime-artifacts/bibliotech-server.log || true
+      - name: Stop server
+        if: always()
+        run: test -f /tmp/bibliotech-server.pid && kill $(cat /tmp/bibliotech-server.pid) || true

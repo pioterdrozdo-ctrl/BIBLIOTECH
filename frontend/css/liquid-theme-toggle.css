@@ -34,6 +34,7 @@
     line-height: 1 !important;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
     transform: translateZ(0);
+    animation: none !important;
     transition:
         transform 180ms cubic-bezier(.2,.8,.2,1),
         border-color 220ms ease,

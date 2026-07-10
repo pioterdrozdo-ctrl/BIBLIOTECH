@@ -148,7 +148,7 @@
     loadStylesheet('css/theme-mode-preview.css?v=20260710-theme-mode-preview-1', '__bibliotechThemeModePreviewCss');
 
     // The liquid switch must be the last visual layer on every page.
-    loadStylesheet('css/liquid-theme-toggle.css?v=20260710-liquid-theme-1', '__bibliotechLiquidThemeToggleCss');
+    loadStylesheet('css/liquid-theme-toggle.css?v=20260710-liquid-theme-2', '__bibliotechLiquidThemeToggleCss');
 
     if (!('serviceWorker' in navigator)) return;
 
