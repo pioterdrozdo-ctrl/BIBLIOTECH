@@ -107,7 +107,7 @@ assert.ok(pwaJs.includes('account-settings-features.js'), 'complete settings con
 assert.ok(serverJs.includes('/api/account'), 'account API is not mounted');
 assert.ok(serverJs.indexOf('/js/profile-twitter.js') < serverJs.indexOf('/js/profile-customization-modal.js'), 'initial HTML must load customization after profile');
 assert.ok(serverJs.includes('/css/profile-customization-modal.css'), 'customization CSS must be delivered in initial HTML');
-assert.ok(swJs.includes("CACHE_NAME = 'bibliotech-pwa-v22'"), 'PWA cache was not invalidated');
+assert.ok(swJs.includes("CACHE_NAME = 'bibliotech-pwa-v23'"), 'PWA cache was not invalidated');
 assert.ok(swJs.includes('/js/profile-customization-modal.js'), 'PWA shell does not cache customization JavaScript');
 assert.ok(swJs.includes('/css/profile-customization-modal.css'), 'PWA shell does not cache customization CSS');
 
