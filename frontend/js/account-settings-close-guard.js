@@ -1,15 +1,24 @@
 (function () {
     'use strict';
 
-    function closeSettings(event) {
+    function handleSettingsAction(event) {
         const target = event.target instanceof Element ? event.target : null;
-        const closeButton = target?.closest('#accountSettingsCloseBtn');
-        if (!closeButton) return;
+        if (!target) return;
 
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        window.BibliotechSettings?.close?.();
+        if (target.closest('#accountSettingsCloseBtn')) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            window.BibliotechSettings?.close?.();
+            return;
+        }
+
+        if (target.closest('#accountSettingsEditProfileBtn')) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            window.BibliotechSettings?.close?.({ restoreFocus: false });
+            setTimeout(() => window.BibliotechProfile?.openCustomize?.(), 200);
+        }
     }
 
-    document.addEventListener('click', closeSettings, true);
+    document.addEventListener('click', handleSettingsAction, true);
 })();
