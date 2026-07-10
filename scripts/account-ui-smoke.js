@@ -41,6 +41,8 @@ async function seedPage(page, auth) {
     await page.addInitScript(({ auth }) => {
         localStorage.setItem('token', auth.token);
         localStorage.setItem('bibliotech_current_user', JSON.stringify(auth.user));
+        const username = String(auth.user?.username || 'anonymous').trim().toLowerCase();
+        localStorage.setItem(`bibliotech_product_welcome_v1_${username}`, '1');
     }, { auth });
 }
 
