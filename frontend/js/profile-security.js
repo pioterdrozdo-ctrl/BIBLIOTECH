@@ -1,4 +1,6 @@
 (function () {
+    'use strict';
+
     const API_URL = window.BIBLIOTECH_API_URL || '/api';
     const SESSION_KEY = 'bibliotech_current_user';
 
@@ -21,7 +23,6 @@
         style.id = 'profileSecurityStyles';
         style.textContent = `
             .profile-security-panel {
-                margin-top: 16px;
                 padding: 16px;
                 border: 1px solid var(--border);
                 border-radius: var(--radius);
@@ -46,10 +47,7 @@
                 font-weight: 900;
                 white-space: nowrap;
             }
-            .security-status-badge.enabled {
-                background: var(--ok-soft);
-                color: var(--ok);
-            }
+            .security-status-badge.enabled { background: var(--ok-soft); color: var(--ok); }
             .profile-security-grid { display: grid; gap: 10px; }
             .security-option-card {
                 display: grid;
@@ -162,53 +160,58 @@
     }
 
     function ensurePanel() {
-        const modalContent = document.querySelector('#profileModal .profile-modal-content');
-        const anchor = document.querySelector('#profileModal .theme-settings');
-        if (!modalContent || document.getElementById('profileSecurityPanel')) return;
-        const panel = document.createElement('div');
-        panel.className = 'profile-security-panel';
-        panel.id = 'profileSecurityPanel';
-        panel.innerHTML = `
-            <div class="profile-security-head">
-                <div>
-                    <h3>Безопасность аккаунта</h3>
-                    <p>Защита входа и управление текущей сессией.</p>
+        window.BibliotechSettings?.ensure?.();
+        const mount = document.getElementById('accountSettingsSecurityMount');
+        if (!mount) return null;
+
+        let panel = document.getElementById('profileSecurityPanel');
+        if (!panel) {
+            panel = document.createElement('div');
+            panel.className = 'profile-security-panel';
+            panel.id = 'profileSecurityPanel';
+            panel.innerHTML = `
+                <div class="profile-security-head">
+                    <div>
+                        <h3>Безопасность аккаунта</h3>
+                        <p>Защита входа и управление текущей сессией.</p>
+                    </div>
+                    <span class="security-status-badge" id="securityStatusBadge">Проверка...</span>
                 </div>
-                <span class="security-status-badge" id="securityStatusBadge">Проверка...</span>
-            </div>
-            <div class="profile-security-grid">
-                <div class="security-option-card">
-                    <div><b>Двухфакторная аутентификация</b><small>Подтверждайте вход кодом из приложения-аутентификатора.</small></div>
-                    <button class="security-primary" id="twofaStartBtn" type="button">Настроить</button>
-                </div>
-                <div class="twofa-setup-box" id="twofaSetupBox">
-                    <div class="twofa-qr-row">
-                        <div class="twofa-qr-code" id="twofaQrCode">QR</div>
-                        <div>
-                            <b>1. Отсканируйте QR</b>
-                            <small>Если QR не читается, введите ключ вручную:</small>
-                            <div class="twofa-secret" id="twofaSecret">—</div>
+                <div class="profile-security-grid">
+                    <div class="security-option-card">
+                        <div><b>Двухфакторная аутентификация</b><small>Подтверждайте вход кодом из приложения-аутентификатора.</small></div>
+                        <button class="security-primary" id="twofaStartBtn" type="button">Настроить</button>
+                    </div>
+                    <div class="twofa-setup-box" id="twofaSetupBox">
+                        <div class="twofa-qr-row">
+                            <div class="twofa-qr-code" id="twofaQrCode">QR</div>
+                            <div>
+                                <b>1. Отсканируйте QR</b>
+                                <small>Если QR не читается, введите ключ вручную:</small>
+                                <div class="twofa-secret" id="twofaSecret">—</div>
+                            </div>
+                        </div>
+                        <div class="twofa-actions">
+                            <input id="twofaConfirmCode" inputmode="numeric" autocomplete="one-time-code" placeholder="6-значный код">
+                            <button class="security-primary" id="twofaEnableBtn" type="button">Включить</button>
                         </div>
                     </div>
-                    <div class="twofa-actions">
-                        <input id="twofaConfirmCode" inputmode="numeric" autocomplete="one-time-code" placeholder="6-значный код">
-                        <button class="security-primary" id="twofaEnableBtn" type="button">Включить</button>
+                    <div class="security-option-card" id="twofaDisableCard" hidden>
+                        <div><b>Отключить 2FA</b><small>Для отключения нужен текущий код из приложения.</small></div>
+                        <div class="twofa-actions"><input id="twofaDisableCode" inputmode="numeric" placeholder="Код 2FA"><button class="security-danger" id="twofaDisableBtn" type="button">Отключить</button></div>
+                    </div>
+                    <div class="security-option-card">
+                        <div><b>Запоминать вход</b><small>Оставаться в аккаунте на этом устройстве дольше.</small></div>
+                        <button class="security-switch" id="rememberSessionToggle" type="button" aria-label="Запоминать вход"></button>
                     </div>
                 </div>
-                <div class="security-option-card" id="twofaDisableCard" hidden>
-                    <div><b>Отключить 2FA</b><small>Для отключения нужен текущий код из приложения.</small></div>
-                    <div class="twofa-actions"><input id="twofaDisableCode" inputmode="numeric" placeholder="Код 2FA"><button class="security-danger" id="twofaDisableBtn" type="button">Отключить</button></div>
-                </div>
-                <div class="security-option-card">
-                    <div><b>Запоминать вход</b><small>Оставаться в аккаунте на этом устройстве дольше.</small></div>
-                    <button class="security-switch" id="rememberSessionToggle" type="button" aria-label="Запоминать вход"></button>
-                </div>
-            </div>
-            <div class="security-message" id="securityMessage"></div>
-        `;
-        if (anchor) modalContent.insertBefore(panel, anchor);
-        else modalContent.appendChild(panel);
-        wireEvents();
+                <div class="security-message" id="securityMessage"></div>
+            `;
+        }
+
+        if (panel.parentElement !== mount) mount.appendChild(panel);
+        wireEvents(panel);
+        return panel;
     }
 
     function setMessage(text = '', type = '') {
@@ -242,8 +245,8 @@
         if (!target) return;
         target.innerHTML = '';
         try {
-            if (typeof qrcode !== 'function') throw new Error('QR library unavailable');
-            const qr = qrcode(0, 'M');
+            if (typeof window.qrcode !== 'function') throw new Error('QR library unavailable');
+            const qr = window.qrcode(0, 'M');
             qr.addData(text);
             qr.make();
             target.innerHTML = qr.createImgTag(4, 4);
@@ -254,7 +257,7 @@
 
     async function loadSecuritySettings() {
         injectStyles();
-        ensurePanel();
+        if (!ensurePanel()) return;
         const session = getSession();
         if (!session || session.guest) {
             renderSettings({ twoFactorEnabled: false, rememberSessionEnabled: false });
@@ -346,11 +349,13 @@
         }
     }
 
-    function wireEvents() {
-        document.getElementById('twofaStartBtn')?.addEventListener('click', startTwoFactorSetup);
-        document.getElementById('twofaEnableBtn')?.addEventListener('click', enableTwoFactor);
-        document.getElementById('twofaDisableBtn')?.addEventListener('click', disableTwoFactor);
-        document.getElementById('rememberSessionToggle')?.addEventListener('click', event => {
+    function wireEvents(panel) {
+        if (!panel || panel.dataset.securityReady === 'true') return;
+        panel.dataset.securityReady = 'true';
+        panel.querySelector('#twofaStartBtn')?.addEventListener('click', startTwoFactorSetup);
+        panel.querySelector('#twofaEnableBtn')?.addEventListener('click', enableTwoFactor);
+        panel.querySelector('#twofaDisableBtn')?.addEventListener('click', disableTwoFactor);
+        panel.querySelector('#rememberSessionToggle')?.addEventListener('click', event => {
             event.currentTarget.classList.toggle('active');
             saveOptions();
         });
@@ -359,17 +364,17 @@
     function initProfileSecurity() {
         injectStyles();
         ensurePanel();
-        const pill = document.getElementById('currentUserPill');
-        pill?.addEventListener('click', () => setTimeout(loadSecuritySettings, 150));
-        const modal = document.getElementById('profileModal');
-        if (modal && 'MutationObserver' in window) {
-            const observer = new MutationObserver(() => {
-                if (modal.classList.contains('active')) loadSecuritySettings();
-            });
-            observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
-        }
+        document.addEventListener('bibliotech:settings-open', event => {
+            if (event.detail?.section === 'security') loadSecuritySettings();
+        });
     }
 
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initProfileSecurity);
+    window.BibliotechSecurity = {
+        ensure: ensurePanel,
+        load: loadSecuritySettings,
+        render: renderSettings
+    };
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initProfileSecurity, { once: true });
     else initProfileSecurity();
 })();
