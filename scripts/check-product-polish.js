@@ -39,6 +39,8 @@ assert.ok(js.includes('maybeShowWelcome'), 'first-run experience is missing');
 assert.ok(js.includes('bibliotech_product_welcome_v1_'), 'first-run state is not persisted per user');
 assert.ok(js.includes('removeLegacySecondaryProfile'), 'legacy secondary-page profile cleanup is missing');
 assert.ok(js.includes("window.location.href = 'home.html#profile'"), 'secondary pages do not lead to the full profile');
+assert.ok(js.includes("document.querySelectorAll('.wrapper > footer')"), 'footer polish must target only the page footer');
+assert.ok(!js.includes("document.querySelectorAll('footer')"), 'global footer selector would destroy modal action bars');
 assert.ok(!js.includes('themePresetGrid'), 'product polish must not duplicate theme controls');
 
 assert.ok(pwa.includes('product-polish.js?v=20260710-product-polish-1'), 'PWA does not load product polish JavaScript');
@@ -51,8 +53,8 @@ assert.ok(server.includes("'/js/product-polish.js?v=20260710-product-polish-1'")
 assert.ok(server.includes('const criticalUiScripts'), 'server does not provide global critical scripts');
 assert.ok(server.includes('critical-ui-7'), 'initial HTML cache-busting was not updated');
 
-assert.ok(sw.includes("CACHE_NAME = 'bibliotech-pwa-v21'"), 'PWA cache was not invalidated');
+assert.ok(sw.includes("CACHE_NAME = 'bibliotech-pwa-v22'"), 'PWA cache was not invalidated');
 assert.ok(sw.includes("'/css/product-polish.css'"), 'PWA shell does not cache product polish CSS');
 assert.ok(sw.includes("'/js/product-polish.js'"), 'PWA shell does not cache product polish JavaScript');
 
-console.log('Product polish check OK: auth, first-run, catalog, analytics, admin, mobile and PWA integration validated.');
+console.log('Product polish check OK: auth, first-run, catalog, analytics, admin, modal footers, mobile and PWA integration validated.');
