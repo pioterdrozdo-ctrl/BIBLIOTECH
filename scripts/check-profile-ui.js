@@ -8,6 +8,7 @@ const root = path.join(__dirname, '..');
 const profileJs = fs.readFileSync(path.join(root, 'frontend/js/profile-twitter.js'), 'utf8');
 const settingsJs = fs.readFileSync(path.join(root, 'frontend/js/profile-settings-modal.js'), 'utf8');
 const closeGuardJs = fs.readFileSync(path.join(root, 'frontend/js/account-settings-close-guard.js'), 'utf8');
+const rentalsGuardJs = fs.readFileSync(path.join(root, 'frontend/js/rentals-request-guard.js'), 'utf8');
 const featuresJs = fs.readFileSync(path.join(root, 'frontend/js/account-settings-features.js'), 'utf8');
 const securityJs = fs.readFileSync(path.join(root, 'frontend/js/profile-security.js'), 'utf8');
 const profileCss = fs.readFileSync(path.join(root, 'frontend/css/profile-twitter-restored.css'), 'utf8');
@@ -46,8 +47,13 @@ assert.equal(count(settingsJs, "modal.id = 'accountSettingsModal'"), 1, 'setting
 assert.ok(settingsJs.includes('data-settings-section="account"'), 'account section is missing');
 assert.ok(settingsJs.includes('data-settings-section="security"'), 'security section is missing');
 assert.ok(!settingsJs.includes('themePresetGrid'), 'palette controls must not be duplicated in settings');
+assert.ok(!settingsJs.includes('closeLockUntil'), 'settings reopen must not depend on an arbitrary time lock');
 assert.ok(closeGuardJs.includes("document.addEventListener('click', handleSettingsAction, true)"), 'capture-phase settings action guard is missing');
 assert.ok(closeGuardJs.includes('accountSettingsEditProfileBtn'), 'settings-to-profile transition guard is missing');
+
+assert.ok(rentalsGuardJs.includes("pathname === '/api/rentals/me'"), 'rental request guard does not target the profile endpoint');
+assert.ok(rentalsGuardJs.includes('inFlight'), 'rental request guard does not coalesce concurrent requests');
+assert.ok(rentalsGuardJs.includes('CACHE_TTL_MS'), 'rental request guard does not throttle repeated profile refreshes');
 
 for (const section of ['devices', 'notifications', 'privacy', 'library', 'data']) {
     assert.ok(featuresJs.includes(`data-settings-section="${section}"`) || featuresJs.includes(`navButton('${section}'`), `${section} section is missing`);
@@ -77,12 +83,15 @@ assertBalancedCss(settingsCss, 'profile-settings-modal.css');
 assertBalancedCss(featuresCss, 'account-settings-features.css');
 assert.ok(featuresCss.includes('@media (max-width: 700px)'), 'complete settings mobile layout is missing');
 
+assert.ok(pwaJs.indexOf('rentals-request-guard.js') < pwaJs.indexOf('profile-rentals.js'), 'PWA must load the rental guard before profile rentals');
 assert.ok(pwaJs.includes('account-settings-features.js'), 'complete settings controller is not loaded');
 assert.ok(pwaJs.includes('account-settings-close-guard.js'), 'settings action guard is not loaded');
 assert.ok(pwaJs.includes('account-settings-features.css'), 'complete settings CSS is not loaded');
 assert.ok(serverJs.includes('/api/account'), 'account API is not mounted');
+assert.ok(serverJs.indexOf('/js/rentals-request-guard.js') < serverJs.indexOf('/js/profile-rentals.js'), 'initial HTML must load the rental guard first');
 assert.ok(serverJs.includes('/js/account-settings-features.js'), 'complete settings must be delivered in initial HTML');
 assert.ok(serverJs.includes('/css/account-settings-features.css'), 'complete settings CSS must be delivered in initial HTML');
-assert.ok(swJs.includes("CACHE_NAME = 'bibliotech-pwa-v18'"), 'PWA cache was not invalidated');
+assert.ok(swJs.includes("CACHE_NAME = 'bibliotech-pwa-v19'"), 'PWA cache was not invalidated');
+assert.ok(swJs.includes('/js/rentals-request-guard.js'), 'PWA shell does not cache the rental request guard');
 
-console.log('Account settings check OK: sessions, notifications, privacy, library, data controls and modal transitions validated.');
+console.log('Account settings check OK: sessions, notifications, privacy, library, immediate modal transitions and rental request throttling validated.');
