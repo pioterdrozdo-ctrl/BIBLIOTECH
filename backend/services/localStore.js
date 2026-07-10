@@ -379,6 +379,7 @@ function resetPasswordWithCode(email, code, password) {
     }
 
     user.password_hash = hashPassword(password);
+    user.session_version = Number(user.session_version || 1) + 1;
     user.updated_at = now();
     token.used_at = now();
     writeStore(store);

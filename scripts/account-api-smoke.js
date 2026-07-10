@@ -131,6 +131,16 @@ async function ensureCatalogBook(token) {
     });
     assert.equal(deleteSoleAdmin.response.status, 409, 'sole administrator deletion was not blocked');
 
+    const reset = await must('/api/auth/password-reset/request', {
+        method: 'POST',
+        body: { email: 'admin@bibliotech.local' }
+    });
+    assert.ok(reset.devCode, 'development reset code was not returned');
+    await must('/api/auth/password-reset/confirm', {
+        method: 'POST',
+        body: { email: 'admin@bibliotech.local', code: reset.devCode, password: 'GreenScreen' }
+    });
+
     console.log('Account API smoke OK: sessions, password, devices, notifications, privacy, library, export and delete guard validated.');
 })().catch(error => {
     console.error(error.stack || error);

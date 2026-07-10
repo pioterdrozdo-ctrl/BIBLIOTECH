@@ -100,7 +100,7 @@
             <button class="profile-twitter-action profile-edit-trigger" id="profileEditBtn" type="button"
                     data-open-profile-customize aria-label="Открыть оформление профиля">
                 <span class="profile-twitter-action-icon" aria-hidden="true">✎</span>
-                <span class="profile-twitter-action-label">Изменить</span>
+                <span class="profile-twitter-action-label">Оформление</span>
             </button>
             <button class="profile-twitter-action profile-settings-trigger" id="profileSettingsBtn" type="button"
                     data-open-account-settings data-settings-section="account" aria-label="Открыть настройки">

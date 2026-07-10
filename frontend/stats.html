@@ -21,13 +21,13 @@
         <div class="container">
             <div class="header-inner">
                 <div class="NAHODKI brand-logo"><img src="img/appicon.png" alt="BIBLIOTECH logo"><span>BIBLIOTECH</span></div>
-                <div class="menu_icon" id="menuIcon">
+                <button class="menu_icon" id="menuIcon" type="button" aria-controls="navMenu" aria-expanded="false" aria-label="Открыть меню">
                     <span></span><span></span><span></span>
-                </div>
-                <nav id="navMenu">
+                </button>
+                <nav id="navMenu" aria-label="Основная навигация">
                     <ul>
                         <li><a href="home.html#top">Главная</a></li>
-                        <li class="active"><a href="stats.html">Статистика</a></li>
+                        <li class="active"><a href="stats.html" aria-current="page">Статистика</a></li>
                         <li><a href="about.html">О нас</a></li>
                         <li class="admin-nav-item hidden"><a href="admin.html">Админ</a></li>
                         <li class="nav-language-item">

@@ -100,14 +100,14 @@ function ensureUserDetailModal() {
 
     document.body.insertAdjacentHTML('beforeend', `
         <div id="userDetailModal" class="modal admin-detail-modal">
-            <div class="modal-content">
+            <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="userDetailTitle">
                 <div class="admin-detail-head">
                     <div>
                         <span class="eyebrow">Подробности пользователя</span>
                         <h2 id="userDetailTitle">Пользователь</h2>
                         <p id="userDetailSubtitle">Загрузка...</p>
                     </div>
-                    <button class="admin-detail-close" id="closeUserDetailModalBtn" type="button">×</button>
+                    <button class="admin-detail-close" id="closeUserDetailModalBtn" type="button" aria-label="Закрыть карточку пользователя">×</button>
                 </div>
                 <div id="userDetailBody" class="admin-detail-loading">Загрузка...</div>
             </div>
@@ -389,7 +389,7 @@ async function loadUsers() {
         const frozenCount = users.filter(isUserFrozen).length;
         if (summary) summary.textContent = `${users.length} аккаунтов · ${frozenCount} заморожено · нажмите на строку для управления`;
         tbody.innerHTML = users.map(user => `
-            <tr class="user-row" data-user-id="${escapeHtml(user.id)}" title="Открыть подробности пользователя">
+            <tr class="user-row" data-user-id="${escapeHtml(user.id)}" tabindex="0" aria-label="Открыть карточку пользователя ${escapeHtml(user.username)}" aria-keyshortcuts="Enter Space" title="Открыть подробности пользователя">
                 <td>${escapeHtml(user.id)}</td>
                 <td><b>${escapeHtml(user.username)}</b><br><small>${Number(user.login_count || 0)} входов</small></td>
                 <td>${escapeHtml(user.email || '—')}</td>
@@ -468,10 +468,19 @@ function initAdminPage() {
     });
     const menu = document.getElementById('navMenu');
     const menuBtn = document.getElementById('menuIcon');
-    menuBtn?.addEventListener('click', () => {
-        menu?.classList.toggle('active');
-        menuBtn.classList.toggle('active');
-        document.body.classList.toggle('lock');
+    const setMobileMenuOpen = (open) => {
+        if (!menu || !menuBtn) return;
+        menu.classList.toggle('active', open);
+        menuBtn.classList.toggle('active', open);
+        menuBtn.setAttribute('aria-expanded', String(open));
+        menuBtn.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
+        document.body.classList.toggle('lock', open);
+    };
+    menuBtn?.addEventListener('click', () => setMobileMenuOpen(!menu?.classList.contains('active')));
+    document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape' || !menu?.classList.contains('active')) return;
+        setMobileMenuOpen(false);
+        menuBtn?.focus();
     });
     document.getElementById('refreshUsersBtn')?.addEventListener('click', loadUsers);
     document.getElementById('refreshRentalsBtn')?.addEventListener('click', loadRentals);
@@ -479,6 +488,13 @@ function initAdminPage() {
     document.getElementById('adminUsersTableBody')?.addEventListener('click', event => {
         const row = event.target.closest('.user-row');
         if (row?.dataset.userId) openUserDetail(row.dataset.userId);
+    });
+    document.getElementById('adminUsersTableBody')?.addEventListener('keydown', event => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const row = event.target.closest('.user-row');
+        if (!row || event.target !== row || !row.dataset.userId) return;
+        event.preventDefault();
+        openUserDetail(row.dataset.userId);
     });
     document.getElementById('userDetailModal')?.addEventListener('click', event => {
         if (event.target.closest('#freezeUserBtn')) freezeActiveUser();

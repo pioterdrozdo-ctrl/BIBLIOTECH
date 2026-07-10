@@ -1,14 +1,4 @@
 (function () {
-    const demoKeys = new Set([
-        ['Мастер и Маргарита', 'Михаил Булгаков'],
-        ['Преступление и наказание', 'Фёдор Достоевский'],
-        ['Преступление и наказание', 'Федор Достоевский'],
-        ['1984', 'Джордж Оруэлл'],
-        ['Алхимик', 'Пауло Коэльо'],
-        ['Маленький принц', 'Антуан де Сент-Экзюпери'],
-        ['Война и мир', 'Лев Толстой']
-    ].map(([title, author]) => `${norm(title)}::${norm(author)}`));
-
     const MAX_COVER_REQUESTS = 4;
     const coverCache = new Map();
     const activeCoverRequests = new Set();
@@ -19,34 +9,16 @@
     let observerTarget = null;
     let scheduled = false;
 
-    function norm(value) {
-        return String(value || '')
-            .toLowerCase()
-            .replace(/ё/g, 'е')
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^a-zа-я0-9\s]/gi, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-    }
-
     function cssEscape(value) {
         const text = String(value || '');
         if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(text);
         return text.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
     }
 
-    function isDemo(book) {
-        return demoKeys.has(`${norm(book.title)}::${norm(book.author)}`);
-    }
-
     function escapeHtml(value) {
         return String(value || '').replace(/[&<>'"]/g, char => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;'
         }[char]));
-    }
-
-    function removeHomeAdminPanel() {
-        document.getElementById('adminPanel')?.remove();
     }
 
     function getCoverDataURL(book) {
@@ -76,19 +48,19 @@
         img.className = 'book-cover-img';
         img.src = coverDataURL;
         img.alt = book && book.title ? String(book.title) : 'Обложка книги';
-        img.loading = 'eager';
+        img.loading = 'lazy';
         img.decoding = 'async';
-        img.setAttribute('fetchpriority', 'high');
+        img.setAttribute('fetchpriority', 'auto');
         return img;
     }
 
     function tuneCoverImage(img) {
         if (!img) return;
-        img.loading = 'eager';
+        img.loading = 'lazy';
         img.decoding = 'async';
-        img.setAttribute('loading', 'eager');
+        img.setAttribute('loading', 'lazy');
         img.setAttribute('decoding', 'async');
-        img.setAttribute('fetchpriority', 'high');
+        img.setAttribute('fetchpriority', 'auto');
         if (img.dataset.src && !img.src) img.src = img.dataset.src;
     }
 
@@ -184,7 +156,6 @@
 
     function forceCardCoverImages() {
         scheduled = false;
-        removeHomeAdminPanel();
         const cards = document.querySelectorAll('.book-card[data-id]');
         if (!cards.length) return;
         cards.forEach(fixCardCover);
@@ -223,28 +194,9 @@
         observer.observe(target, { childList: true, subtree: true });
     }
 
-    try {
-        localStorage.removeItem('book_catalog_v18');
-    } catch {}
-
     window.__bibliotechDemoBooksDisabled = function demoBooksDisabled() {
         return [];
     };
-
-    const originalSaveBooks = window.saveBooks;
-    if (typeof originalSaveBooks === 'function') {
-        window.__bibliotechSaveBooksWithoutDemo = function saveBooksWithoutDemo() {
-            const result = originalSaveBooks.apply(this, arguments);
-            try {
-                const raw = localStorage.getItem('book_catalog_v18');
-                const books = raw ? JSON.parse(raw) : [];
-                if (Array.isArray(books)) {
-                    localStorage.setItem('book_catalog_v18', JSON.stringify(books.filter(book => !isDemo(book))));
-                }
-            } catch {}
-            return result;
-        };
-    }
 
     const originalRenderBooks = window.renderBooks;
     if (typeof originalRenderBooks === 'function') {
@@ -287,9 +239,6 @@
 
     try {
         window.eval('demoBooks = window.__bibliotechDemoBooksDisabled;');
-        if (window.__bibliotechSaveBooksWithoutDemo) {
-            window.eval('saveBooks = window.__bibliotechSaveBooksWithoutDemo;');
-        }
         if (window.__bibliotechRenderBooksWithCovers) {
             window.eval('renderBooks = window.__bibliotechRenderBooksWithCovers;');
         }
@@ -298,7 +247,6 @@
         }
     } catch {}
 
-    removeHomeAdminPanel();
     startCoverObserver();
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {

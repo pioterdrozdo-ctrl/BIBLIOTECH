@@ -115,9 +115,9 @@ async function verifyDesktop(browser, auth) {
     await page.waitForSelector('#personalBookActions');
     const favoriteButton = page.locator('#favoriteBookBtn');
     const wishlistButton = page.locator('#wishlistBookBtn');
-    await favoriteButton.click();
+    if (!await favoriteButton.evaluate(element => element.classList.contains('active'))) await favoriteButton.click();
     await page.waitForFunction(() => document.getElementById('favoriteBookBtn')?.classList.contains('active'));
-    await wishlistButton.click();
+    if (!await wishlistButton.evaluate(element => element.classList.contains('active'))) await wishlistButton.click();
     await page.waitForFunction(() => document.getElementById('wishlistBookBtn')?.classList.contains('active'));
     await page.locator('#closeViewBtn').click();
 
@@ -164,7 +164,10 @@ async function verifyMobile(browser, auth) {
 (async () => {
     const auth = await login();
     await seedCatalogBook(auth.token);
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({
+        headless: true,
+        ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH } : {})
+    });
     try {
         await verifyDesktop(browser, auth);
         await verifyMobile(browser, auth);

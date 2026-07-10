@@ -67,7 +67,10 @@ async function closeModal(page, selector) {
     assert.equal(created.response.status, 201, `Book create failed: ${JSON.stringify(created.payload)}`);
     const bookId = created.payload.id;
 
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({
+        headless: true,
+        ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH } : {})
+    });
     try {
         const page = await browser.newPage({ viewport: { width: 1360, height: 900 } });
         const pageErrors = [];

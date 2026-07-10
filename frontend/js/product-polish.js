@@ -29,6 +29,40 @@
         return /(^|\/)(stats|about|admin)\.html$/.test(path);
     }
 
+    function enhanceAuthAccessibility() {
+        if (!isAuthPage()) return;
+        const tabList = document.querySelector('.tabs[role="tablist"]');
+        const tabs = Array.from(tabList?.querySelectorAll('[role="tab"]') || []);
+        if (!tabList || !tabs.length || tabList.dataset.accessibilityReady === 'true') return;
+        tabList.dataset.accessibilityReady = 'true';
+
+        const syncTabs = () => {
+            tabs.forEach(tab => {
+                const selected = tab.classList.contains('active');
+                tab.setAttribute('aria-selected', String(selected));
+                tab.tabIndex = selected ? 0 : -1;
+            });
+        };
+
+        tabs.forEach(tab => {
+            new MutationObserver(syncTabs).observe(tab, { attributes: true, attributeFilter: ['class'] });
+        });
+        tabList.addEventListener('keydown', event => {
+            const currentIndex = tabs.indexOf(event.target);
+            if (currentIndex < 0) return;
+            let nextIndex = currentIndex;
+            if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length;
+            else if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+            else if (event.key === 'Home') nextIndex = 0;
+            else if (event.key === 'End') nextIndex = tabs.length - 1;
+            else return;
+            event.preventDefault();
+            tabs[nextIndex].click();
+            tabs[nextIndex].focus();
+        });
+        syncTabs();
+    }
+
     function enhanceAuthPage() {
         if (!isAuthPage()) return;
         const container = document.querySelector('.auth-container');
@@ -85,8 +119,34 @@
 
         const actions = document.createElement('div');
         actions.className = 'product-hero-actions';
-        actions.innerHTML = '<a class="product-hero-primary" href="#catalog">Перейти к книгам</a>';
+        actions.innerHTML = `
+            <a class="product-hero-primary" href="#catalog">Открыть каталог</a>
+            <a class="product-hero-secondary" href="stats.html">Посмотреть статистику</a>`;
         info.append(actions);
+
+        const visual = document.querySelector('.hero-wow .hero-visual');
+        if (visual && visual.dataset.productCommandReady !== 'true') {
+            visual.dataset.productCommandReady = 'true';
+            visual.innerHTML = `
+                <div class="product-command-card" aria-hidden="true">
+                    <div class="product-command-head">
+                        <span class="product-command-status"><i></i>Каталог онлайн</span>
+                        <span class="product-command-mark">BIBLIOTECH</span>
+                    </div>
+                    <div class="product-command-search">
+                        <span>⌕</span>
+                        <span>Название, автор или ISBN</span>
+                        <kbd>⌘ K</kbd>
+                    </div>
+                    <div class="product-command-metrics">
+                        <article><span>Книг</span><b id="heroTotalBooks">0</b><small>в едином каталоге</small></article>
+                        <article><span>Экземпляров</span><b id="heroTotalCopies">0</b><small>с учётом наличия</small></article>
+                    </div>
+                    <div class="product-command-footer">
+                        <span>QR-поиск</span><span>Бронирование</span><span>Аналитика</span>
+                    </div>
+                </div>`;
+        }
 
         const catalogTitle = document.querySelector('#catalog .title-section h1');
         const catalogCopy = document.querySelector('#catalog .title-section p');
@@ -201,6 +261,7 @@
     }
 
     function init() {
+        enhanceAuthAccessibility();
         enhanceAuthPage();
         enhanceHomeHero();
         removeLegacySecondaryProfile();

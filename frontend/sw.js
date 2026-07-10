@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v25';
+const CACHE_NAME = 'bibliotech-pwa-v26-commercial';
 const APP_SHELL = [
     '/',
     '/index.html',
@@ -22,6 +22,7 @@ const APP_SHELL = [
     '/css/account-settings-features.css',
     '/css/theme-mode-preview.css',
     '/css/liquid-theme-toggle.css',
+    '/css/commercial-polish.css',
     '/js/app.js',
     '/js/script.js',
     '/js/catalog-fix.js',
@@ -92,13 +93,18 @@ async function networkFirst(request) {
         if (response && response.ok) cache.put(request, response.clone());
         return response;
     } catch {
-        return (await cache.match(request)) || cache.match('/index.html');
+        const cached = await cache.match(request, { ignoreSearch: true });
+        if (cached) return cached;
+        if (request.mode === 'navigate' || request.destination === 'document') {
+            return cache.match('/index.html');
+        }
+        return Response.error();
     }
 }
 
 async function cacheFirst(request) {
     const cache = await caches.open(CACHE_NAME);
-    const cached = await cache.match(request);
+    const cached = await cache.match(request, { ignoreSearch: true });
     if (cached) return cached;
     const response = await fetch(request);
     if (response && response.ok) cache.put(request, response.clone());

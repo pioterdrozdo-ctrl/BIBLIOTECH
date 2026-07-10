@@ -13,30 +13,6 @@ const {
 
 const router = express.Router();
 
-const DEMO_BOOK_SIGNATURES = new Set([
-    ['Мастер и Маргарита', 'Михаил Булгаков'],
-    ['Преступление и наказание', 'Фёдор Достоевский'],
-    ['Преступление и наказание', 'Федор Достоевский'],
-    ['1984', 'Джордж Оруэлл'],
-    ['Алхимик', 'Пауло Коэльо'],
-    ['Маленький принц', 'Антуан де Сент-Экзюпери'],
-    ['Война и мир', 'Лев Толстой']
-].map(([title, author]) => `${normalizeText(title)}::${normalizeText(author)}`));
-
-function normalizeText(value = '') {
-    return String(value)
-        .toLowerCase()
-        .replace(/ё/g, 'е')
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-zа-я0-9\s]/gi, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-}
-
-function isDemoBook(book) {
-    return DEMO_BOOK_SIGNATURES.has(`${normalizeText(book.title)}::${normalizeText(book.author)}`);
-}
-
 function mapListBook(book) {
     const { cover_data_url, coverDataURL, ...bookData } = book;
     const locationId = book.location_id || book.locationId || book.location?.id || null;
@@ -110,6 +86,7 @@ router.get('/', optionalAuthMiddleware, async (req, res, next) => {
                b.title,
                b.author,
                b.description,
+               b.cover_data_url,
                b.copies,
                b.available,
                b.created_at,
@@ -144,6 +121,7 @@ router.get('/', optionalAuthMiddleware, async (req, res, next) => {
             b.title ILIKE $${paramCounter}
             OR b.author ILIKE $${paramCounter}
             OR b.description ILIKE $${paramCounter}
+            OR c.text ILIKE $${paramCounter}
             OR b.qr_code ILIKE $${paramCounter}
             OR b.isbn ILIKE $${paramCounter}
             OR b.publisher ILIKE $${paramCounter}
@@ -187,13 +165,12 @@ router.get('/', optionalAuthMiddleware, async (req, res, next) => {
         const result = await pool.query(query, params);
         const summaries = await getReservationSummaries(pool, result.rows.map(book => book.id), req.user?.id || null);
         const books = result.rows
-            .filter(book => !isDemoBook(book))
             .map(book => attachReservationFields(book, summaries.get(Number(book.id))))
             .map(mapListBook);
         res.json(books);
     } catch (error) {
         if (!pool.isConfigured) {
-            res.json(localStore.getBooks(req.query, req.user).filter(book => !isDemoBook(book)).map(mapListBook));
+            res.json(localStore.getBooks(req.query, req.user).map(mapListBook));
             return;
         }
         next(error);

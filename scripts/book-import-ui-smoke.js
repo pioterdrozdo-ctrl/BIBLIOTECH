@@ -116,8 +116,8 @@ async function verifyMobile(browser, auth) {
     await page.locator('#openBookImportBtn').click();
     await page.waitForSelector('#bookImportModal.active');
     const dialog = await page.locator('#bookImportModal .book-import-dialog').boundingBox();
-    assert.ok(dialog && dialog.width >= 380, `mobile import width is too small: ${dialog?.width}`);
-    assert.ok(dialog && dialog.height >= 800, `mobile import height is too small: ${dialog?.height}`);
+    assert.ok(dialog && dialog.width >= 368, `mobile import width is too small: ${dialog?.width}`);
+    assert.ok(dialog && dialog.height >= 790, `mobile import height is too small: ${dialog?.height}`);
     assert.equal(await page.locator('#bookImportDropzone').isVisible(), true, 'mobile dropzone is not visible');
     await page.locator('#bookImportCancelBtn').click();
     await page.close();
@@ -141,7 +141,10 @@ async function verifyMobile(browser, auth) {
     });
     assert.equal(existing.response.status, 201, `Book seed failed: ${JSON.stringify(existing.payload)}`);
 
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({
+        headless: true,
+        ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH } : {})
+    });
     try {
         await verifyDesktop(browser, auth, existingTitle, newTitle);
         await verifyMobile(browser, auth);

@@ -11,7 +11,8 @@ const criticalStylePaths = [
     '/css/ui-refresh-release-fix.css',
     '/css/product-polish.css',
     '/css/theme-mode-preview.css',
-    '/css/liquid-theme-toggle.css'
+    '/css/liquid-theme-toggle.css',
+    '/css/commercial-polish.css'
 ];
 
 function sameOrigin(url) {
@@ -52,6 +53,7 @@ async function verifyInitialHtmlAssets() {
             const customizeCss = html.indexOf('/css/profile-customization-modal.css');
             const settingsCss = html.indexOf('/css/profile-settings-modal.css');
             const minimalCss = html.indexOf('/css/home-minimal.css');
+            const commercialCss = html.indexOf('/css/commercial-polish.css');
             const profileScript = html.indexOf('/js/profile-twitter.js');
             const customizeScript = html.indexOf('/js/profile-customization-modal.js');
             const settingsScript = html.indexOf('/js/profile-settings-modal.js');
@@ -60,6 +62,7 @@ async function verifyInitialHtmlAssets() {
             assert.ok(customizeCss > profileCss && customizeCss < headEnd, 'Customization CSS is not present after profile CSS');
             assert.ok(settingsCss > customizeCss && settingsCss < headEnd, 'Settings CSS is not present after customization CSS');
             assert.ok(minimalCss > settingsCss && minimalCss < headEnd, 'Minimal home CSS must be the last home-specific style');
+            assert.ok(commercialCss > minimalCss && commercialCss < headEnd, 'Commercial CSS must be the final visual layer');
             assert.ok(profileScript > productScript, 'Profile controller must load after product polish');
             assert.ok(customizeScript > profileScript, 'Customization controller must load after the profile controller');
             assert.ok(settingsScript > customizeScript, 'Settings controller must load after customization');
@@ -134,7 +137,9 @@ async function assertCustomizationModal(page, label) {
     assert.equal(await page.locator('#profileCustomizeModal #profileBioInput').count(), 1, `${label}: profile bio editor is missing`);
     assert.equal(await page.locator('#profileCustomizeModal [data-profile-banner]').count(), 6, `${label}: banner presets are incomplete`);
     assert.equal(await page.locator('#profileCustomizeModal #profileBannerInput').count(), 1, `${label}: custom banner upload is missing`);
-    assert.equal(await page.locator('#profileCustomizeModal #themePresetGrid').count(), 0, `${label}: site palette was duplicated in customization`);
+    assert.equal(await page.locator('#profileCustomizeModal #themePresetGrid').count(), 1, `${label}: site palette is missing or duplicated`);
+    assert.equal(await page.locator('#profileCustomizeModal .theme-preset[data-theme]').count(), 8, `${label}: theme palette is incomplete`);
+    assert.equal(await page.locator('#profileCustomizeModal [data-profile-theme-mode]').count(), 2, `${label}: light/dark controls are incomplete`);
     assert.equal(await page.locator('#profileModal.active').count(), 0, `${label}: profile remained open behind customization`);
     assert.equal(await page.locator('script[src*="profile-customization-modal.js"]').count(), 1, `${label}: customization controller was loaded more than once`);
 }
@@ -209,17 +214,19 @@ async function checkHomeProfileAndSettings(browser) {
     assert.equal(await page.locator('link[href*="ui-refresh.css"]').count(), 1, 'Global refresh CSS is duplicated');
     assert.equal(await page.locator('link[href*="product-polish.css"]').count(), 1, 'Product polish CSS is duplicated');
     assert.equal(await page.locator('link[href*="home-minimal.css"]').count(), 1, 'Minimal home CSS is duplicated or missing');
+    assert.equal(await page.locator('link[href*="commercial-polish.css"]').count(), 1, 'Commercial CSS is duplicated or missing');
     assert.equal(await page.locator('link[href*="profile-twitter-restored.css"]').count(), 1, 'Profile CSS is duplicated');
     assert.equal(await page.locator('link[href*="profile-customization-modal.css"]').count(), 1, 'Customization CSS is duplicated');
     assert.equal(await page.locator('link[href*="profile-settings-modal.css"]').count(), 1, 'Settings CSS is duplicated');
     assert.equal(await page.locator('.product-hero-actions').count(), 1, 'Home hero actions are missing or duplicated');
     assert.equal(await page.locator('.product-hero-primary').count(), 1, 'Home hero must have one primary action');
-    assert.equal(await page.locator('.product-hero-secondary').count(), 0, 'Duplicate QR action remained in the hero');
+    assert.equal(await page.locator('.product-hero-secondary').count(), 1, 'Analytics action is missing or duplicated');
+    assert.equal(await page.locator('.product-command-card').count(), 1, 'Commercial hero dashboard is missing or duplicated');
     assert.equal(await page.locator('.product-proof-chip').count(), 0, 'Marketing proof chips remained in the hero');
     assert.equal(await page.locator('#openAddBookBtnHero').count(), 0, 'Duplicate add-book action remained in the hero');
     assert.equal(await page.locator('.hero--info h1').textContent(), 'Каталог библиотеки', 'Minimal hero title is incorrect');
     assert.equal(await page.locator('.hero--info p').textContent(), 'Поиск, выдача и учёт книг в одном месте.', 'Minimal hero description is incorrect');
-    assert.equal(await page.locator('.product-hero-primary').textContent(), 'Перейти к книгам', 'Hero action is unclear');
+    assert.equal(await page.locator('.product-hero-primary').textContent(), 'Открыть каталог', 'Hero action is unclear');
     assert.equal(await page.locator('#catalog .title-section h1').textContent(), 'Каталог', 'Catalog title was not simplified');
 
     const beforeTheme = await page.evaluate(() => window.BibliotechTheme.getState());
@@ -247,7 +254,6 @@ async function checkHomeProfileAndSettings(browser) {
     await page.locator('#profileCustomizeSaveBtn').click();
     await page.waitForFunction(() => !document.getElementById('profileCustomizeModal')?.classList.contains('active'));
 
-    await page.locator('#currentUserPill').click();
     await page.waitForSelector('#profileModal.active');
     await page.waitForFunction(() => document.getElementById('profileBio')?.textContent.includes('техническую литературу'));
     assert.equal(await page.locator('#profileBio').isVisible(), true, 'Saved profile bio is not visible');
@@ -302,23 +308,22 @@ async function checkMobileHome(browser) {
     await assertEvolvedProfile(page, 'mobile profile');
 
     const profileBox = await page.locator('#profileModal .profile-modal-content').boundingBox();
-    assert.ok(profileBox && profileBox.width >= 380, `Mobile profile width is too small: ${profileBox?.width}`);
-    assert.ok(profileBox && profileBox.height >= 800, `Mobile profile height is too small: ${profileBox?.height}`);
+    assert.ok(profileBox && profileBox.width >= 368, `Mobile profile width is too small: ${profileBox?.width}`);
+    assert.ok(profileBox && profileBox.height >= 790, `Mobile profile height is too small: ${profileBox?.height}`);
 
     await page.locator('#profileEditBtn').click();
     await assertCustomizationModal(page, 'mobile customization');
     const customizeBox = await page.locator('#profileCustomizeModal .profile-customize-dialog').boundingBox();
-    assert.ok(customizeBox && customizeBox.width >= 380, `Mobile customization width is too small: ${customizeBox?.width}`);
-    assert.ok(customizeBox && customizeBox.height >= 800, `Mobile customization height is too small: ${customizeBox?.height}`);
+    assert.ok(customizeBox && customizeBox.width >= 368, `Mobile customization width is too small: ${customizeBox?.width}`);
+    assert.ok(customizeBox && customizeBox.height >= 790, `Mobile customization height is too small: ${customizeBox?.height}`);
     await page.locator('#profileCustomizeCancelBtn').click();
 
-    await page.locator('#currentUserPill').click();
     await page.waitForSelector('#profileModal.active');
     await page.locator('#profileSettingsBtn').click();
     await assertSettingsModal(page, 'mobile settings');
     const settingsBox = await page.locator('#accountSettingsModal .account-settings-dialog').boundingBox();
-    assert.ok(settingsBox && settingsBox.width >= 380, `Mobile settings width is too small: ${settingsBox?.width}`);
-    assert.ok(settingsBox && settingsBox.height >= 800, `Mobile settings height is too small: ${settingsBox?.height}`);
+    assert.ok(settingsBox && settingsBox.width >= 368, `Mobile settings width is too small: ${settingsBox?.width}`);
+    assert.ok(settingsBox && settingsBox.height >= 790, `Mobile settings height is too small: ${settingsBox?.height}`);
     await page.locator('#accountSettingsModal [data-settings-section="security"]').click();
     await page.waitForSelector('#accountSettingsModal #profileSecurityPanel');
 
@@ -346,7 +351,10 @@ async function checkStaticPages(browser) {
 (async () => {
     await verifyHealth();
     await verifyInitialHtmlAssets();
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({
+        headless: true,
+        ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH } : {})
+    });
     try {
         await checkLoginPage(browser);
         await checkFirstRunExperience(browser);

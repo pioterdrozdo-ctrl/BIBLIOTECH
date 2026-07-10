@@ -108,7 +108,7 @@ function validateArchitecture() {
     assert.ok(pwa.includes('reservation-queue.js?v=20260710-reservation-queue-1'), 'PWA does not load reservation controller');
     assert.ok(pwa.includes('profile-reservations.js?v=20260710-profile-reservations-1'), 'PWA does not load profile reservations');
     assert.ok(pwa.includes('reservation-queue.css?v=20260710-reservation-queue-1'), 'PWA does not load reservation CSS');
-    assert.ok(sw.includes("CACHE_NAME = 'bibliotech-pwa-v25'"), 'PWA cache was not invalidated');
+    assert.match(sw, /const CACHE_NAME = 'bibliotech-pwa-v\d[^']*'/, 'PWA cache has no versioned name');
     assert.ok(sw.includes("'/js/reservation-queue.js'"), 'reservation controller is not cached');
     assert.ok(sw.includes("'/js/profile-reservations.js'"), 'profile reservations are not cached');
     assert.ok(sw.includes("'/css/reservation-queue.css'"), 'reservation CSS is not cached');

@@ -22,13 +22,13 @@
         <div class="container">
             <div class="header-inner">
                 <div class="NAHODKI brand-logo"><img src="img/appicon.png" alt="BIBLIOTECH logo"><span>BIBLIOTECH</span></div>
-                <div class="menu_icon" id="menuIcon"><span></span><span></span><span></span></div>
-                <nav id="navMenu">
+                <button class="menu_icon" id="menuIcon" type="button" aria-controls="navMenu" aria-expanded="false" aria-label="Открыть меню"><span></span><span></span><span></span></button>
+                <nav id="navMenu" aria-label="Основная навигация">
                     <ul>
                         <li><a href="home.html#top">Главная</a></li>
                         <li><a href="stats.html">Статистика</a></li>
                         <li><a href="about.html">О нас</a></li>
-                        <li class="admin-nav-item active"><a href="admin.html">Админ</a></li>
+                        <li class="admin-nav-item active"><a href="admin.html" aria-current="page">Админ</a></li>
                         <li><button class="user-pill profile-pill" id="currentUserPill" type="button">Админ</button></li>
                         <li class="btn"><a href="#" id="logoutBtn">Выйти</a></li>
                     </ul>
@@ -71,16 +71,17 @@
             </div>
             <div class="admin-table-shell">
                 <table class="admin-users-table">
+                    <caption>Пользователи BIBLIOTECH</caption>
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Логин</th>
-                            <th>Почта</th>
-                            <th>Роль</th>
-                            <th>Статус</th>
-                            <th>Последний вход</th>
-                            <th>IP / устройство</th>
-                            <th>Создан</th>
+                            <th scope="col">ID</th>
+                            <th scope="col">Логин</th>
+                            <th scope="col">Почта</th>
+                            <th scope="col">Роль</th>
+                            <th scope="col">Статус</th>
+                            <th scope="col">Последний вход</th>
+                            <th scope="col">IP / устройство</th>
+                            <th scope="col">Создан</th>
                         </tr>
                     </thead>
                     <tbody id="adminUsersTableBody">
@@ -125,14 +126,15 @@
             </div>
             <div class="admin-table-shell">
                 <table class="admin-users-table admin-rentals-table">
+                    <caption>Журнал аренды книг</caption>
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Книга</th>
-                            <th>Пользователь</th>
-                            <th>Взята</th>
-                            <th>Статус</th>
-                            <th>Действие</th>
+                            <th scope="col">ID</th>
+                            <th scope="col">Книга</th>
+                            <th scope="col">Пользователь</th>
+                            <th scope="col">Взята</th>
+                            <th scope="col">Статус</th>
+                            <th scope="col">Действие</th>
                         </tr>
                     </thead>
                     <tbody id="adminRentalsTableBody">
@@ -204,15 +206,16 @@
 
                 <div class="book-import-table-shell">
                     <table class="book-import-table">
+                        <caption>Предпросмотр импортируемых книг</caption>
                         <thead>
                             <tr>
-                                <th>Строка</th>
-                                <th>Статус</th>
-                                <th>Книга</th>
-                                <th>Автор</th>
-                                <th>Кол-во</th>
-                                <th>Место</th>
-                                <th>Проверка</th>
+                                <th scope="col">Строка</th>
+                                <th scope="col">Статус</th>
+                                <th scope="col">Книга</th>
+                                <th scope="col">Автор</th>
+                                <th scope="col">Кол-во</th>
+                                <th scope="col">Место</th>
+                                <th scope="col">Проверка</th>
                             </tr>
                         </thead>
                         <tbody id="bookImportPreviewBody"></tbody>

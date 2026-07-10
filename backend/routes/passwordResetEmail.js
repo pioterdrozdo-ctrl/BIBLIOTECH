@@ -186,6 +186,14 @@ router.post('/password-reset/request', async (req, res) => {
 
         const delivery = await sendResetEmail(user.email, user.username, code);
         if (!delivery.sent) {
+            if (process.env.NODE_ENV !== 'production') {
+                return res.json({
+                    message: 'Reset code created',
+                    emailSent: false,
+                    devCode: code,
+                    reason: delivery.reason || 'EMAIL_SEND_FAILED'
+                });
+            }
             return res.status(503).json({
                 error: delivery.publicMessage || 'Письмо не отправлено: на сервере не настроена почта или провайдер отклонил отправку.',
                 emailSent: false,
@@ -198,6 +206,14 @@ router.post('/password-reset/request', async (req, res) => {
         console.warn('[RESET_EMAIL] DB reset route failed:', error.message);
         try {
             const fallback = localStore.createPasswordReset(email);
+            if (process.env.NODE_ENV !== 'production') {
+                return res.json({
+                    message: fallback ? 'Reset code created' : 'If email exists, reset code was sent',
+                    emailSent: false,
+                    devCode: fallback ? fallback.code : undefined,
+                    reason: 'LOCAL_FALLBACK_NO_EMAIL'
+                });
+            }
             return res.status(503).json({
                 error: 'Письмо не отправлено: сервер работает без основной базы или почта не настроена.',
                 emailSent: false,

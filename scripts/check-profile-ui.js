@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.join(__dirname, '..');
+const homeHtml = fs.readFileSync(path.join(root, 'frontend/home.html'), 'utf8');
 const profileJs = fs.readFileSync(path.join(root, 'frontend/js/profile-twitter.js'), 'utf8');
 const customizeJs = fs.readFileSync(path.join(root, 'frontend/js/profile-customization-modal.js'), 'utf8');
 const settingsJs = fs.readFileSync(path.join(root, 'frontend/js/profile-settings-modal.js'), 'utf8');
@@ -44,6 +45,7 @@ function assertBalancedCss(css, filename) {
 assert.equal(count(profileJs, 'id="profileEditBtn"'), 1, 'profile must have one edit action');
 assert.equal(count(profileJs, 'id="profileSettingsBtn"'), 1, 'profile must have one settings action');
 assert.ok(profileJs.includes('data-open-profile-customize'), 'profile edit action must open the separate customization modal');
+assert.ok(profileJs.includes('<span class="profile-twitter-action-label">Оформление</span>'), 'profile customization action must have a clear label');
 assert.ok(!profileJs.includes('data-profile-view-target="customize"'), 'inline customization view must be removed');
 assert.ok(!profileJs.includes('document.getElementById(\'profileCustomizeModal\')?.remove()'), 'profile repair must not delete the real customization modal');
 assert.ok(!profileJs.includes('data-profile-view-target="settings"'), 'security must not return to profile tabs');
@@ -56,9 +58,21 @@ assert.ok(customizeJs.includes('profileBannerInput'), 'custom banner upload is m
 assert.ok(customizeJs.includes('data-profile-banner'), 'banner presets are missing');
 assert.ok(customizeJs.includes('MAX_BIO_LENGTH = 160'), 'profile bio limit is missing');
 assert.ok(customizeJs.includes('compressBanner'), 'banner compression is missing');
-assert.ok(customizeJs.includes("document.querySelector('#profileModal .theme-settings')"), 'legacy palette removal is missing');
-assert.ok(!customizeJs.includes('themePresetGrid'), 'site palette must not be duplicated in profile customization');
-assert.ok(customizeJs.includes('snapshot.avatar'), 'cancel must be able to restore the avatar');
+assert.equal(count(homeHtml, 'id="themePresetGrid"'), 1, 'home must provide one reusable palette picker');
+assert.ok(customizeJs.includes('profileCustomizeThemeMount'), 'theme mount is missing from profile customization');
+assert.ok(customizeJs.includes("document.querySelector('#profileModal .theme-settings')"), 'existing palette source is missing');
+assert.ok(customizeJs.includes('themeMount.appendChild(palette)'), 'existing palette must be moved into customization');
+assert.ok(!customizeJs.includes('duplicatedPalette.remove()'), 'theme palette must not be removed');
+assert.ok(customizeJs.includes('data-profile-theme-mode="light"'), 'explicit light mode control is missing');
+assert.ok(customizeJs.includes('data-profile-theme-mode="dark"'), 'explicit dark mode control is missing');
+assert.ok(customizeJs.includes('window.BibliotechTheme.apply'), 'theme controls must use the shared controller');
+assert.ok(customizeJs.includes('theme: { ...theme }'), 'theme snapshot is missing');
+assert.ok(customizeJs.includes('applyThemeState(activeSnapshot?.theme, { persist: false })'), 'cancel must restore the original theme and mode');
+assert.ok(customizeJs.includes('applyThemeState({ theme: draft.theme, mode: draft.mode }, { persist: true })'), 'save must persist the selected theme and mode');
+assert.ok(customizeJs.includes("avatar: localStorage.getItem(getAvatarKey()) || ''"), 'cancel must snapshot the avatar');
+assert.ok(customizeJs.includes('restoreAvatar(activeSnapshot)'), 'cancel must be able to restore the avatar');
+assert.ok(customizeJs.includes('restoreTriggerFocus'), 'customization close must restore focus');
+assert.ok(customizeJs.includes('trigger.focus({ preventScroll: true })'), 'customization trigger focus is not restored');
 
 assert.equal(count(settingsJs, "modal.id = 'accountSettingsModal'"), 1, 'settings modal must be created once');
 assert.ok(settingsJs.includes('data-settings-section="account"'), 'account section is missing');
@@ -106,6 +120,9 @@ assertBalancedCss(settingsCss, 'profile-settings-modal.css');
 assertBalancedCss(featuresCss, 'account-settings-features.css');
 assertBalancedCss(reservationCss, 'reservation-queue.css');
 assert.ok(customizeCss.includes('@media (max-width: 700px)'), 'customization mobile layout is missing');
+assert.ok(customizeCss.includes('@media (max-width: 390px)'), 'customization narrow-phone layout is missing');
+assert.ok(customizeCss.includes('#profileCustomizeThemeMount .theme-preset-grid'), 'customization theme grid styles are missing');
+assert.ok(customizeCss.includes('grid-template-columns: repeat(2, minmax(0, 1fr))'), 'theme picker must remain usable at 390px');
 assert.ok(featuresCss.includes('@media (max-width: 700px)'), 'complete settings mobile layout is missing');
 assert.ok(reservationCss.includes('@media (max-width: 560px)'), 'reservation profile mobile layout is missing');
 
@@ -120,10 +137,10 @@ assert.ok(serverJs.indexOf('/js/profile-rentals.js') < serverJs.indexOf('/js/pro
 assert.ok(serverJs.indexOf('/js/profile-twitter.js') < serverJs.indexOf('/js/profile-customization-modal.js'), 'initial HTML must load customization after profile');
 assert.ok(serverJs.includes('/css/profile-customization-modal.css'), 'customization CSS must be delivered in initial HTML');
 assert.ok(serverJs.includes('/css/reservation-queue.css'), 'reservation CSS must be delivered in initial HTML');
-assert.ok(swJs.includes("CACHE_NAME = 'bibliotech-pwa-v25'"), 'PWA cache was not invalidated');
+assert.match(swJs, /const CACHE_NAME = 'bibliotech-pwa-v\d[^']*'/, 'PWA cache has no versioned name');
 assert.ok(swJs.includes('/js/profile-customization-modal.js'), 'PWA shell does not cache customization JavaScript');
 assert.ok(swJs.includes('/js/profile-reservations.js'), 'PWA shell does not cache reservation profile JavaScript');
 assert.ok(swJs.includes('/css/profile-customization-modal.css'), 'PWA shell does not cache customization CSS');
 assert.ok(swJs.includes('/css/reservation-queue.css'), 'PWA shell does not cache reservation CSS');
 
-console.log('Profile check OK: customization, account settings, rentals, reservation queue, sessions and mobile layouts validated.');
+console.log('Profile check OK: themes, customization, account settings, rentals, reservation queue, sessions and mobile layouts validated.');

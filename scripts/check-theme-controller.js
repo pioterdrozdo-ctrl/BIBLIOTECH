@@ -53,6 +53,21 @@ function assertState(actual, theme, mode, message = 'theme state mismatch') {
     assert.equal(actual.mode, mode, `${message}: brightness mode`);
 }
 
+function relativeLuminance(hex) {
+    const channels = String(hex).match(/[a-f\d]{2}/gi)?.map(value => parseInt(value, 16) / 255) || [];
+    assert.equal(channels.length, 3, `expected a six-digit hex color, received ${hex}`);
+    const [r, g, b] = channels.map(value => value <= 0.03928
+        ? value / 12.92
+        : Math.pow((value + 0.055) / 1.055, 2.4));
+    return (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
+}
+
+function contrastRatio(foreground, background) {
+    const first = relativeLuminance(foreground);
+    const second = relativeLuminance(background);
+    return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+}
+
 function createStorage(seed = {}) {
     const values = new Map(Object.entries(seed));
     return {
@@ -141,6 +156,11 @@ for (const theme of themes) {
         assert.equal(runtime.html.classList.contains('dark-theme'), mode === 'dark');
         assert.ok(runtime.html.style.values['--bg'], `${theme}/${mode} has no background variable`);
         assert.ok(runtime.html.style.values['--accent'], `${theme}/${mode} has no accent variable`);
+        const accentContrast = contrastRatio(
+            runtime.html.style.values['--on-accent'],
+            runtime.html.style.values['--accent']
+        );
+        assert.ok(accentContrast >= 4.5, `${theme}/${mode} CTA contrast is ${accentContrast.toFixed(2)}:1`);
     }
 }
 

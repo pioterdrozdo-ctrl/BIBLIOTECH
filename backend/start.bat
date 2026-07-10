@@ -1,57 +1,28 @@
-﻿@echo off
+@echo off
 chcp 65001 > nul
+setlocal
 title BIBLIOTECH - Server
-taskkill /F /IM node.exe > nul 2>&1
-cd /d "C:\Users\titan\Desktop\BIBLIOTECH_UI_SITE\backend"
+cd /d "%~dp0"
+
+where node > nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Node.js не найден. Установите Node.js 18 или новее.
+    pause
+    exit /b 1
+)
 
 echo ========================================
 echo      BIBLIOTECH - SERVER START
 echo ========================================
 echo.
-
-set PGPASSWORD=postgres
-
-echo [1/4] Проверка базы данных...
-psql -U postgres -lqt | find /i "bibliotech" > nul
-if %errorlevel% equ 0 (
-    echo   База данных существует
-) else (
-    echo   Создание базы данных...
-    psql -U postgres -c "CREATE DATABASE bibliotech;"
-    echo   База создана, инициализация таблиц...
-    psql -U postgres -d bibliotech -f sql\init.sql
-    echo   Таблицы готовы
-    goto :run
-)
-
-echo [2/4] Проверка таблицы books...
-psql -U postgres -d bibliotech -c "\dt books" 2>nul | find "books" > nul
-if %errorlevel% equ 0 (
-    echo   Таблица books существует
-) else (
-    echo   Таблицы отсутствуют, инициализация...
-    psql -U postgres -d bibliotech -f sql\init.sql
-    echo   Таблицы созданы
-)
-
-:run
+echo Сервер использует PostgreSQL при наличии DATABASE_URL.
+echo Без DATABASE_URL автоматически включается локальное JSON-хранилище.
 echo.
-echo [3/4] Запуск сервера в режиме отладки...
-echo   Ошибки будут выводиться здесь
-echo   Нажмите Ctrl+C для остановки
+echo Адрес: http://localhost:3001
+echo Для остановки нажмите Ctrl+C.
 echo.
 
-echo [4/4] Открытие браузера...
-start http://localhost:3001
+start "" http://localhost:3001
+node server.js
 
-echo.
-echo ========================================
-echo   Сервер запущен
-echo   Адрес: http://localhost:3001
-echo   Для остановки закройте окно
-echo ========================================
-echo.
-
-call npm run dev
-
-pause
+endlocal

@@ -6,7 +6,6 @@ const { hashPassword, verifyPassword } = require('../utils/passwords');
 const { authMiddleware, isAdmin } = require('../middleware/auth');
 const router = express.Router();
 
-const RESET_CODE_TTL_MS = 15 * 60 * 1000;
 const FREEZE_UNITS = {
     minutes: 60 * 1000,
     hours: 60 * 60 * 1000,
@@ -95,6 +94,7 @@ function parseFreezeUntil(body = {}) {
 
 async function ensureAuthSchema() {
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255)');
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_ip VARCHAR(80)');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_user_agent TEXT');
@@ -105,6 +105,7 @@ async function ensureAuthSchema() {
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS ban_reason TEXT');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS banned_at TIMESTAMP');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS banned_by INTEGER REFERENCES users(id) ON DELETE SET NULL');
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS session_version INTEGER DEFAULT 1');
     await pool.query('CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique_idx ON users (LOWER(email)) WHERE email IS NOT NULL');
     await pool.query(`
         CREATE TABLE IF NOT EXISTS password_reset_tokens (
@@ -156,65 +157,6 @@ async function tryRecordLoginEvent(user, req) {
         await recordLoginEvent(user, req);
     } catch (error) {
         console.warn('[AUTH] login audit failed:', error.message);
-    }
-}
-
-function createResetCode() {
-    return String(Math.floor(100000 + Math.random() * 900000));
-}
-
-async function sendPasswordResetEmail(email, username, code) {
-    const apiKey = process.env.RESEND_API_KEY;
-    const from = process.env.EMAIL_FROM;
-    if (!apiKey || !from) {
-        return {
-            sent: false,
-            reason: 'EMAIL_NOT_CONFIGURED',
-            message: 'Email delivery is not configured. Set RESEND_API_KEY and EMAIL_FROM on Render.'
-        };
-    }
-
-    const safeUsername = String(username || 'пользователя').replace(/[<>]/g, '');
-    const text = `BIBLIOTECH\n\nКод восстановления для ${safeUsername}: ${code}\nКод действует 15 минут.`;
-    const html = `<div style="font-family:Arial,sans-serif;line-height:1.5">
-        <h2>BIBLIOTECH</h2>
-        <p>Код восстановления для <b>${safeUsername}</b>:</p>
-        <p style="font-size:26px;font-weight:800;letter-spacing:4px">${code}</p>
-        <p>Код действует 15 минут.</p>
-    </div>`;
-
-    try {
-        const response = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                from,
-                to: [email],
-                subject: 'Код восстановления BIBLIOTECH',
-                text,
-                html
-            })
-        });
-
-        if (response.ok) return { sent: true };
-
-        const details = await response.text().catch(() => '');
-        console.warn('[AUTH] password reset email failed:', response.status, details);
-        return {
-            sent: false,
-            reason: 'EMAIL_PROVIDER_REJECTED',
-            message: `Email provider rejected request with status ${response.status}`
-        };
-    } catch (error) {
-        console.warn('[AUTH] password reset email error:', error.message);
-        return {
-            sent: false,
-            reason: 'EMAIL_SEND_FAILED',
-            message: error.message || 'Email send failed'
-        };
     }
 }
 
@@ -515,65 +457,6 @@ router.delete('/users/:id', authMiddleware, isAdmin, async (req, res) => {
     }
 });
 
-router.post('/password-reset/request', async (req, res) => {
-    const email = normalizeEmail(req.body.email);
-    if (!email || !isValidEmail(email)) {
-        return res.status(400).json({ error: 'Valid email is required' });
-    }
-
-    try {
-        await ensureAuthSchema();
-        const result = await pool.query('SELECT id, username, email FROM users WHERE LOWER(email) = LOWER($1)', [email]);
-        const user = result.rows[0];
-        if (!user) {
-            return res.json({ message: 'If email exists, reset code was sent' });
-        }
-
-        const code = createResetCode();
-        const expiresAt = new Date(Date.now() + RESET_CODE_TTL_MS);
-        await pool.query('DELETE FROM password_reset_tokens WHERE user_id = $1 AND used_at IS NULL', [user.id]);
-        await pool.query(
-            'INSERT INTO password_reset_tokens (user_id, code_hash, expires_at) VALUES ($1, $2, $3)',
-            [user.id, hashPassword(code), expiresAt]
-        );
-
-        const delivery = await sendPasswordResetEmail(user.email, user.username, code);
-        if (!delivery.sent && process.env.NODE_ENV === 'production') {
-            return res.status(503).json({
-                error: 'Письмо с кодом не отправлено. На сервере не настроена почта восстановления.',
-                emailSent: false,
-                reason: delivery.reason || 'EMAIL_SEND_FAILED'
-            });
-        }
-
-        res.json({
-            message: delivery.sent ? 'Reset code sent' : 'Reset code created',
-            emailSent: delivery.sent,
-            devCode: delivery.sent ? undefined : code,
-            reason: delivery.sent ? undefined : delivery.reason
-        });
-    } catch (error) {
-        try {
-            const result = localStore.createPasswordReset(email);
-            if (process.env.NODE_ENV === 'production') {
-                return res.status(503).json({
-                    error: 'Письмо с кодом не отправлено. Сервер временно использует локальное хранилище или почта не настроена.',
-                    emailSent: false,
-                    reason: 'LOCAL_FALLBACK_NO_EMAIL'
-                });
-            }
-            res.json({
-                message: result ? 'Reset code created' : 'If email exists, reset code was sent',
-                emailSent: false,
-                devCode: result ? result.code : undefined,
-                reason: 'LOCAL_FALLBACK_NO_EMAIL'
-            });
-        } catch (fallbackError) {
-            res.status(500).json({ error: 'Password reset request failed' });
-        }
-    }
-});
-
 router.post('/password-reset/confirm', async (req, res) => {
     const email = normalizeEmail(req.body.email);
     const code = String(req.body.code || '').trim();
@@ -599,7 +482,13 @@ router.post('/password-reset/confirm', async (req, res) => {
             return res.status(400).json({ error: 'Invalid or expired code' });
         }
 
-        await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hashPassword(password), token.user_id]);
+        await pool.query(`
+            UPDATE users
+            SET password_hash = $1,
+                session_version = COALESCE(session_version, 1) + 1,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $2
+        `, [hashPassword(password), token.user_id]);
         await pool.query('UPDATE password_reset_tokens SET used_at = CURRENT_TIMESTAMP WHERE id = $1', [token.id]);
         res.json({ message: 'Password updated' });
     } catch (error) {

@@ -88,6 +88,52 @@
         else console[type === 'error' ? 'error' : 'log'](message);
     }
 
+    function readThemeState() {
+        const state = window.BibliotechTheme?.getState?.();
+        const theme = state?.theme || localStorage.getItem('theme') || 'forest';
+        const fallbackMode = ['dark', 'forest', 'ocean', 'violet', 'mono'].includes(theme) ? 'dark' : 'light';
+        return {
+            theme,
+            mode: state?.mode || localStorage.getItem('bibliotech_theme_mode') || fallbackMode
+        };
+    }
+
+    function syncThemeControls(value = draft || readThemeState()) {
+        const modal = document.getElementById('profileCustomizeModal');
+        if (!modal || !value) return;
+        const theme = value.theme || 'forest';
+        const mode = value.mode === 'dark' ? 'dark' : 'light';
+        const meta = window.BibliotechTheme?.meta?.[theme];
+
+        modal.querySelectorAll('[data-profile-theme-mode]').forEach(button => {
+            const active = button.dataset.profileThemeMode === mode;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-pressed', String(active));
+        });
+        modal.querySelectorAll('#profileCustomizeThemeMount .theme-preset[data-theme]').forEach(button => {
+            const active = button.dataset.theme === theme;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-pressed', String(active));
+            if (active) button.dataset.activeMode = mode;
+            else delete button.dataset.activeMode;
+        });
+
+        const status = document.getElementById('profileThemeModeStatus');
+        if (status) status.textContent = `${meta?.name || theme} · ${mode === 'dark' ? 'тёмный' : 'светлый'} режим`;
+    }
+
+    function applyThemeState(value, { persist = false } = {}) {
+        if (!value || !window.BibliotechTheme?.apply) return null;
+        const next = window.BibliotechTheme.apply(value.theme, value.mode, { persist });
+        syncThemeControls(next);
+        return next;
+    }
+
+    function previewThemeDraft() {
+        if (!draft) return;
+        applyThemeState({ theme: draft.theme, mode: draft.mode }, { persist: false });
+    }
+
     function bannerCss(value) {
         if (value?.banner === 'custom' && value.customBanner) {
             return `linear-gradient(rgba(0,0,0,.08), rgba(0,0,0,.2)), url("${value.customBanner}") center / cover no-repeat`;
@@ -161,16 +207,28 @@
             button.classList.toggle('active', active);
             button.setAttribute('aria-pressed', String(active));
         });
+        syncThemeControls(draft);
         syncPreviewAvatar();
     }
 
-    function moveAvatarEditor(modal) {
-        const mount = modal.querySelector('#profileCustomizeAvatarMount');
+    function moveProfileEditors(modal) {
+        const avatarMount = modal.querySelector('#profileCustomizeAvatarMount');
         const editor = document.querySelector('#profileModal .avatar-settings') || document.querySelector('#profileCustomizeModal .avatar-settings');
-        if (mount && editor && editor.parentElement !== mount) mount.appendChild(editor);
+        if (avatarMount && editor && editor.parentElement !== avatarMount) avatarMount.appendChild(editor);
 
-        const duplicatedPalette = document.querySelector('#profileModal .theme-settings');
-        if (duplicatedPalette) duplicatedPalette.remove();
+        const themeMount = modal.querySelector('#profileCustomizeThemeMount');
+        const palette = document.querySelector('#profileModal .theme-settings') || themeMount?.querySelector('.theme-settings');
+        if (themeMount && palette && palette.parentElement !== themeMount) themeMount.appendChild(palette);
+        if (palette) {
+            palette.setAttribute('aria-label', 'Выбор палитры интерфейса');
+            const title = palette.querySelector('.theme-settings-head h3');
+            const copy = palette.querySelector('.theme-settings-head p');
+            if (title) title.textContent = 'Палитра';
+            if (copy) copy.textContent = 'Выберите цвет интерфейса. Яркость настраивается отдельно.';
+        }
+
+        window.BibliotechTheme?.bindControls?.();
+        syncThemeControls();
     }
 
     function modalMarkup() {
@@ -186,7 +244,7 @@
                     <div>
                         <p class="profile-customize-kicker">BIBLIOTECH PROFILE</p>
                         <h2 id="profileCustomizeTitle">Оформление профиля</h2>
-                        <p>Меняйте только личный профиль. Палитра всего сайта остаётся в кнопке темы в шапке.</p>
+                        <p>Настройте фото, описание, обложку профиля и палитру всего интерфейса.</p>
                     </div>
                     <button class="profile-customize-close" id="profileCustomizeCloseBtn" type="button" aria-label="Закрыть">×</button>
                 </header>
@@ -231,10 +289,32 @@
                             <button class="profile-customize-secondary" id="profileBannerResetBtn" type="button">Сбросить обложку</button>
                         </div>
                     </section>
+
+                    <section class="profile-customize-section profile-customize-theme-section">
+                        <div class="profile-customize-section-head">
+                            <div><span class="profile-customize-step">04</span><h3>Интерфейс сайта</h3></div>
+                            <p>Выберите палитру и её светлую или тёмную версию. Изменения сохранятся вместе с профилем.</p>
+                        </div>
+                        <div class="profile-theme-mode-row">
+                            <div class="profile-theme-mode-copy">
+                                <b>Яркость</b>
+                                <span id="profileThemeModeStatus">Текущий режим</span>
+                            </div>
+                            <div class="profile-theme-mode-control" role="group" aria-label="Яркость темы">
+                                <button class="profile-theme-mode-button" type="button" data-profile-theme-mode="light" aria-pressed="false">
+                                    <span aria-hidden="true">☀</span> Светлая
+                                </button>
+                                <button class="profile-theme-mode-button" type="button" data-profile-theme-mode="dark" aria-pressed="false">
+                                    <span aria-hidden="true">☾</span> Тёмная
+                                </button>
+                            </div>
+                        </div>
+                        <div id="profileCustomizeThemeMount"></div>
+                    </section>
                 </main>
                 <footer class="profile-customize-footer">
                     <button class="profile-customize-secondary" id="profileCustomizeCancelBtn" type="button">Отмена</button>
-                    <button class="profile-customize-save" id="profileCustomizeSaveBtn" type="button">Сохранить профиль</button>
+                    <button class="profile-customize-save" id="profileCustomizeSaveBtn" type="button">Сохранить оформление</button>
                 </footer>
             </div>`;
     }
@@ -250,37 +330,65 @@
             document.body.appendChild(modal);
             wireModal(modal);
         }
-        moveAvatarEditor(modal);
+        moveProfileEditors(modal);
         return modal;
     }
 
-    function restoreAvatar() {
-        if (!snapshot) return;
-        if (snapshot.avatar) localStorage.setItem(getAvatarKey(), snapshot.avatar);
+    function restoreAvatar(source = snapshot) {
+        if (!source) return;
+        if (source.avatar) localStorage.setItem(getAvatarKey(), source.avatar);
         else localStorage.removeItem(getAvatarKey());
         if (typeof window.applyProfileAvatar === 'function') window.applyProfileAvatar();
         else document.getElementById('currentUserPill')?.click();
     }
 
+    function restoreTriggerFocus(source) {
+        const trigger = source?.trigger;
+        if (!trigger?.isConnected) {
+            setTimeout(() => document.getElementById('currentUserPill')?.focus({ preventScroll: true }), 0);
+            return;
+        }
+
+        const profileModal = trigger.closest?.('#profileModal');
+        const settingsModal = trigger.closest?.('#accountSettingsModal');
+        if (profileModal && !profileModal.classList.contains('active')) {
+            window.BibliotechProfile?.openOverview?.();
+        } else if (settingsModal && !settingsModal.classList.contains('active')) {
+            window.BibliotechSettings?.open?.(source.settingsSection || 'account', trigger);
+        }
+
+        setTimeout(() => trigger.focus({ preventScroll: true }), 0);
+    }
+
     function close(options = {}) {
         const modal = document.getElementById('profileCustomizeModal');
         if (!modal) return;
-        if (options.restore !== false) restoreAvatar();
+        const activeSnapshot = snapshot;
+        if (options.restore !== false) {
+            restoreAvatar(activeSnapshot);
+            applyThemeState(activeSnapshot?.theme, { persist: false });
+        }
         modal.classList.remove('active');
         modal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('profile-customize-modal-open');
         snapshot = null;
         draft = null;
+        if (options.restoreFocus !== false) restoreTriggerFocus(activeSnapshot);
     }
 
     function open(trigger = null) {
         const modal = ensureModal();
+        const theme = readThemeState();
+        const sourceTrigger = trigger || document.activeElement;
+        const sourceSettings = sourceTrigger?.closest?.('#accountSettingsModal');
         snapshot = {
             customization: readCustomization(),
             avatar: localStorage.getItem(getAvatarKey()) || '',
-            trigger: trigger || document.activeElement
+            theme: { ...theme },
+            trigger: sourceTrigger,
+            settingsSection: sourceSettings?.dataset.settingsSection || 'account'
         };
-        draft = { ...snapshot.customization };
+        draft = { ...snapshot.customization, theme: theme.theme, mode: theme.mode };
 
         window.BibliotechSettings?.close?.({ restoreFocus: false });
         document.getElementById('profileModal')?.classList.remove('active');
@@ -296,13 +404,9 @@
         try {
             const saved = writeCustomization(draft);
             applyCustomization(saved);
-            const modal = document.getElementById('profileCustomizeModal');
-            modal?.classList.remove('active');
-            modal?.setAttribute('aria-hidden', 'true');
-            document.body.classList.remove('profile-customize-modal-open');
-            snapshot = null;
-            draft = null;
-            notify('Профиль обновлён', 'success');
+            applyThemeState({ theme: draft.theme, mode: draft.mode }, { persist: true });
+            close({ restore: false });
+            notify('Оформление сохранено', 'success');
         } catch (error) {
             notify(error?.name === 'QuotaExceededError' ? 'Изображение слишком большое для сохранения' : 'Не удалось сохранить профиль', 'error');
         }
@@ -342,6 +446,17 @@
     function wireModal(modal) {
         if (modal.dataset.customizeReady === 'true') return;
         modal.dataset.customizeReady = 'true';
+
+        modal.addEventListener('click', event => {
+            const themeButton = event.target.closest('#profileCustomizeThemeMount .theme-preset[data-theme]');
+            const modeButton = event.target.closest('[data-profile-theme-mode]');
+            if ((!themeButton && !modeButton) || !draft) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            if (themeButton) draft.theme = themeButton.dataset.theme;
+            if (modeButton) draft.mode = modeButton.dataset.profileThemeMode;
+            previewThemeDraft();
+        }, true);
 
         modal.addEventListener('click', event => {
             if (event.target === modal) {

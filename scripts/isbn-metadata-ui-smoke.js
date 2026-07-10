@@ -175,7 +175,10 @@ async function verifyMobile(browser, auth) {
     const stamp = Date.now();
     const isbn = makeIsbn13(stamp);
     const title = `ISBN UI ${stamp}`;
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({
+        headless: true,
+        ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH } : {})
+    });
     try {
         await verifyDesktop(browser, auth, isbn, title);
         await verifyMobile(browser, auth);

@@ -20,45 +20,53 @@
     <div class="auth-container">
         <div class="auth-brand"><img src="img/appicon.png" alt="BIBLIOTECH logo"><h1>BIBLIOTECH</h1></div>
 
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('login')">Вход</button>
-            <button class="tab" onclick="switchTab('register')">Регистрация</button>
+        <div class="tabs" role="tablist" aria-label="Вход и регистрация">
+            <button class="tab active" id="loginTab" type="button" role="tab" aria-controls="loginForm" aria-selected="true" tabindex="0" onclick="switchTab('login')">Вход</button>
+            <button class="tab" id="registerTab" type="button" role="tab" aria-controls="registerForm" aria-selected="false" tabindex="-1" onclick="switchTab('register')">Регистрация</button>
         </div>
 
-        <div id="loginForm" class="form active">
-            <input type="text" id="loginUsername" placeholder="Имя пользователя">
-            <input type="password" id="loginPassword" placeholder="Пароль">
-            <button onclick="login()">Войти</button>
-            <button class="guest-btn" onclick="guestLogin()">Войти как гость</button>
+        <div id="loginForm" class="form active" role="tabpanel" aria-labelledby="loginTab" tabindex="0">
+            <label for="loginUsername">Имя пользователя</label>
+            <input type="text" id="loginUsername" name="username" autocomplete="username" placeholder="Имя пользователя">
+            <label for="loginPassword">Пароль</label>
+            <input type="password" id="loginPassword" name="password" autocomplete="current-password" placeholder="Пароль">
+            <button type="button" onclick="login()">Войти</button>
+            <button class="guest-btn" type="button" onclick="guestLogin()">Войти как гость</button>
             <button class="auth-link-btn" onclick="switchTab('reset')" type="button">Забыли пароль?</button>
-            <div id="loginError" class="error"></div>
+            <div id="loginError" class="error" role="alert" aria-live="assertive"></div>
         </div>
 
-        <div id="registerForm" class="form">
-            <input type="text" id="regUsername" placeholder="Имя пользователя">
-            <input type="email" id="regEmail" placeholder="Электронная почта">
-            <input type="password" id="regPassword" placeholder="Пароль (мин. 4 символа)">
-            <button onclick="register()">Зарегистрироваться</button>
-            <div id="regError" class="error"></div>
-            <div id="regSuccess" class="success"></div>
+        <div id="registerForm" class="form" role="tabpanel" aria-labelledby="registerTab" tabindex="0">
+            <label for="regUsername">Имя пользователя</label>
+            <input type="text" id="regUsername" name="username" autocomplete="username" placeholder="Имя пользователя">
+            <label for="regEmail">Электронная почта</label>
+            <input type="email" id="regEmail" name="email" autocomplete="email" placeholder="Электронная почта">
+            <label for="regPassword">Пароль</label>
+            <input type="password" id="regPassword" name="new-password" autocomplete="new-password" placeholder="Пароль (мин. 4 символа)">
+            <button type="button" onclick="register()">Зарегистрироваться</button>
+            <div id="regError" class="error" role="alert" aria-live="assertive"></div>
+            <div id="regSuccess" class="success" role="status" aria-live="polite"></div>
         </div>
 
-        <div id="resetForm" class="form">
+        <div id="resetForm" class="form" role="tabpanel" aria-label="Восстановление пароля" tabindex="0">
             <div class="reset-step active" id="resetEmailStep">
                 <p class="reset-note">Введите почту аккаунта — мы отправим код восстановления.</p>
-                <input type="email" id="resetEmail" placeholder="Электронная почта аккаунта">
-                <button onclick="requestPasswordReset()">Отправить код</button>
+                <label for="resetEmail">Электронная почта аккаунта</label>
+                <input type="email" id="resetEmail" name="email" autocomplete="email" placeholder="Электронная почта аккаунта">
+                <button type="button" onclick="requestPasswordReset()">Отправить код</button>
             </div>
             <div class="reset-step" id="resetCodeStep" hidden>
                 <p class="reset-note">Введите код из письма и придумайте новый пароль.</p>
-                <input type="text" id="resetCode" inputmode="numeric" placeholder="Код из письма">
-                <input type="password" id="resetPassword" placeholder="Новый пароль">
-                <button onclick="confirmPasswordReset()">Сменить пароль</button>
+                <label for="resetCode">Код из письма</label>
+                <input type="text" id="resetCode" name="one-time-code" inputmode="numeric" autocomplete="one-time-code" placeholder="Код из письма">
+                <label for="resetPassword">Новый пароль</label>
+                <input type="password" id="resetPassword" name="new-password" autocomplete="new-password" placeholder="Новый пароль">
+                <button type="button" onclick="confirmPasswordReset()">Сменить пароль</button>
                 <button class="auth-link-btn" onclick="showResetStep('email')" type="button">Отправить код заново</button>
             </div>
             <button class="auth-link-btn" onclick="switchTab('login')" type="button">Вернуться ко входу</button>
-            <div id="resetInfo" class="success"></div>
-            <div id="resetError" class="error"></div>
+            <div id="resetInfo" class="success" role="status" aria-live="polite"></div>
+            <div id="resetError" class="error" role="alert" aria-live="assertive"></div>
         </div>
     </div>
 

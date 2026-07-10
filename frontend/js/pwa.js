@@ -135,11 +135,9 @@
 
     if (isHomePage && !window.__bibliotechBookDetailPolishLoading) {
         window.__bibliotechBookDetailPolishLoading = true;
-        loadStylesheet('css/hero-empty-space.css?v=20260710-empty-hero-1', '__bibliotechHeroEmptySpaceCss');
         loadStylesheet('css/book-detail-polish.css?v=20260709-book-detail-scroll-1', '__bibliotechBookDetailPolishCss');
         loadStylesheet('css/book-detail-hide-meta.css?v=20260710-hide-inner-badges-1', '__bibliotechBookDetailHideMetaCss');
         loadStylesheet('css/book-detail-desktop-compact.css?v=20260710-inner-card-refined-1', '__bibliotechBookDetailDesktopCompactCss');
-        loadStylesheet('css/profile-hide-theme-badge.css?v=20260710-hide-theme-badge-1', '__bibliotechProfileHideThemeBadgeCss');
         loadStylesheet('css/modal-close-gradient-fix.css?v=20260710-modal-close-gradient-1', '__bibliotechModalCloseGradientFixCss');
     }
 
@@ -176,6 +174,7 @@
 
     loadStylesheet('css/theme-mode-preview.css?v=20260710-theme-mode-preview-1', '__bibliotechThemeModePreviewCss');
     loadStylesheet('css/liquid-theme-toggle.css?v=20260710-liquid-theme-2', '__bibliotechLiquidThemeToggleCss');
+    loadStylesheet('css/commercial-polish.css?v=20260710-commercial-polish-1', '__bibliotechCommercialPolishCss');
 
     if (!('serviceWorker' in navigator)) return;
 

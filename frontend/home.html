@@ -21,14 +21,14 @@
         <div class="container">
             <div class="header-inner">
                 <div class="NAHODKI brand-logo"><img src="img/appicon.png" alt="BIBLIOTECH logo"><span>BIBLIOTECH</span></div>
-                <div class="menu_icon" id="menuIcon">
+                <button class="menu_icon" id="menuIcon" type="button" aria-controls="navMenu" aria-expanded="false" aria-label="Открыть меню">
                     <span></span>
                     <span></span>
                     <span></span>
-                </div>
-                <nav id="navMenu">
+                </button>
+                <nav id="navMenu" aria-label="Основная навигация">
                     <ul>
-                        <li class="active"><a href="home.html#top">Главная</a></li>
+                        <li class="active"><a href="home.html#top" aria-current="page">Главная</a></li>
                         <li><a href="stats.html">Статистика</a></li>
                         <li><a href="about.html">О нас</a></li>
                         <li class="admin-nav-item hidden"><a href="admin.html">Админ</a></li>
@@ -207,8 +207,8 @@
 
 <!-- Модальное окно добавления книги -->
 <div id="bookModal" class="modal">
-    <div class="modal-content">
-        <h2>📖 Новая книга</h2>
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="bookModalTitle">
+        <h2 id="bookModalTitle">📖 Новая книга</h2>
         <form id="bookForm">
             <div class="form-group">
                 <label>Название книги *</label>
@@ -260,8 +260,8 @@
 
 <!-- Модальное окно просмотра книги -->
 <div id="viewModal" class="modal book-detail-modal">
-    <div class="modal-content view-modal-content premium-book-modal">
-        <button class="close-view-btn" id="closeViewBtn" aria-label="Закрыть">&times;</button>
+    <div class="modal-content view-modal-content premium-book-modal" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
+        <button class="close-view-btn" id="closeViewBtn" type="button" aria-label="Закрыть карточку книги">&times;</button>
         <div class="book-detail-shell">
             <aside class="book-detail-cover-panel">
                 <div class="detail-kicker">Карточка книги</div>
@@ -343,14 +343,14 @@
 
 <!-- Главное окно фильтров -->
 <div id="sortModal" class="modal filter-modal">
-    <div class="modal-content sort-modal-content filter-panel-content">
+    <div class="modal-content sort-modal-content filter-panel-content" role="dialog" aria-modal="true" aria-labelledby="sortModalTitle">
         <div class="sort-modal-header filter-panel-header">
             <div>
                 <span class="eyebrow">Точная настройка каталога</span>
-                <h2>⚙️ Главные фильтры</h2>
+                <h2 id="sortModalTitle">⚙️ Главные фильтры</h2>
                 <p>Выберите несколько условий сразу: наличие, сортировку и минимальное количество экземпляров.</p>
             </div>
-            <button class="close-sort-btn" id="closeSortModalBtn" type="button">&times;</button>
+            <button class="close-sort-btn" id="closeSortModalBtn" type="button" aria-label="Закрыть фильтры">&times;</button>
         </div>
 
         <div class="filter-section">
@@ -398,7 +398,7 @@
 
 <!-- Модальное окно подтверждения удаления -->
 <div id="confirmModal" class="modal confirm-modal">
-    <div class="modal-content confirm-modal-content">
+    <div class="modal-content confirm-modal-content" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
         <div class="confirm-icon">⚠️</div>
         <h3 id="confirmTitle">Удалить книгу?</h3>
         <p id="confirmMessage">Вы уверены, что хотите удалить эту книгу? Это действие нельзя отменить.</p>
@@ -411,14 +411,14 @@
 
 <!-- Модальное окно QR-сканера -->
 <div id="qrModal" class="modal qr-modal">
-    <div class="modal-content qr-modal-content">
+    <div class="modal-content qr-modal-content" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
         <div class="qr-modal-header">
             <div>
                 <span class="eyebrow">Быстрый поиск</span>
-                <h2>▣ Сканер QR-кода</h2>
+                <h2 id="qrModalTitle">▣ Сканер QR-кода</h2>
                 <p>Наведите камеру на QR-код книги — каталог сам откроет нужную карточку или выполнит поиск.</p>
             </div>
-            <button class="qr-close-btn" id="closeQrModalBtn" type="button">×</button>
+            <button class="qr-close-btn" id="closeQrModalBtn" type="button" aria-label="Закрыть QR-сканер">×</button>
         </div>
         <div class="qr-scanner-box">
             <video id="qrVideo" class="qr-video" playsinline muted></video>
@@ -448,8 +448,8 @@
 
 <!-- Модальное окно голосового поиска  -->
 <div id="voiceModal" class="voice-modal">
-    <div class="voice-modal-content">
-        <button class="voice-modal-close" id="voiceModalClose">
+    <div class="voice-modal-content" role="dialog" aria-modal="true" aria-labelledby="voiceModalTitle">
+        <button class="voice-modal-close" id="voiceModalClose" type="button" aria-label="Закрыть голосовой поиск">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
             </svg>
@@ -467,7 +467,7 @@
             </div>
         </div>
         
-        <div class="voice-kicker">Голосовой поиск</div>
+        <div class="voice-kicker" id="voiceModalTitle">Голосовой поиск</div>
         <div class="voice-status" id="voiceStatus">Готов к прослушиванию</div>
         <div class="voice-text" id="voiceText">Скажите название книги, автора или тему</div>
         <div class="voice-hint">
@@ -479,8 +479,8 @@
 
 <!-- Модальное окно профиля -->
 <div id="profileModal" class="modal profile-modal">
-    <div class="modal-content profile-modal-content">
-        <button class="profile-close-btn" id="closeProfileModalBtn" type="button">×</button>
+    <div class="modal-content profile-modal-content" role="dialog" aria-modal="true" aria-labelledby="profileName">
+        <button class="profile-close-btn" id="closeProfileModalBtn" type="button" aria-label="Закрыть профиль">×</button>
         <div class="profile-modal-top">
             <div class="profile-avatar-shell">
                 <div class="profile-avatar" id="profileAvatar">👤</div>

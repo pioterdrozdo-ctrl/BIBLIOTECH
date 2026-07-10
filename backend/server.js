@@ -51,6 +51,10 @@ const criticalUiScripts = [
     '/js/product-polish.js?v=20260710-product-polish-2'
 ];
 
+const finalUiStyles = [
+    '/css/commercial-polish.css?v=20260710-commercial-polish-1'
+];
+
 const homeCriticalStyles = [
     '/css/profile-twitter-restored.css?v=20260710-profile-evolved-2',
     '/css/profile-customization-modal.css?v=20260710-profile-customize-modal-1',
@@ -116,7 +120,7 @@ function buildManifest(themeName = 'forest') {
 }
 
 function injectCriticalUiAssets(html, { home = false } = {}) {
-    const styles = [...criticalUiStyles, ...(home ? homeCriticalStyles : [])];
+    const styles = [...criticalUiStyles, ...(home ? homeCriticalStyles : []), ...finalUiStyles];
     const styleTags = styles
         .filter(asset => !html.includes(asset.split('?')[0]))
         .map(asset => `<link rel="stylesheet" href="${asset}" data-bibliotech-critical="true">`)
@@ -135,9 +139,9 @@ function injectCriticalUiAssets(html, { home = false } = {}) {
     if (scriptTags) {
         const pwaPattern = /<script src="(?:\/)?js\/pwa\.js(?:\?[^\"]*)?"><\/script>/;
         if (pwaPattern.test(html)) {
-            html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-10"></script>`);
+            html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-11"></script>`);
         } else {
-            html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-10"></script>\n</body>`);
+            html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-11"></script>\n</body>`);
         }
     }
 
@@ -239,8 +243,8 @@ app.use(express.static(frontendPath, {
 app.use('/api', limiter);
 app.use('/api/auth', sessionAuthRoutes);
 app.use('/api/auth', securityRoutes);
-app.use('/api/auth', passwordResetEmailRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/auth', passwordResetEmailRoutes);
 app.use('/api/account', accountRoutes);
 app.use('/api/book-metadata', bookMetadataRoutes);
 app.use('/api/books/import', bookImportRoutes);

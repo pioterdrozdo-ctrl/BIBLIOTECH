@@ -3,6 +3,7 @@ const SESSION_KEY = 'bibliotech_current_user';
 const POST_LOGIN_URL_KEY = 'bibliotech_post_login_url';
 const API_URL = window.BIBLIOTECH_API_URL || '/api';
 let currentToken = localStorage.getItem('token');
+let booksRequestVersion = 0;
 const state = {
     books: [],
     filter: 'all',
@@ -17,6 +18,10 @@ const state = {
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+function authToken() {
+    return localStorage.getItem('token') || currentToken || '';
+}
 
 function getSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY)) || null; }
@@ -190,19 +195,20 @@ function guessAuthor(description = '') {
 }
 
 async function loadBooks() {
+    const requestVersion = ++booksRequestVersion;
     try {
         const params = new URLSearchParams();
         if (state.filter !== 'all') params.append('filter', state.filter);
         if (state.sort !== 'relevance') params.append('sort', state.sort);
-        if (state.search) params.append('search', state.search);
         if (state.minCopies > 0) params.append('minCopies', state.minCopies);
 
         const response = await fetch(`${API_URL}/books?${params.toString()}`, {
-            headers: { 'Authorization': currentToken ? `Bearer ${currentToken}` : '' }
+            headers: { 'Authorization': authToken() ? `Bearer ${authToken()}` : '' }
         });
 
         if (response.ok) {
             const books = await response.json();
+            if (requestVersion !== booksRequestVersion) return;
             state.books = books.map(book => migrateBook({
                 ...book,
                 coverDataURL: book.coverDataURL || book.cover_data_url || book.coverDataUrl || null,
@@ -214,6 +220,7 @@ async function loadBooks() {
             throw new Error('API error');
         }
     } catch (error) {
+        if (requestVersion !== booksRequestVersion) return;
         console.warn('Using local storage fallback:', error);
         const raw = localStorage.getItem(STORAGE_KEY);
         try {
@@ -231,7 +238,7 @@ async function loadBooks() {
 async function loadStorageLocations() {
     try {
         const response = await fetch(`${API_URL}/storage-locations`, {
-            headers: { 'Authorization': currentToken ? `Bearer ${currentToken}` : '' }
+            headers: { 'Authorization': authToken() ? `Bearer ${authToken()}` : '' }
         });
         if (!response.ok) throw new Error('locations API error');
         const payload = await response.json();
@@ -257,7 +264,50 @@ function renderLocationSelect(selectedId = '') {
 }
 
 function saveBooks() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.books));
+    const safeSnapshot = state.books.map(book => ({
+        ...book,
+        coverDataURL: typeof book.coverDataURL === 'string' && book.coverDataURL.length <= 250000
+            ? book.coverDataURL
+            : null
+    }));
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(safeSnapshot));
+    } catch (error) {
+        console.warn('Catalog cache could not be saved:', error);
+        try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    }
+}
+
+async function compressImageFile(file, options = {}) {
+    if (!file?.type?.startsWith('image/')) throw new Error('INVALID_IMAGE');
+    if (file.size > 8 * 1024 * 1024) throw new Error('IMAGE_TOO_LARGE');
+
+    const objectUrl = URL.createObjectURL(file);
+    try {
+        const image = await new Promise((resolve, reject) => {
+            const element = new Image();
+            element.onload = () => resolve(element);
+            element.onerror = reject;
+            element.src = objectUrl;
+        });
+        const maxWidth = Number(options.maxWidth || 900);
+        const maxHeight = Number(options.maxHeight || 1200);
+        const scale = Math.min(1, maxWidth / image.naturalWidth, maxHeight / image.naturalHeight);
+        const width = Math.max(1, Math.round(image.naturalWidth * scale));
+        const height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext('2d', { alpha: false });
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, width, height);
+        context.drawImage(image, 0, 0, width, height);
+        const result = canvas.toDataURL('image/jpeg', Number(options.quality || 0.82));
+        if (result.length > Number(options.maxDataLength || 2.5 * 1024 * 1024)) throw new Error('IMAGE_TOO_LARGE');
+        return result;
+    } finally {
+        URL.revokeObjectURL(objectUrl);
+    }
 }
 
 function getSearchScore(book, query) {
@@ -375,7 +425,7 @@ function updateAdminPanel(stats = null) {
 async function updateDashboard() {
     try {
         const response = await fetch(`${API_URL}/stats`, {
-            headers: { 'Authorization': currentToken ? `Bearer ${currentToken}` : '' }
+            headers: { 'Authorization': authToken() ? `Bearer ${authToken()}` : '' }
         });
         if (response.ok) {
             const stats = await response.json();
@@ -443,12 +493,12 @@ function renderStats(books) {
     if (stats) stats.innerHTML = `Показано: <b>${books.length}</b> из <b>${total}</b> · В наличии: <b>${available}</b> · Экземпляров: <b>${copies}</b>`;
 }
 
-function renderBooks() {
+function renderBooks(options = {}) {
     const books = getFilteredBooks();
     const container = $('#booksContainer');
     if (!container) return;
     renderStats(books);
-    updateDashboard();
+    if (options.updateDashboard !== false) updateDashboard();
     $('#clearSearchBtn')?.classList.toggle('hidden', !state.search);
     if (!books.length) {
         container.innerHTML = `<div class="empty-state">📭 ${escapeHtml(getLangPack().emptySearch || 'Ничего не найдено. Попробуйте изменить запрос или фильтры.')}</div>`;
@@ -465,7 +515,7 @@ function renderBooks() {
         const controls = canManageBooks()
             ? `<button class="delete-btn" data-id="${book.id}" title="Удалить книгу">🗑️ ${escapeHtml(tr('clearAll')).replace(' всё','')}</button>`
             : `<span class="guest-note">${isGuest() ? escapeHtml(tr('guestView')) : 'Пользователь: просмотр и комментарии'}</span>`;
-        return `<div class="book-card ${state.search ? 'search-match-card' : ''}" data-id="${book.id}" tabindex="0">
+        return `<div class="book-card ${state.search ? 'search-match-card' : ''}" data-id="${book.id}" tabindex="0" aria-label="${escapeHtml(`Открыть книгу: ${book.title}, ${book.author || 'автор не указан'}`)}">
             <div class="book-cover">${coverHtml}</div>
             <div class="book-info">
                 <div class="book-title">${highlight(book.title, state.search)}</div>
@@ -572,7 +622,7 @@ async function toggleBookRental() {
     try {
         const response = await fetch(`${API_URL}/books/${book.id}/${endpoint}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': currentToken ? `Bearer ${currentToken}` : '' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': authToken() ? `Bearer ${authToken()}` : '' },
             body: JSON.stringify({ rentalId: book.myRentalId || null })
         });
         const payload = await response.json().catch(() => ({}));
@@ -658,7 +708,7 @@ async function addBook(event) {
     try {
         const response = await fetch(requestUrl, {
             method: requestMethod,
-            headers: { 'Content-Type': 'application/json', 'Authorization': currentToken ? `Bearer ${currentToken}` : '' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': authToken() ? `Bearer ${authToken()}` : '' },
             body: JSON.stringify(bookData)
         });
 
@@ -689,37 +739,8 @@ async function addBook(event) {
             throw new Error(err.error || 'API error');
         }
     } catch (error) {
-        console.error('Fallback (локальное сохранение):', error);
-        if (editingId && existingBook) {
-            Object.assign(existingBook, {
-                title,
-                author,
-                description,
-                available,
-                copies: normalizedCopies,
-                coverDataURL: state.coverDataUrl,
-                locationId,
-                location_id: locationId,
-                location: state.storageLocations.find(location => Number(location.id) === Number(locationId)) || null,
-                comments: existingBook.comments || []
-            });
-        } else {
-            state.books.unshift({
-                id: Date.now(), title, author, description,
-                available, copies: normalizedCopies,
-                coverDataURL: state.coverDataUrl,
-                locationId,
-                location_id: locationId,
-                location: state.storageLocations.find(location => Number(location.id) === Number(locationId)) || null,
-                dateAdded: formatDate(), comments: []
-            });
-        }
-        saveBooks();
-        closeModal('#bookModal');
-        resetBookForm();
-        renderBooks();
-        if (editingId) openBook(editingId);
-        notify(editingId ? 'Карточка обновлена локально (офлайн режим)' : 'Книга добавлена локально (офлайн режим)', 'warning');
+        console.error('Book save failed:', error);
+        notify('Не удалось сохранить книгу. Проверьте соединение — изменения не применены.', 'error');
     }
 }
 
@@ -734,12 +755,10 @@ async function deleteBook(id) {
         danger: true
     });
     if (!ok) return;
-    const index = state.books.findIndex(b => b.id === book.id);
-
     try {
         const response = await fetch(`${API_URL}/books/${id}`, {
             method: 'DELETE',
-            headers: { 'Authorization': currentToken ? `Bearer ${currentToken}` : '' }
+            headers: { 'Authorization': authToken() ? `Bearer ${authToken()}` : '' }
         });
 
         if (response.ok) {
@@ -751,11 +770,7 @@ async function deleteBook(id) {
             throw new Error('API error');
         }
     } catch (error) {
-        // Fallback: удаляем локально
-        state.books = state.books.filter(b => b.id !== book.id);
-        saveBooks();
-        renderBooks();
-        notify(`Карточка «${book.title}» удалена локально`, 'delete');
+        notify(`Не удалось удалить «${book.title}». Проверьте соединение и повторите.`, 'error');
     }
 }
 
@@ -768,7 +783,7 @@ async function updateCopies(delta) {
     try {
         const response = await fetch(`${API_URL}/books/${book.id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': currentToken ? `Bearer ${currentToken}` : '' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': authToken() ? `Bearer ${authToken()}` : '' },
             body: JSON.stringify({ copies: newCopies, available: newCopies > 0 })
         });
 
@@ -782,13 +797,7 @@ async function updateCopies(delta) {
             throw new Error('API error');
         }
     } catch (error) {
-        // Fallback
-        book.copies = newCopies;
-        book.available = newCopies > 0;
-        saveBooks();
-        openBook(book.id);
-        renderBooks();
-        notify('Количество обновлено локально', 'warning');
+        notify('Не удалось изменить количество экземпляров. Данные не изменены.', 'error');
     }
 }
 
@@ -803,7 +812,7 @@ async function addComment() {
     try {
         const response = await fetch(`${API_URL}/comments`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': currentToken ? `Bearer ${currentToken}` : '' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': authToken() ? `Bearer ${authToken()}` : '' },
             body: JSON.stringify({ bookId: book.id, text })
         });
 
@@ -819,13 +828,7 @@ async function addComment() {
             throw new Error('API error');
         }
     } catch (error) {
-        // Fallback
-        book.comments.unshift({ text, date: formatDate() });
-        input.value = '';
-        saveBooks();
-        renderComments(book);
-        renderBooks();
-        notify('Комментарий добавлен локально', 'warning');
+        notify('Не удалось добавить комментарий. Проверьте соединение.', 'error');
     }
 }
 
@@ -838,11 +841,15 @@ async function deleteComment(index) {
 
     if (comment.id) {
         try {
-            await fetch(`${API_URL}/comments/${comment.id}`, {
+            const response = await fetch(`${API_URL}/comments/${comment.id}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': currentToken ? `Bearer ${currentToken}` : '' }
+                headers: { 'Authorization': authToken() ? `Bearer ${authToken()}` : '' }
             });
-        } catch (e) { }
+            if (!response.ok) throw new Error('COMMENT_DELETE_FAILED');
+        } catch (error) {
+            notify('Не удалось удалить комментарий. Проверьте соединение.', 'error');
+            return;
+        }
     }
 
     book.comments.splice(Number(index), 1);
@@ -923,6 +930,10 @@ function notify(message, type = 'success', options = {}) {
     const titles = { success: 'Готово', error: 'Ошибка', info: 'Информация', warning: 'Внимание', delete: 'Удаление' };
     const el = document.createElement('div');
     el.className = `custom-notification toast ${type}`;
+    const isUrgent = type === 'error' || type === 'warning';
+    el.setAttribute('role', isUrgent ? 'alert' : 'status');
+    el.setAttribute('aria-live', isUrgent ? 'assertive' : 'polite');
+    el.setAttribute('aria-atomic', 'true');
     const action = options.actionText ? `<button class="toast-action">${escapeHtml(options.actionText)}</button>` : '';
     el.innerHTML = `
         <div class="toast-icon">${icons[type] || icons.success}</div>
@@ -1777,12 +1788,23 @@ function setupProfileModal() {
     closeBtn?.addEventListener('click', () => closeModal('#profileModal'));
     modal?.addEventListener('click', e => { if (e.target.id === 'profileModal') closeModal('#profileModal'); });
     logoutBtn?.addEventListener('click', () => { clearAuthSession(); window.location.href = 'index.html'; });
-    avatarInput?.addEventListener('change', (e) => {
+    avatarInput?.addEventListener('change', async (e) => {
         const file = e.target.files?.[0];
         if (!file || !file.type.startsWith('image/')) return;
-        const reader = new FileReader();
-        reader.onload = () => { localStorage.setItem(getProfileAvatarKey(), reader.result); applyProfileAvatar(); notify('Аватар обновлён', 'success'); };
-        reader.readAsDataURL(file);
+        try {
+            const avatar = await compressImageFile(file, {
+                maxWidth: 320,
+                maxHeight: 320,
+                quality: 0.8,
+                maxDataLength: 600000
+            });
+            localStorage.setItem(getProfileAvatarKey(), avatar);
+            applyProfileAvatar();
+            notify('Аватар обновлён', 'success');
+        } catch (error) {
+            e.target.value = '';
+            notify('Не удалось обработать аватар. Выберите изображение до 8 МБ.', 'error');
+        }
     });
     presetGrid?.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-avatar]');
@@ -1976,7 +1998,20 @@ function init() {
     setupHeroWow();
 
     const menu = $('#navMenu'), menuBtn = $('#menuIcon');
-    menuBtn?.addEventListener('click', () => { menu?.classList.toggle('active'); menuBtn.classList.toggle('active'); document.body.classList.toggle('lock'); });
+    const setMobileMenuOpen = (open) => {
+        if (!menu || !menuBtn) return;
+        menu.classList.toggle('active', open);
+        menuBtn.classList.toggle('active', open);
+        menuBtn.setAttribute('aria-expanded', String(open));
+        menuBtn.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
+        document.body.classList.toggle('lock', open);
+    };
+    menuBtn?.addEventListener('click', () => setMobileMenuOpen(!menu?.classList.contains('active')));
+    document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape' || !menu?.classList.contains('active')) return;
+        setMobileMenuOpen(false);
+        menuBtn?.focus();
+    });
 
     $('#logoutBtn')?.addEventListener('click', (e) => { e.preventDefault(); clearAuthSession(); window.location.href = 'index.html'; });
     $('#openModalBtn')?.addEventListener('click', openAddBookModal);
@@ -1989,7 +2024,7 @@ function init() {
     $('#editBookBtn')?.addEventListener('click', () => openBookEditor(state.activeBookId));
     $('#bookForm')?.addEventListener('submit', addBook);
 
-    $('#bookCoverInput')?.addEventListener('change', (e) => {
+    $('#bookCoverInput')?.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         const preview = $('#imagePreview');
         const clearCoverBtn = $('#clearBookCoverBtn');
@@ -1999,14 +2034,16 @@ function init() {
             if (preview && !state.coverDataUrl) preview.innerHTML = '🖼️ Обложка не выбрана';
             return;
         }
-        if (!file.type.startsWith('image/')) { notify('Выберите изображение', 'error'); return; }
-        const reader = new FileReader();
-        reader.onload = () => {
-            state.coverDataUrl = reader.result;
+        try {
+            state.coverDataUrl = await compressImageFile(file);
             clearCoverBtn?.classList.remove('hidden');
-            if (preview) preview.innerHTML = `<img src="${reader.result}" class="preview-img" alt="preview"><span>✅ Обложка готова</span>`;
-        };
-        reader.readAsDataURL(file);
+            if (preview) preview.innerHTML = `<img src="${state.coverDataUrl}" class="preview-img" alt="Предпросмотр обложки"><span>✅ Обложка оптимизирована</span>`;
+        } catch (error) {
+            e.target.value = '';
+            notify(error.message === 'IMAGE_TOO_LARGE'
+                ? 'Изображение слишком большое. Выберите файл до 8 МБ.'
+                : 'Не удалось обработать изображение.', 'error');
+        }
     });
 
     $('#clearBookCoverBtn')?.addEventListener('click', () => {
@@ -2044,14 +2081,14 @@ function init() {
     $('#searchInput')?.addEventListener('input', (e) => {
         state.search = e.target.value;
         localStorage.setItem('lastSearch', state.search);
-        loadBooks(); 
+        renderBooks({ updateDashboard: false });
     });
 
     $('#clearSearchBtn')?.addEventListener('click', () => {
         $('#searchInput').value = '';
         state.search = '';
         localStorage.removeItem('lastSearch');
-        loadBooks(); 
+        renderBooks({ updateDashboard: false });
         $('#searchInput').focus();
     });
 
@@ -2119,6 +2156,14 @@ function init() {
         }
         const card = e.target.closest('.book-card');
         if (card) openBook(card.dataset.id);
+    });
+
+    $('#booksContainer')?.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const card = event.target.closest('.book-card');
+        if (!card || event.target !== card) return;
+        event.preventDefault();
+        openBook(card.dataset.id);
     });
 
     $('#commentsList')?.addEventListener('click', (e) => {

@@ -70,7 +70,7 @@ function validateArchitecture() {
     assert.ok(css.includes('@media (max-width: 700px)'), 'mobile metadata form is missing');
     assert.ok(pwa.includes('book-metadata.js?v=20260710-book-metadata-1'), 'PWA does not load metadata JavaScript');
     assert.ok(pwa.includes('book-metadata.css?v=20260710-book-metadata-1'), 'PWA does not load metadata CSS');
-    assert.ok(sw.includes("CACHE_NAME = 'bibliotech-pwa-v25'"), 'PWA cache was not invalidated');
+    assert.match(sw, /const CACHE_NAME = 'bibliotech-pwa-v\d[^']*'/, 'PWA cache has no versioned name');
     assert.ok(sw.includes("'/js/book-metadata.js'"), 'metadata JavaScript is not cached');
     assert.ok(sw.includes("'/css/book-metadata.css'"), 'metadata CSS is not cached');
 }
