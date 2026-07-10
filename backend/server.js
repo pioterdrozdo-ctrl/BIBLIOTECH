@@ -7,11 +7,13 @@ const fs = require('fs');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 require('./services/registerAccountFallback');
+require('./services/registerBookMetadataFallback');
 const sessionAuthRoutes = require('./routes/sessionAuth');
 const securityRoutes = require('./routes/security');
 const passwordResetEmailRoutes = require('./routes/passwordResetEmail');
 const authRoutes = require('./routes/auth');
 const accountRoutes = require('./routes/account');
+const bookMetadataRoutes = require('./routes/bookMetadata');
 const bookImportRoutes = require('./routes/bookImport');
 const bookRoutes = require('./routes/books');
 const commentRoutes = require('./routes/comments');
@@ -52,10 +54,12 @@ const homeCriticalStyles = [
     '/css/profile-customization-modal.css?v=20260710-profile-customize-modal-1',
     '/css/profile-settings-modal.css?v=20260710-profile-settings-1',
     '/css/account-settings-features.css?v=20260710-account-settings-1',
-    '/css/home-minimal.css?v=20260710-home-minimal-1'
+    '/css/home-minimal.css?v=20260710-home-minimal-1',
+    '/css/book-metadata.css?v=20260710-book-metadata-1'
 ];
 
 const homeCriticalScripts = [
+    '/js/book-metadata.js?v=20260710-book-metadata-1',
     '/js/rentals-request-guard.js?v=20260710-rentals-guard-1',
     '/js/profile-rentals.js?v=20260709-profile-rentals-1',
     '/js/profile-twitter.js?v=20260710-profile-customize-modal-1',
@@ -126,9 +130,9 @@ function injectCriticalUiAssets(html, { home = false } = {}) {
     if (scriptTags) {
         const pwaPattern = /<script src="(?:\/)?js\/pwa\.js(?:\?[^\"]*)?"><\/script>/;
         if (pwaPattern.test(html)) {
-            html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-8"></script>`);
+            html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-9"></script>`);
         } else {
-            html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-8"></script>\n</body>`);
+            html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-9"></script>\n</body>`);
         }
     }
 
@@ -234,6 +238,7 @@ app.use('/api/auth', securityRoutes);
 app.use('/api/auth', passwordResetEmailRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/account', accountRoutes);
+app.use('/api/book-metadata', bookMetadataRoutes);
 app.use('/api/books/import', bookImportRoutes);
 app.use('/api/books', catalogListRoutes);
 app.use('/api/books', bookRoutes);

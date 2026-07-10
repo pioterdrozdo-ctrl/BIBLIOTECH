@@ -40,6 +40,14 @@ CREATE TABLE IF NOT EXISTS books (
     available BOOLEAN DEFAULT true,
     qr_code VARCHAR(32) UNIQUE,
     location_id INTEGER REFERENCES storage_locations(id) ON DELETE SET NULL,
+    isbn VARCHAR(13),
+    publication_year INTEGER,
+    publisher VARCHAR(255),
+    genre VARCHAR(160),
+    language VARCHAR(80),
+    metadata_source VARCHAR(40),
+    metadata_source_url TEXT,
+    metadata_updated_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
@@ -67,6 +75,14 @@ ALTER TABLE books ADD COLUMN IF NOT EXISTS copies INTEGER DEFAULT 1;
 ALTER TABLE books ADD COLUMN IF NOT EXISTS available BOOLEAN DEFAULT true;
 ALTER TABLE books ADD COLUMN IF NOT EXISTS qr_code VARCHAR(32);
 ALTER TABLE books ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES storage_locations(id) ON DELETE SET NULL;
+ALTER TABLE books ADD COLUMN IF NOT EXISTS isbn VARCHAR(13);
+ALTER TABLE books ADD COLUMN IF NOT EXISTS publication_year INTEGER;
+ALTER TABLE books ADD COLUMN IF NOT EXISTS publisher VARCHAR(255);
+ALTER TABLE books ADD COLUMN IF NOT EXISTS genre VARCHAR(160);
+ALTER TABLE books ADD COLUMN IF NOT EXISTS language VARCHAR(80);
+ALTER TABLE books ADD COLUMN IF NOT EXISTS metadata_source VARCHAR(40);
+ALTER TABLE books ADD COLUMN IF NOT EXISTS metadata_source_url TEXT;
+ALTER TABLE books ADD COLUMN IF NOT EXISTS metadata_updated_at TIMESTAMP;
 ALTER TABLE books ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE books ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;
 
@@ -88,6 +104,11 @@ CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);
 CREATE INDEX IF NOT EXISTS idx_books_available ON books(available);
 CREATE INDEX IF NOT EXISTS idx_books_qr_code ON books(qr_code);
 CREATE INDEX IF NOT EXISTS idx_books_location_id ON books(location_id);
+CREATE INDEX IF NOT EXISTS idx_books_publication_year ON books(publication_year);
+CREATE INDEX IF NOT EXISTS idx_books_publisher ON books(publisher);
+CREATE INDEX IF NOT EXISTS idx_books_genre ON books(genre);
+CREATE INDEX IF NOT EXISTS idx_books_language ON books(language);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_books_isbn_unique ON books(isbn) WHERE isbn IS NOT NULL AND isbn <> '';
 CREATE INDEX IF NOT EXISTS idx_comments_book_id ON comments(book_id);
 CREATE INDEX IF NOT EXISTS idx_book_rentals_book_id ON book_rentals(book_id);
 CREATE INDEX IF NOT EXISTS idx_book_rentals_user_id ON book_rentals(user_id);

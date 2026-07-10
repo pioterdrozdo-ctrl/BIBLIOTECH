@@ -144,6 +144,7 @@
     }
 
     if (isHomePage) {
+        loadScript('js/book-metadata.js?v=20260710-book-metadata-1', '__bibliotechBookMetadataLoading');
         loadScript('js/rentals-request-guard.js?v=20260710-rentals-guard-1', '__bibliotechRentalsRequestGuardLoading');
         loadScript('js/profile-rentals.js?v=20260709-profile-rentals-1', '__bibliotechProfileRentalsLoading');
         loadScript('js/profile-twitter.js?v=20260710-profile-customize-modal-1', '__bibliotechProfileTwitterLoading');
@@ -167,6 +168,7 @@
         loadStylesheet('css/profile-settings-modal.css?v=20260710-profile-settings-1', '__bibliotechProfileSettingsCss');
         loadStylesheet('css/account-settings-features.css?v=20260710-account-settings-1', '__bibliotechAccountSettingsFeaturesCss');
         loadStylesheet('css/home-minimal.css?v=20260710-home-minimal-1', '__bibliotechHomeMinimalCss');
+        loadStylesheet('css/book-metadata.css?v=20260710-book-metadata-1', '__bibliotechBookMetadataCss');
     }
 
     loadStylesheet('css/theme-mode-preview.css?v=20260710-theme-mode-preview-1', '__bibliotechThemeModePreviewCss');

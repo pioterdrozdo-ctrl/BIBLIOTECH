@@ -3,6 +3,7 @@ const pool = require('../db/pool');
 const localStore = require('../services/localStore');
 const { optionalAuthMiddleware } = require('../middleware/auth');
 const { normalizeBookQrFields } = require('../utils/bookQr');
+const { ensureBookMetadataSchema } = require('../services/bookMetadataSchema');
 
 const router = express.Router();
 
@@ -46,6 +47,10 @@ function mapListBook(book) {
     return {
         ...bookData,
         ...normalizeBookQrFields(book),
+        publicationYear: book.publication_year ?? book.publicationYear ?? null,
+        metadataSource: book.metadata_source || book.metadataSource || null,
+        metadataSourceUrl: book.metadata_source_url || book.metadataSourceUrl || null,
+        metadataUpdatedAt: book.metadata_updated_at || book.metadataUpdatedAt || null,
         location_id: locationId,
         locationId,
         location,
@@ -54,7 +59,7 @@ function mapListBook(book) {
         my_rental_id: myRentalId,
         myRentalId,
         rentedByMe: Boolean(myRentalId || book.rentedByMe),
-        coverDataURL: null
+        coverDataURL: coverDataURL || cover_data_url || null
     };
 }
 
@@ -85,6 +90,7 @@ async function ensureCatalogListSchema() {
         VALUES ('ИКТ-ФВ 13', '09', 'Надставка'), ('ИКТ-ФВ 13', '12', 'Надставка')
         ON CONFLICT DO NOTHING;
     `);
+    await ensureBookMetadataSchema();
 }
 
 router.get('/', optionalAuthMiddleware, async (req, res, next) => {
@@ -100,6 +106,14 @@ router.get('/', optionalAuthMiddleware, async (req, res, next) => {
                b.created_at,
                b.qr_code,
                b.location_id,
+               b.isbn,
+               b.publication_year,
+               b.publisher,
+               b.genre,
+               b.language,
+               b.metadata_source,
+               b.metadata_source_url,
+               b.metadata_updated_at,
                l.shelf_code,
                l.place_code,
                l.note AS location_note,
@@ -117,7 +131,20 @@ router.get('/', optionalAuthMiddleware, async (req, res, next) => {
     let paramCounter = 2;
 
     if (search && search.trim()) {
-        conditions.push(`(b.title ILIKE $${paramCounter} OR b.author ILIKE $${paramCounter} OR b.description ILIKE $${paramCounter} OR b.qr_code ILIKE $${paramCounter} OR l.shelf_code ILIKE $${paramCounter} OR l.place_code ILIKE $${paramCounter} OR l.note ILIKE $${paramCounter})`);
+        conditions.push(`(
+            b.title ILIKE $${paramCounter}
+            OR b.author ILIKE $${paramCounter}
+            OR b.description ILIKE $${paramCounter}
+            OR b.qr_code ILIKE $${paramCounter}
+            OR b.isbn ILIKE $${paramCounter}
+            OR b.publisher ILIKE $${paramCounter}
+            OR b.genre ILIKE $${paramCounter}
+            OR b.language ILIKE $${paramCounter}
+            OR CAST(b.publication_year AS TEXT) ILIKE $${paramCounter}
+            OR l.shelf_code ILIKE $${paramCounter}
+            OR l.place_code ILIKE $${paramCounter}
+            OR l.note ILIKE $${paramCounter}
+        )`);
         params.push(`%${search}%`);
         paramCounter++;
     }
@@ -134,31 +161,15 @@ router.get('/', optionalAuthMiddleware, async (req, res, next) => {
     query += ' GROUP BY b.id, l.id, l.shelf_code, l.place_code, l.note';
 
     switch (sort) {
-        case 'title-asc':
-            query += ' ORDER BY b.title ASC';
-            break;
-        case 'title-desc':
-            query += ' ORDER BY b.title DESC';
-            break;
-        case 'author-asc':
-            query += ' ORDER BY b.author ASC';
-            break;
-        case 'date-oldest':
-            query += ' ORDER BY b.created_at ASC';
-            break;
-        case 'copies-desc':
-            query += ' ORDER BY b.copies DESC';
-            break;
-        case 'copies-asc':
-            query += ' ORDER BY b.copies ASC';
-            break;
-        case 'available-first':
-            query += ' ORDER BY b.available DESC, b.title ASC';
-            break;
+        case 'title-asc': query += ' ORDER BY b.title ASC'; break;
+        case 'title-desc': query += ' ORDER BY b.title DESC'; break;
+        case 'author-asc': query += ' ORDER BY b.author ASC'; break;
+        case 'date-oldest': query += ' ORDER BY b.created_at ASC'; break;
+        case 'copies-desc': query += ' ORDER BY b.copies DESC'; break;
+        case 'copies-asc': query += ' ORDER BY b.copies ASC'; break;
+        case 'available-first': query += ' ORDER BY b.available DESC, b.title ASC'; break;
         case 'date-newest':
-        default:
-            query += ' ORDER BY b.created_at DESC';
-            break;
+        default: query += ' ORDER BY b.created_at DESC'; break;
     }
 
     try {
