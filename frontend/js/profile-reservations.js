@@ -115,6 +115,7 @@
                 const payload = await response.json().catch(() => ({}));
                 if (!response.ok) throw new Error(payload.error || 'Не удалось отменить бронь.');
                 applyBookSnapshot(bookId, payload.book);
+                window.BibliotechRentalsRequestGuard?.clear?.();
                 notify('Бронирование отменено', 'success');
                 await loadReservations();
                 if (window.BibliotechReservationQueue?.refreshBookReservation) {
