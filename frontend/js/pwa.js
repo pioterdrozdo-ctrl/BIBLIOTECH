@@ -26,6 +26,32 @@
         document.head.appendChild(link);
     }
 
+    function installThemeControllerBridge() {
+        var controller = window.BibliotechTheme;
+        if (!controller) return;
+
+        var reapply = function () {
+            var state = controller.getState();
+            controller.apply(state.theme, state.mode, { persist: false, emit: false });
+            controller.bindControls();
+        };
+
+        // script.js and app.js contain the legacy two-theme implementation.
+        // Replace only their public setup hooks before DOMContentLoaded runs.
+        window.applyTheme = function (theme) {
+            var state = controller.getState();
+            return controller.apply(theme, state.mode, { persist: false });
+        };
+        window.setupTheme = reapply;
+        window.applyAuthTheme = function (theme) {
+            var state = controller.getState();
+            return controller.apply(theme, state.mode, { persist: false });
+        };
+        window.setupAuthTheme = reapply;
+    }
+
+    installThemeControllerBridge();
+
     function wireAdminProfileLink() {
         var pill = document.getElementById('currentUserPill');
         if (!pill || pill.dataset.profileBridgeReady === 'true') return;
@@ -72,10 +98,14 @@
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () {
+            installThemeControllerBridge();
+            window.BibliotechTheme?.bindControls();
             if (isAdminPage) wireAdminProfileLink();
             if (isHomePage) openPendingProfile();
         });
     } else {
+        installThemeControllerBridge();
+        window.BibliotechTheme?.bindControls();
         if (isAdminPage) wireAdminProfileLink();
         if (isHomePage) openPendingProfile();
     }
@@ -114,6 +144,11 @@
     if (isHomePage) {
         loadStylesheet('css/profile-twitter-restored.css?v=20260710-profile-restored-1', '__bibliotechProfileTwitterRestoredCss');
     }
+
+    loadStylesheet('css/theme-mode-preview.css?v=20260710-theme-mode-preview-1', '__bibliotechThemeModePreviewCss');
+
+    // The liquid switch must be the last visual layer on every page.
+    loadStylesheet('css/liquid-theme-toggle.css?v=20260710-liquid-theme-1', '__bibliotechLiquidThemeToggleCss');
 
     if (!('serviceWorker' in navigator)) return;
 

@@ -1,0 +1,44 @@
+/* Small clarity layer for paired palette + brightness selection. */
+
+.theme-preset[data-active-mode] {
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-preset[data-active-mode]::after {
+    content: attr(data-active-mode);
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    min-height: 22px;
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    color: var(--text);
+    font-size: 0;
+    font-weight: 850;
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(10px);
+    pointer-events: none;
+}
+
+.theme-preset[data-active-mode="light"]::after {
+    content: "☀ Светлая";
+    font-size: 10px;
+}
+
+.theme-preset[data-active-mode="dark"]::after {
+    content: "☾ Тёмная";
+    font-size: 10px;
+}
+
+@media (max-width: 480px) {
+    .theme-preset[data-active-mode]::after {
+        top: 6px;
+        right: 6px;
+        padding-inline: 6px;
+    }
+}

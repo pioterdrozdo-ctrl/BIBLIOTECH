@@ -1,0 +1,197 @@
+/* Liquid-glass brightness toggle shared by the login screen and the app. */
+
+.floating-theme-toggle,
+.auth-theme-toggle {
+    --liquid-size: 58px;
+    position: fixed;
+    z-index: 1500;
+    width: var(--liquid-size) !important;
+    height: var(--liquid-size) !important;
+    min-width: var(--liquid-size) !important;
+    min-height: var(--liquid-size) !important;
+    display: grid !important;
+    place-items: center !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, rgba(255, 255, 255, 0.52)) !important;
+    border-radius: 50% !important;
+    background:
+        radial-gradient(circle at 29% 20%, rgba(255, 255, 255, 0.78) 0 7%, transparent 27%),
+        linear-gradient(145deg,
+            color-mix(in srgb, var(--surface) 72%, rgba(255, 255, 255, 0.36)),
+            color-mix(in srgb, var(--accent-soft) 54%, transparent)) !important;
+    color: var(--text) !important;
+    box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.72),
+        inset 0 -8px 18px color-mix(in srgb, var(--accent) 12%, transparent),
+        0 13px 34px rgba(8, 23, 16, 0.18),
+        0 0 0 1px color-mix(in srgb, var(--surface) 24%, transparent) !important;
+    backdrop-filter: blur(22px) saturate(170%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(170%) !important;
+    isolation: isolate;
+    cursor: pointer;
+    font-size: 25px !important;
+    line-height: 1 !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+    transform: translateZ(0);
+    transition:
+        transform 180ms cubic-bezier(.2,.8,.2,1),
+        border-color 220ms ease,
+        box-shadow 220ms ease,
+        background 280ms ease,
+        filter 220ms ease !important;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.floating-theme-toggle {
+    right: max(18px, env(safe-area-inset-right)) !important;
+    bottom: max(18px, env(safe-area-inset-bottom)) !important;
+}
+
+.auth-theme-toggle {
+    --liquid-size: 54px;
+    top: max(18px, env(safe-area-inset-top)) !important;
+    right: max(18px, env(safe-area-inset-right)) !important;
+}
+
+.floating-theme-toggle::before,
+.auth-theme-toggle::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    width: 76%;
+    height: 76%;
+    top: -28%;
+    left: -15%;
+    border-radius: 45% 55% 62% 38%;
+    background: rgba(255, 255, 255, 0.42);
+    filter: blur(5px);
+    transform: rotate(-18deg);
+    transition: transform 500ms cubic-bezier(.2,.75,.2,1), opacity 220ms ease;
+    pointer-events: none;
+}
+
+.floating-theme-toggle::after,
+.auth-theme-toggle::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    width: 68%;
+    height: 68%;
+    right: -24%;
+    bottom: -30%;
+    border-radius: 62% 38% 44% 56%;
+    background: color-mix(in srgb, var(--accent) 32%, transparent);
+    filter: blur(8px);
+    transition: transform 520ms cubic-bezier(.2,.75,.2,1), background 280ms ease;
+    pointer-events: none;
+}
+
+.floating-theme-toggle[data-theme-mode="dark"],
+.auth-theme-toggle[data-theme-mode="dark"] {
+    border-color: color-mix(in srgb, var(--accent) 44%, rgba(255, 255, 255, 0.16)) !important;
+    background:
+        radial-gradient(circle at 31% 21%, rgba(255, 255, 255, 0.38) 0 6%, transparent 25%),
+        linear-gradient(145deg,
+            color-mix(in srgb, var(--surface) 78%, rgba(255, 255, 255, 0.08)),
+            color-mix(in srgb, var(--accent-soft) 68%, transparent)) !important;
+    box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.26),
+        inset 0 -10px 22px color-mix(in srgb, var(--accent) 15%, transparent),
+        0 14px 38px rgba(0, 0, 0, 0.34),
+        0 0 24px color-mix(in srgb, var(--accent) 13%, transparent) !important;
+}
+
+.floating-theme-toggle[data-theme-mode="dark"]::before,
+.auth-theme-toggle[data-theme-mode="dark"]::before {
+    opacity: 0.58;
+    transform: translate(8px, 4px) rotate(26deg) scale(0.9);
+}
+
+.floating-theme-toggle[data-theme-mode="dark"]::after,
+.auth-theme-toggle[data-theme-mode="dark"]::after {
+    transform: translate(-8px, -6px) rotate(-18deg) scale(1.12);
+}
+
+.floating-theme-toggle:hover,
+.auth-theme-toggle:hover {
+    transform: translateY(-3px) scale(1.045);
+    border-color: color-mix(in srgb, var(--accent) 58%, rgba(255, 255, 255, 0.64)) !important;
+    box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.78),
+        inset 0 -9px 20px color-mix(in srgb, var(--accent) 15%, transparent),
+        0 18px 42px rgba(8, 23, 16, 0.22),
+        0 0 28px color-mix(in srgb, var(--accent) 16%, transparent) !important;
+}
+
+.floating-theme-toggle:hover::before,
+.auth-theme-toggle:hover::before {
+    transform: translate(11px, 7px) rotate(18deg) scale(1.08);
+}
+
+.floating-theme-toggle:hover::after,
+.auth-theme-toggle:hover::after {
+    transform: translate(-10px, -8px) rotate(-24deg) scale(1.16);
+}
+
+.floating-theme-toggle:active,
+.auth-theme-toggle:active {
+    transform: translateY(0) scale(0.93);
+    filter: saturate(118%);
+    transition-duration: 80ms !important;
+}
+
+.floating-theme-toggle:focus-visible,
+.auth-theme-toggle:focus-visible {
+    outline: none !important;
+    box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.72),
+        0 12px 32px rgba(8, 23, 16, 0.2),
+        0 0 0 3px var(--surface),
+        0 0 0 6px color-mix(in srgb, var(--accent) 48%, transparent) !important;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .floating-theme-toggle,
+    .auth-theme-toggle {
+        background: color-mix(in srgb, var(--surface) 94%, var(--accent-soft)) !important;
+    }
+}
+
+@media (hover: none), (pointer: coarse) {
+    .floating-theme-toggle:hover,
+    .auth-theme-toggle:hover {
+        transform: none;
+    }
+
+    .floating-theme-toggle {
+        --liquid-size: 56px;
+    }
+
+    .auth-theme-toggle {
+        --liquid-size: 52px;
+    }
+}
+
+@media (max-width: 480px) {
+    .floating-theme-toggle {
+        right: max(12px, env(safe-area-inset-right)) !important;
+        bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    }
+
+    .auth-theme-toggle {
+        top: max(12px, env(safe-area-inset-top)) !important;
+        right: max(12px, env(safe-area-inset-right)) !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .floating-theme-toggle,
+    .auth-theme-toggle,
+    .floating-theme-toggle::before,
+    .auth-theme-toggle::before,
+    .floating-theme-toggle::after,
+    .auth-theme-toggle::after {
+        transition-duration: 0.01ms !important;
+    }
+}
