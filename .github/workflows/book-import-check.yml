@@ -1,0 +1,55 @@
+name: Bulk book import check
+
+on:
+  pull_request:
+    paths:
+      - 'backend/routes/bookImport.js'
+      - 'backend/services/bookImport.js'
+      - 'backend/services/localBookImportStore.js'
+      - 'backend/server.js'
+      - 'frontend/admin.html'
+      - 'frontend/js/book-import.js'
+      - 'frontend/css/book-import.css'
+      - 'frontend/sw.js'
+      - 'package.json'
+      - 'scripts/check-book-import.js'
+      - '.github/workflows/book-import-check.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/routes/bookImport.js'
+      - 'backend/services/bookImport.js'
+      - 'backend/services/localBookImportStore.js'
+      - 'backend/server.js'
+      - 'frontend/admin.html'
+      - 'frontend/js/book-import.js'
+      - 'frontend/css/book-import.css'
+      - 'frontend/sw.js'
+      - 'package.json'
+      - 'scripts/check-book-import.js'
+
+permissions:
+  contents: read
+
+jobs:
+  check-book-import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install application
+        run: npm install
+      - name: Check JavaScript syntax
+        run: |
+          node --check backend/routes/bookImport.js
+          node --check backend/services/bookImport.js
+          node --check backend/services/localBookImportStore.js
+          node --check backend/server.js
+          node --check frontend/js/book-import.js
+          node --check frontend/sw.js
+          node --check scripts/check-book-import.js
+      - name: Validate CSV and Excel imports
+        run: node scripts/check-book-import.js
