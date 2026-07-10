@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const localStore = require('./localStore');
+const localStore = require('./registerBookMetadataFallback');
 const { normalizeBookMetadataInput } = require('./isbnMetadata');
 
 function readStore() {
