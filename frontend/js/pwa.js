@@ -108,6 +108,7 @@
 
     // Load the visual refresh last so it can refine every page without changing application logic.
     loadStylesheet('css/ui-refresh.css?v=20260710-ui-refresh-1', '__bibliotechUiRefreshCss');
+    loadStylesheet('css/ui-refresh-release-fix.css?v=20260710-ui-release-fix-1', '__bibliotechUiReleaseFixCss');
 
     if (!('serviceWorker' in navigator)) return;
 
