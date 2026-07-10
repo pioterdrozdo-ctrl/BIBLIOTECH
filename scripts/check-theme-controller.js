@@ -45,6 +45,11 @@ class Element {
     matches() { return false; }
 }
 
+function assertState(actual, theme, mode, message = 'theme state mismatch') {
+    assert.equal(actual.theme, theme, `${message}: palette`);
+    assert.equal(actual.mode, mode, `${message}: brightness mode`);
+}
+
 function createStorage(seed = {}) {
     const values = new Map(Object.entries(seed));
     return {
@@ -120,7 +125,7 @@ function createRuntime(seed = {}, search = '') {
 for (const theme of themes) {
     const runtime = createRuntime({ theme });
     const expectedMode = legacyDarkThemes.has(theme) ? 'dark' : 'light';
-    assert.deepEqual(runtime.controller.getState(), { theme, mode: expectedMode }, `legacy migration failed for ${theme}`);
+    assertState(runtime.controller.getState(), theme, expectedMode, `legacy migration failed for ${theme}`);
     assert.equal(runtime.localStorage.getItem('bibliotech_theme_mode'), expectedMode);
 }
 
@@ -128,7 +133,7 @@ for (const theme of themes) {
     for (const mode of modes) {
         const runtime = createRuntime({ theme, bibliotech_theme_mode: mode });
         const state = runtime.controller.getState();
-        assert.deepEqual(state, { theme, mode }, `${theme}/${mode} state mismatch`);
+        assertState(state, theme, mode, `${theme}/${mode} state mismatch`);
         assert.equal(runtime.html.dataset.theme, theme);
         assert.equal(runtime.html.dataset.themeMode, mode);
         assert.equal(runtime.body.dataset.theme, theme);
@@ -142,19 +147,19 @@ for (const theme of themes) {
 {
     const runtime = createRuntime({ theme: 'ocean', bibliotech_theme_mode: 'dark' });
     const toggled = runtime.controller.toggleMode();
-    assert.deepEqual(toggled, { theme: 'ocean', mode: 'light' });
+    assertState(toggled, 'ocean', 'light', 'mode toggle changed the palette');
     assert.equal(runtime.localStorage.getItem('theme'), 'ocean');
     assert.equal(runtime.localStorage.getItem('bibliotech_theme_mode'), 'light');
 
     const selected = runtime.controller.selectTheme('violet');
-    assert.deepEqual(selected, { theme: 'violet', mode: 'light' });
+    assertState(selected, 'violet', 'light', 'palette selection changed brightness');
     assert.equal(runtime.localStorage.getItem('theme'), 'violet');
     assert.equal(runtime.localStorage.getItem('bibliotech_theme_mode'), 'light');
 }
 
 {
     const runtime = createRuntime({}, '?theme=coffee&mode=dark');
-    assert.deepEqual(runtime.controller.getState(), { theme: 'coffee', mode: 'dark' });
+    assertState(runtime.controller.getState(), 'coffee', 'dark', 'query parameters were not applied');
 }
 
 console.log(`Theme controller OK: ${themes.length * modes.length} palette/mode combinations, migration and toggles checked.`);
