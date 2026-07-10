@@ -1,0 +1,43 @@
+name: Product polish check
+
+on:
+  pull_request:
+    paths:
+      - 'backend/server.js'
+      - 'frontend/css/product-polish.css'
+      - 'frontend/js/product-polish.js'
+      - 'frontend/js/pwa.js'
+      - 'frontend/sw.js'
+      - 'scripts/check-product-polish.js'
+      - '.github/workflows/product-polish-check.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/server.js'
+      - 'frontend/css/product-polish.css'
+      - 'frontend/js/product-polish.js'
+      - 'frontend/js/pwa.js'
+      - 'frontend/sw.js'
+      - 'scripts/check-product-polish.js'
+
+permissions:
+  contents: read
+
+jobs:
+  check-product-polish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check backend/server.js
+          node --check frontend/js/product-polish.js
+          node --check frontend/js/pwa.js
+          node --check frontend/sw.js
+          node --check scripts/check-product-polish.js
+      - name: Validate unified product design
+        run: node scripts/check-product-polish.js
