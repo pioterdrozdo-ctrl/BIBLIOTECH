@@ -1,0 +1,13 @@
+/* Apply the banner saved by profile-customization-modal.js. */
+#profileModal {
+    --profile-banner-background:
+        radial-gradient(circle at 16% 18%, color-mix(in srgb, var(--gold) 48%, transparent), transparent 32%),
+        radial-gradient(circle at 78% 24%, color-mix(in srgb, var(--accent-strong) 48%, transparent), transparent 34%),
+        linear-gradient(135deg,
+            color-mix(in srgb, var(--accent) 84%, #0c1812),
+            color-mix(in srgb, var(--bg-soft) 66%, #050b08));
+}
+
+#profileModal .profile-modal-top::before {
+    background: var(--profile-banner-background) !important;
+}
