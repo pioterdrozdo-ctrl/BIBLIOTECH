@@ -11,6 +11,8 @@ on:
       - 'scripts/account-ui-smoke.js'
       - 'scripts/isbn-metadata-ui-smoke.js'
       - 'scripts/isbn-metadata-api-smoke.js'
+      - 'scripts/reservation-queue-ui-smoke.js'
+      - 'scripts/reservation-queue-api-smoke.js'
       - 'scripts/book-import-ui-smoke.js'
       - 'scripts/book-import-api-smoke.js'
       - 'scripts/account-api-smoke.js'
@@ -26,6 +28,8 @@ on:
       - 'scripts/account-ui-smoke.js'
       - 'scripts/isbn-metadata-ui-smoke.js'
       - 'scripts/isbn-metadata-api-smoke.js'
+      - 'scripts/reservation-queue-ui-smoke.js'
+      - 'scripts/reservation-queue-api-smoke.js'
       - 'scripts/book-import-ui-smoke.js'
       - 'scripts/book-import-api-smoke.js'
       - 'scripts/account-api-smoke.js'
@@ -36,7 +40,7 @@ permissions:
 jobs:
   runtime-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 26
+    timeout-minutes: 32
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -84,6 +88,18 @@ jobs:
         run: |
           set -o pipefail
           node scripts/isbn-metadata-api-smoke.js 2>&1 | tee /tmp/runtime-artifacts/isbn-metadata-api-smoke.log
+      - name: Test reservation queue APIs
+        env:
+          SMOKE_BASE_URL: http://127.0.0.1:4173
+        run: |
+          set -o pipefail
+          node scripts/reservation-queue-api-smoke.js 2>&1 | tee /tmp/runtime-artifacts/reservation-queue-api-smoke.log
+      - name: Test reservation queue in Chromium
+        env:
+          SMOKE_BASE_URL: http://127.0.0.1:4173
+        run: |
+          set -o pipefail
+          node scripts/reservation-queue-ui-smoke.js 2>&1 | tee /tmp/runtime-artifacts/reservation-queue-ui-smoke.log
       - name: Test complete account settings in Chromium
         env:
           SMOKE_BASE_URL: http://127.0.0.1:4173
