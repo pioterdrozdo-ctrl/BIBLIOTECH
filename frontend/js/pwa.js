@@ -8,8 +8,23 @@
     var isAdminPage = /(^|\/)admin\.html$/.test(path);
     var isAuthPage = /(^|\/)index\.html$/.test(path) || path === '/' || path === '';
 
+    function assetPath(value) {
+        try { return new URL(value, document.baseURI).pathname; }
+        catch (e) { return String(value || '').split('?')[0]; }
+    }
+
+    function hasAsset(selector, attribute, value) {
+        var target = assetPath(value);
+        return Array.from(document.querySelectorAll(selector)).some(function (element) {
+            return assetPath(element.getAttribute(attribute) || '') === target;
+        });
+    }
+
     function loadScript(src, key) {
-        if (window[key]) return;
+        if (window[key] || hasAsset('script[src]', 'src', src)) {
+            window[key] = true;
+            return;
+        }
         window[key] = true;
         var script = document.createElement('script');
         script.src = src;
@@ -18,7 +33,10 @@
     }
 
     function loadStylesheet(href, key) {
-        if (window[key]) return;
+        if (window[key] || hasAsset('link[rel="stylesheet"][href]', 'href', href)) {
+            window[key] = true;
+            return;
+        }
         window[key] = true;
         var link = document.createElement('link');
         link.rel = 'stylesheet';
@@ -128,7 +146,7 @@
     if (isHomePage) {
         loadScript('js/profile-rentals.js?v=20260709-profile-rentals-1', '__bibliotechProfileRentalsLoading');
         loadScript('js/profile-security.js?v=20260710-profile-security-practical-1', '__bibliotechProfileSecurityLoading');
-        loadScript('js/profile-twitter.js?v=20260710-profile-evolved-1', '__bibliotechProfileTwitterLoading');
+        loadScript('js/profile-twitter.js?v=20260710-profile-evolved-2', '__bibliotechProfileTwitterLoading');
         loadScript('js/modal-visual-fix.js?v=20260710-modal-visual-fix-2', '__bibliotechModalVisualFixLoading');
         loadScript('js/card-rent-safe.js?v=20260710-card-rent-refined-1', '__bibliotechCardRentSafeLoading');
         loadScript('js/comment-clear-fix.js?v=20260710-comment-clear-1', '__bibliotechCommentClearFixLoading');
@@ -136,18 +154,15 @@
         // catalog-fix is already injected by backend/server.js for home.html, so do not load it twice here.
     }
 
-    // Load the visual refresh last so it can refine every page without changing application logic.
+    // These are fallbacks for direct static hosting. Render already places them in the initial HTML.
     loadStylesheet('css/ui-refresh.css?v=20260710-ui-refresh-1', '__bibliotechUiRefreshCss');
     loadStylesheet('css/ui-refresh-release-fix.css?v=20260710-ui-release-fix-2', '__bibliotechUiReleaseFixCss');
 
-    // Profile rules intentionally load after the global refresh to preserve the evolved layout.
     if (isHomePage) {
-        loadStylesheet('css/profile-twitter-restored.css?v=20260710-profile-evolved-1', '__bibliotechProfileTwitterRestoredCss');
+        loadStylesheet('css/profile-twitter-restored.css?v=20260710-profile-evolved-2', '__bibliotechProfileTwitterRestoredCss');
     }
 
     loadStylesheet('css/theme-mode-preview.css?v=20260710-theme-mode-preview-1', '__bibliotechThemeModePreviewCss');
-
-    // The liquid switch must be the last visual layer on every page.
     loadStylesheet('css/liquid-theme-toggle.css?v=20260710-liquid-theme-2', '__bibliotechLiquidThemeToggleCss');
 
     if (!('serviceWorker' in navigator)) return;
