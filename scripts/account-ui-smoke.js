@@ -23,6 +23,15 @@ async function seedPage(page, auth) {
     }, { auth });
 }
 
+async function waitForCatalog(page) {
+    await page.waitForFunction(() => {
+        const container = document.getElementById('booksContainer');
+        return Boolean(container && (container.querySelector('.book-card[data-id]') || container.querySelector('.empty-state')));
+    }, { timeout: 30000 });
+    const count = await page.locator('#booksContainer .book-card[data-id]').count();
+    assert.ok(count > 0, 'catalog did not render any book cards');
+}
+
 async function openSettings(page) {
     await page.locator('#currentUserPill').click();
     await page.waitForSelector('#profileModal.active');
@@ -39,6 +48,7 @@ async function verifyDesktop(browser, auth) {
     await page.goto(`${baseUrl}/home.html`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#currentUserPill', { state: 'visible' });
     await page.waitForFunction(() => Boolean(window.BibliotechSettings) && Boolean(window.BibliotechAccountFeatures));
+    await waitForCatalog(page);
 
     await openSettings(page);
     const sections = ['account', 'security', 'devices', 'notifications', 'privacy', 'library', 'data'];
@@ -76,8 +86,7 @@ async function verifyDesktop(browser, auth) {
     await page.locator('#accountSettingsCloseBtn').click();
     await page.waitForFunction(() => !document.getElementById('accountSettingsModal')?.classList.contains('active'));
 
-    const firstCard = page.locator('.book-card[data-id]').first();
-    await firstCard.waitFor({ state: 'visible' });
+    const firstCard = page.locator('#booksContainer .book-card[data-id]').first();
     await firstCard.click();
     await page.waitForSelector('#viewModal.active');
     await page.waitForSelector('#personalBookActions');
@@ -107,6 +116,8 @@ async function verifyMobile(browser, auth) {
     await seedPage(page, auth);
     await page.goto(`${baseUrl}/home.html`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#menuIcon', { state: 'visible' });
+    await page.waitForFunction(() => Boolean(window.BibliotechSettings) && Boolean(window.BibliotechAccountFeatures));
+    await waitForCatalog(page);
     await page.locator('#menuIcon').click();
     await page.waitForSelector('#navMenu.active');
     await openSettings(page);
