@@ -4,18 +4,46 @@
     const SESSION_KEY = 'bibliotech_current_user';
     const WELCOME_PREFIX = 'bibliotech_product_welcome_v1_';
 
+    function userKeyFromSession(session) {
+        return String(session?.username || (session?.guest ? 'guest' : 'anonymous')).trim().toLowerCase();
+    }
+
     function getUserKey() {
         try {
             const session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
-            return String(session?.username || (session?.guest ? 'guest' : 'anonymous')).trim().toLowerCase();
+            return userKeyFromSession(session);
         } catch {
             return 'anonymous';
         }
     }
 
-    function markWelcomeSeen() {
-        try { localStorage.setItem(WELCOME_PREFIX + getUserKey(), '1'); }
+    function markWelcomeSeen(userKey = getUserKey()) {
+        try { localStorage.setItem(WELCOME_PREFIX + userKey, '1'); }
         catch {}
+    }
+
+    function suppressWelcomeForNewSession() {
+        const prototype = window.Storage?.prototype;
+        if (!prototype || prototype.__bibliotechEntryPromoSuppressed) return;
+
+        const originalSetItem = prototype.setItem;
+        Object.defineProperty(prototype, '__bibliotechEntryPromoSuppressed', {
+            value: true,
+            configurable: false,
+            enumerable: false,
+            writable: false
+        });
+
+        prototype.setItem = function (key, value) {
+            const result = originalSetItem.call(this, key, value);
+            if (this !== window.localStorage || key !== SESSION_KEY) return result;
+
+            try {
+                const session = JSON.parse(value || 'null');
+                originalSetItem.call(this, WELCOME_PREFIX + userKeyFromSession(session), '1');
+            } catch {}
+            return result;
+        };
     }
 
     function injectStyles() {
@@ -73,6 +101,7 @@
     }
 
     function init() {
+        suppressWelcomeForNewSession();
         apply();
         if (!document.body || !('MutationObserver' in window)) return;
 
@@ -90,6 +119,7 @@
         }, 5000);
     }
 
+    suppressWelcomeForNewSession();
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init, { once: true });
     } else {
