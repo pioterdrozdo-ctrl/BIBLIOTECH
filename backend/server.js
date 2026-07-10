@@ -37,8 +37,13 @@ const manifestThemes = {
 const criticalUiStyles = [
     '/css/ui-refresh.css?v=20260710-ui-refresh-1',
     '/css/ui-refresh-release-fix.css?v=20260710-ui-release-fix-2',
+    '/css/product-polish.css?v=20260710-product-polish-1',
     '/css/theme-mode-preview.css?v=20260710-theme-mode-preview-1',
     '/css/liquid-theme-toggle.css?v=20260710-liquid-theme-2'
+];
+
+const criticalUiScripts = [
+    '/js/product-polish.js?v=20260710-product-polish-1'
 ];
 
 const homeCriticalStyles = [
@@ -110,19 +115,18 @@ function injectCriticalUiAssets(html, { home = false } = {}) {
         html = html.replace('</head>', `    ${styleTags}\n</head>`);
     }
 
-    if (home) {
-        const scriptTags = homeCriticalScripts
-            .filter(asset => !html.includes(asset.split('?')[0]))
-            .map(asset => `<script src="${asset}" data-bibliotech-critical="true"></script>`)
-            .join('\n');
+    const scripts = [...criticalUiScripts, ...(home ? homeCriticalScripts : [])];
+    const scriptTags = scripts
+        .filter(asset => !html.includes(asset.split('?')[0]))
+        .map(asset => `<script src="${asset}" data-bibliotech-critical="true"></script>`)
+        .join('\n');
 
-        if (scriptTags) {
-            const pwaPattern = /<script src="(?:\/)?js\/pwa\.js(?:\?[^\"]*)?"><\/script>/;
-            if (pwaPattern.test(html)) {
-                html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-6"></script>`);
-            } else {
-                html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-6"></script>\n</body>`);
-            }
+    if (scriptTags) {
+        const pwaPattern = /<script src="(?:\/)?js\/pwa\.js(?:\?[^\"]*)?"><\/script>/;
+        if (pwaPattern.test(html)) {
+            html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-7"></script>`);
+        } else {
+            html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-7"></script>\n</body>`);
         }
     }
 
