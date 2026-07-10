@@ -191,12 +191,16 @@
 
     function openProfileEditor() {
         close({ restoreFocus: false });
-        if (window.BibliotechProfile?.openCustomize) {
-            window.BibliotechProfile.openCustomize();
-            return;
-        }
-        document.getElementById('currentUserPill')?.click();
-        setTimeout(() => document.getElementById('profileEditBtn')?.click(), 0);
+        const launch = () => {
+            if (window.BibliotechProfile?.openCustomize) {
+                window.BibliotechProfile.openCustomize();
+                return;
+            }
+            document.getElementById('currentUserPill')?.click();
+            setTimeout(() => document.getElementById('profileEditBtn')?.click(), 0);
+        };
+        if (typeof queueMicrotask === 'function') queueMicrotask(launch);
+        else Promise.resolve().then(launch);
     }
 
     function wireModal(modal) {
@@ -210,6 +214,13 @@
             close();
         }, true);
 
+        const editProfileButton = modal.querySelector('#accountSettingsEditProfileBtn');
+        editProfileButton?.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            openProfileEditor();
+        }, true);
+
         modal.addEventListener('click', event => {
             if (event.target === modal) {
                 event.preventDefault();
@@ -220,9 +231,7 @@
             if (sectionButton && modal.contains(sectionButton)) {
                 event.preventDefault();
                 setSection(sectionButton.dataset.settingsSection);
-                return;
             }
-            if (event.target.closest('#accountSettingsEditProfileBtn')) openProfileEditor();
         });
 
         modal.addEventListener('keydown', event => {
