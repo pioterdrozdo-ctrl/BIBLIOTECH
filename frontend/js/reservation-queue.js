@@ -77,7 +77,7 @@
         const original = window.migrateBook;
         if (typeof original !== 'function' || original.__reservationQueuePatched) return;
         const patched = function migrateBookWithReservations(book) {
-            return withReservationFields(original(book));
+            return withReservationFields({ ...original(book), ...book });
         };
         patched.__reservationQueuePatched = true;
         window.migrateBook = patched;
@@ -89,17 +89,30 @@
         if (!current || !payloadBook) return null;
         const index = current.books.findIndex(item => Number(item.id) === Number(bookId));
         const previous = index >= 0 ? current.books[index] : {};
-        const migrated = typeof window.migrateBook === 'function'
-            ? window.migrateBook({
-                ...payloadBook,
-                coverDataURL: payloadBook.coverDataURL || payloadBook.cover_data_url || previous.coverDataURL,
-                dateAdded: payloadBook.created_at && typeof window.formatDate === 'function'
-                    ? window.formatDate(new Date(payloadBook.created_at))
-                    : previous.dateAdded,
-                comments: Array.isArray(payloadBook.comments) ? payloadBook.comments : (previous.comments || [])
-            })
-            : withReservationFields({ ...previous, ...payloadBook });
-        if (index >= 0) current.books[index] = { ...previous, ...migrated };
+        let core = { ...previous, ...payloadBook };
+        if (typeof window.migrateBook === 'function') {
+            try {
+                core = window.migrateBook({
+                    ...previous,
+                    ...payloadBook,
+                    coverDataURL: payloadBook.coverDataURL || payloadBook.cover_data_url || previous.coverDataURL,
+                    dateAdded: payloadBook.created_at && typeof window.formatDate === 'function'
+                        ? window.formatDate(new Date(payloadBook.created_at))
+                        : previous.dateAdded,
+                    comments: Array.isArray(payloadBook.comments) ? payloadBook.comments : (previous.comments || [])
+                });
+            } catch {
+                core = { ...previous, ...payloadBook };
+            }
+        }
+        const migrated = withReservationFields({
+            ...previous,
+            ...core,
+            ...payloadBook,
+            coverDataURL: payloadBook.coverDataURL || payloadBook.cover_data_url || core.coverDataURL || previous.coverDataURL,
+            comments: Array.isArray(payloadBook.comments) ? payloadBook.comments : (core.comments || previous.comments || [])
+        });
+        if (index >= 0) current.books[index] = migrated;
         else current.books.unshift(migrated);
         if (typeof window.saveBooks === 'function') window.saveBooks();
         return current.books.find(item => Number(item.id) === Number(bookId));
@@ -186,6 +199,14 @@
         }
     }
 
+    function refreshVisibleBook(book) {
+        if (!book) return;
+        try {
+            if (typeof window.updateRentalPanel === 'function') window.updateRentalPanel(book);
+        } catch {}
+        decorateBookModal(book);
+    }
+
     function patchRenderBooks() {
         const original = window.renderBooks;
         if (typeof original !== 'function' || original.__reservationQueuePatched) return;
@@ -231,10 +252,10 @@
         const current = appState();
         if (!current || isGuestSession()) {
             notifyUser('Войдите в аккаунт, чтобы бронировать книги', 'error');
-            return;
+            return null;
         }
         const book = current.books.find(item => Number(item.id) === Number(current.activeBookId));
-        if (!book) return;
+        if (!book) return null;
         const reservation = reservationData(book);
         let action = 'rent';
         let method = 'POST';
@@ -271,8 +292,10 @@
             const payload = await response.json().catch(() => ({}));
             if (!response.ok) throw new Error(payload.error || 'Не удалось выполнить действие.');
             const updated = updateLocalBook(book.id, payload.book);
-            if (typeof window.renderBooks === 'function') window.renderBooks();
-            if (updated && typeof window.openBook === 'function') window.openBook(book.id);
+            try {
+                if (typeof window.renderBooks === 'function') window.renderBooks();
+            } catch {}
+            refreshVisibleBook(updated || payload.book);
 
             if (action === 'reserve' && method === 'POST') {
                 const position = reservationData(updated || payload.book).position;
@@ -285,12 +308,14 @@
                 notifyUser(reservation.status === 'ready' ? 'Бронь оформлена в аренду' : 'Книга закреплена за вами', 'success');
             }
             document.dispatchEvent(new CustomEvent('bibliotech:reservation-changed', { detail: { bookId: book.id, payload } }));
+            return { ...payload, book: updated || payload.book };
         } catch (error) {
             notifyUser(error.message || 'Не удалось выполнить действие.', 'error');
             if (button) {
                 button.disabled = false;
                 button.textContent = button.dataset.previousText || 'Повторить';
             }
+            return null;
         }
     }
 
@@ -310,7 +335,11 @@
             if (!response.ok) return null;
             const payload = await response.json();
             const updated = updateLocalBook(bookId, payload.book);
-            if (typeof window.renderBooks === 'function') window.renderBooks();
+            try {
+                if (typeof window.renderBooks === 'function') window.renderBooks();
+            } catch {}
+            const current = appState();
+            if (Number(current?.activeBookId) === Number(bookId)) refreshVisibleBook(updated || payload.book);
             return updated;
         } catch {
             return null;
