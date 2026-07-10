@@ -110,7 +110,15 @@ async function closeModal(page, selector) {
         assert.equal(await page.locator('#profileReservationsCounter').textContent(), '1');
         assert.match(await page.locator('#profileReservationsList').textContent(), /Место 1/i);
 
+        const cancellationResponse = page.waitForResponse(response => {
+            const url = new URL(response.url());
+            return response.request().method() === 'DELETE'
+                && url.pathname === `/api/books/${bookId}/reserve`;
+        });
         await page.locator(`[data-cancel-reservation-id="${bookId}"]`).click();
+        const cancelled = await cancellationResponse;
+        assert.equal(cancelled.status(), 200, 'Reservation cancellation request failed');
+        await page.evaluate(() => window.BibliotechProfileReservations?.loadReservations());
         await page.waitForFunction(() => document.getElementById('profileReservationsCounter')?.textContent === '0');
         assert.match(await page.locator('#profileReservationsList').textContent(), /Активных бронирований нет/i);
 
@@ -118,6 +126,7 @@ async function closeModal(page, selector) {
         assert.equal(afterCancel.response.status, 200);
         assert.equal(afterCancel.payload.reservation, null);
 
+        await page.evaluate(id => window.BibliotechReservationQueue?.refreshBookReservation(Number(id)), String(bookId));
         await closeModal(page, '#profileModal');
         await page.waitForFunction(id => {
             const cardElement = document.querySelector(`.book-card[data-id="${id}"]`);
