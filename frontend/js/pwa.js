@@ -127,6 +127,7 @@
     }
 
     loadScript('js/product-polish.js?v=20260710-product-polish-2', '__bibliotechProductPolishLoading');
+    loadScript('js/entry-promo-removal.js?v=20260711-entry-promo-removal-1', '__bibliotechEntryPromoRemovalLoading');
 
     if (isAuthPage) {
         loadScript('js/auth-reset-fix.js?v=20260710-login-click-fix-1', '__bibliotechAuthResetFixLoading');
