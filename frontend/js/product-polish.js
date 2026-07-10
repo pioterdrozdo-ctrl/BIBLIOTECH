@@ -196,7 +196,8 @@
     }
 
     function refineFooter() {
-        document.querySelectorAll('footer').forEach(footer => {
+        // Only the page-level footer is product copy. Modal footers contain controls and must remain untouched.
+        document.querySelectorAll('.wrapper > footer').forEach(footer => {
             if (footer.dataset.productFooterReady === 'true') return;
             footer.dataset.productFooterReady = 'true';
             footer.innerHTML = '<b>BIBLIOTECH</b> · цифровой каталог библиотеки · 2026';
