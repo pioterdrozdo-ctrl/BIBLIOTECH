@@ -4,6 +4,7 @@
     const SESSION_KEY = 'bibliotech_current_user';
     const PROFILE_OPEN_KEY = 'bibliotech_open_profile';
     const WELCOME_PREFIX = 'bibliotech_product_welcome_v1_';
+    const PROFILE_CUSTOMIZATION_PREFIX = 'bibliotech_profile_customization_';
 
     function getSession() {
         try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
@@ -27,6 +28,77 @@
     function isProtectedSecondaryPage() {
         const path = window.location.pathname || '';
         return /(^|\/)(stats|about|admin)\.html$/.test(path);
+    }
+
+    function isQuotaError(error) {
+        return error?.name === 'QuotaExceededError' || error?.code === 22 || error?.code === 1014;
+    }
+
+    function clearRecoverableCatalogCache(storage) {
+        const keys = [];
+        for (let index = 0; index < storage.length; index += 1) {
+            const key = storage.key(index);
+            if (key && /^book_catalog_/.test(key)) keys.push(key);
+        }
+        keys.forEach(key => storage.removeItem(key));
+    }
+
+    function installProfileStorageRecovery() {
+        const prototype = window.Storage?.prototype;
+        if (!prototype || prototype.__bibliotechProfileStorageRecovery) return;
+
+        const originalSetItem = prototype.setItem;
+        Object.defineProperty(prototype, '__bibliotechProfileStorageRecovery', {
+            value: true,
+            configurable: false,
+            enumerable: false,
+            writable: false
+        });
+
+        prototype.setItem = function (key, value) {
+            try {
+                return originalSetItem.call(this, key, value);
+            } catch (error) {
+                const profileWrite = this === window.localStorage
+                    && String(key || '').startsWith(PROFILE_CUSTOMIZATION_PREFIX);
+                if (!profileWrite || !isQuotaError(error)) throw error;
+
+                // Каталог является локальным кэшем и при необходимости загрузится с сервера заново.
+                // Освобождаем его место, чтобы пользовательская обложка профиля не терялась.
+                clearRecoverableCatalogCache(this);
+                return originalSetItem.call(this, key, value);
+            }
+        };
+    }
+
+    function reapplyProfileCustomization() {
+        if (!isHomePage()) return;
+        window.BibliotechProfileCustomize?.apply?.();
+    }
+
+    function installProfilePersistenceRefresh() {
+        if (!isHomePage() || document.documentElement.dataset.profilePersistenceRefresh === 'ready') return;
+        document.documentElement.dataset.profilePersistenceRefresh = 'ready';
+
+        window.addEventListener('pageshow', () => setTimeout(reapplyProfileCustomization, 0));
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') setTimeout(reapplyProfileCustomization, 0);
+        });
+        document.addEventListener('click', event => {
+            if (event.target.closest('#currentUserPill, #profileCustomizeSaveBtn')) {
+                setTimeout(reapplyProfileCustomization, 80);
+            }
+        }, true);
+
+        const modal = document.getElementById('profileModal');
+        if (modal && 'MutationObserver' in window) {
+            new MutationObserver(() => {
+                if (modal.classList.contains('active')) setTimeout(reapplyProfileCustomization, 0);
+            }).observe(modal, { attributes: true, attributeFilter: ['class'] });
+        }
+
+        setTimeout(reapplyProfileCustomization, 0);
+        setTimeout(reapplyProfileCustomization, 300);
     }
 
     function enhanceAuthAccessibility() {
@@ -261,12 +333,14 @@
     }
 
     function init() {
+        installProfileStorageRecovery();
         enhanceAuthAccessibility();
         enhanceAuthPage();
         enhanceHomeHero();
         removeLegacySecondaryProfile();
         refineFooter();
         maybeShowWelcome();
+        installProfilePersistenceRefresh();
         document.documentElement.dataset.productPolish = 'ready';
     }
 
