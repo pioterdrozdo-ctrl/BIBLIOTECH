@@ -76,30 +76,26 @@
         const copy = info.querySelector('p');
         const legacyButton = document.getElementById('openAddBookBtnHero');
 
-        if (kicker) kicker.textContent = 'ЦИФРОВАЯ БИБЛИОТЕКА';
-        if (title) title.innerHTML = 'Книги под контролем.<br>Чтение без хаоса.';
-        if (copy) copy.textContent = 'BIBLIOTECH объединяет умный поиск, выдачу книг, QR-коды, комментарии и статистику. Всё нужное читателю и библиотекарю находится в одном понятном интерфейсе.';
-        if (legacyButton) legacyButton.hidden = true;
+        if (kicker) kicker.textContent = 'BIBLIOTECH';
+        if (title) title.textContent = 'Каталог библиотеки';
+        if (copy) copy.textContent = 'Поиск, выдача и учёт книг в одном месте.';
+        legacyButton?.remove();
+        info.querySelector('.product-hero-actions')?.remove();
+        info.querySelector('.product-proof-strip')?.remove();
 
         const actions = document.createElement('div');
         actions.className = 'product-hero-actions';
-        actions.innerHTML = `
-            <a class="product-hero-primary" href="#catalog"><span aria-hidden="true">⌕</span> Открыть каталог</a>
-            <button class="product-hero-secondary" id="productHeroQrBtn" type="button"><span aria-hidden="true">▣</span> Сканировать QR</button>`;
+        actions.innerHTML = '<a class="product-hero-primary" href="#catalog">Перейти к книгам</a>';
+        info.append(actions);
 
-        const proof = document.createElement('div');
-        proof.className = 'product-proof-strip';
-        proof.setAttribute('aria-label', 'Основные возможности');
-        proof.innerHTML = `
-            <span class="product-proof-chip"><b>Умный поиск</b> без точного совпадения</span>
-            <span class="product-proof-chip"><b>Аренда</b> и наличие книг</span>
-            <span class="product-proof-chip"><b>QR</b> для быстрого доступа</span>
-            <span class="product-proof-chip"><b>Статистика</b> в реальном времени</span>`;
-
-        info.append(actions, proof);
-        actions.querySelector('#productHeroQrBtn')?.addEventListener('click', () => {
-            document.getElementById('openQrScannerBtn')?.click();
-        });
+        const catalogTitle = document.querySelector('#catalog .title-section h1');
+        const catalogCopy = document.querySelector('#catalog .title-section p');
+        const searchLabel = document.querySelector('#catalog .premium-search-box > label');
+        const searchInput = document.getElementById('searchInput');
+        if (catalogTitle) catalogTitle.textContent = 'Каталог';
+        if (catalogCopy) catalogCopy.textContent = 'Поиск и управление книгами';
+        if (searchLabel) searchLabel.textContent = 'Поиск';
+        if (searchInput) searchInput.placeholder = 'Название, автор или описание';
     }
 
     function removeLegacySecondaryProfile() {
