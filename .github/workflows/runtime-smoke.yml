@@ -8,6 +8,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'scripts/runtime-smoke.js'
+      - 'scripts/account-ui-smoke.js'
       - 'scripts/account-api-smoke.js'
       - '.github/workflows/runtime-smoke.yml'
   push:
@@ -18,6 +19,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'scripts/runtime-smoke.js'
+      - 'scripts/account-ui-smoke.js'
       - 'scripts/account-api-smoke.js'
 
 permissions:
@@ -26,7 +28,7 @@ permissions:
 jobs:
   runtime-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 14
+    timeout-minutes: 16
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -62,6 +64,12 @@ jobs:
         run: |
           set -o pipefail
           node scripts/runtime-smoke.js 2>&1 | tee /tmp/runtime-artifacts/runtime-smoke.log
+      - name: Test complete account settings in Chromium
+        env:
+          SMOKE_BASE_URL: http://127.0.0.1:4173
+        run: |
+          set -o pipefail
+          node scripts/account-ui-smoke.js 2>&1 | tee /tmp/runtime-artifacts/account-ui-smoke.log
       - name: Test account APIs and session revocation
         env:
           SMOKE_BASE_URL: http://127.0.0.1:4173
