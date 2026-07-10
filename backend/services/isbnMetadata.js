@@ -30,6 +30,17 @@ function cleanText(value, maxLength = 255) {
     return String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, maxLength);
 }
 
+function normalizeHttpUrl(value) {
+    const raw = cleanText(value, 2000);
+    if (!raw) return '';
+    try {
+        const url = new URL(raw);
+        return ['http:', 'https:'].includes(url.protocol) ? url.toString() : '';
+    } catch {
+        return '';
+    }
+}
+
 function normalizeIsbn(value) {
     return String(value ?? '').toUpperCase().replace(/[^0-9X]/g, '');
 }
@@ -98,11 +109,10 @@ function mapOpenLibraryMetadata(isbn, bookData = {}, editionData = {}, workData 
     const coverId = Array.isArray(editionData.covers) && Number(editionData.covers[0]) > 0
         ? Number(editionData.covers[0])
         : null;
-    const coverUrl = cleanText(
+    const coverUrl = normalizeHttpUrl(
         bookData.cover?.large
         || bookData.cover?.medium
-        || (coverId ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg` : ''),
-        2000
+        || (coverId ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg` : '')
     );
     const title = cleanText(bookData.title || editionData.title, 255);
     const subtitle = cleanText(bookData.subtitle || editionData.subtitle, 255);
@@ -120,7 +130,7 @@ function mapOpenLibraryMetadata(isbn, bookData = {}, editionData = {}, workData 
         language: [...new Set(editionLanguages)].slice(0, 2).join(', ').slice(0, 80),
         coverDataURL: coverUrl || null,
         source: 'openlibrary',
-        sourceUrl: cleanText(bookData.url || (editionData.key ? `https://openlibrary.org${editionData.key}` : ''), 2000)
+        sourceUrl: normalizeHttpUrl(bookData.url || (editionData.key ? `https://openlibrary.org${editionData.key}` : '')) || null
     };
 }
 
@@ -154,12 +164,15 @@ function normalizeBookMetadataInput(data = {}, { partial = false } = {}) {
         ['publisher', 'publisher', 255],
         ['genre', 'genre', 160],
         ['language', 'language', 80],
-        ['metadataSource', 'metadata_source', 40],
-        ['metadataSourceUrl', 'metadata_source_url', 2000]
+        ['metadataSource', 'metadata_source', 40]
     ];
     textFields.forEach(([camel, snake, limit]) => {
         if (!partial || has(camel) || has(snake)) result[camel] = cleanText(read(camel, snake), limit) || null;
     });
+
+    if (!partial || has('metadataSourceUrl') || has('metadata_source_url')) {
+        result.metadataSourceUrl = normalizeHttpUrl(read('metadataSourceUrl', 'metadata_source_url')) || null;
+    }
 
     return result;
 }
