@@ -1,0 +1,468 @@
+/* Complete settings sections: devices, notifications, privacy, library and data. */
+
+.account-settings-nav {
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.account-feature-toolbar,
+.account-data-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px 15px;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    background: var(--surface);
+}
+
+.account-feature-status,
+.account-feature-note {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.account-feature-list,
+.account-toggle-list,
+.account-library-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.account-loading,
+.account-empty,
+.account-error {
+    padding: 24px 16px;
+    border: 1px dashed var(--border);
+    border-radius: 16px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.account-error {
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--border));
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.account-device-card,
+.account-notification-card,
+.account-library-card {
+    width: 100%;
+    display: grid;
+    align-items: center;
+    gap: 13px;
+    padding: 13px 14px;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    background: var(--bg-soft);
+    color: var(--text);
+    text-align: left;
+}
+
+.account-device-card {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.account-device-card.current {
+    border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+    background: var(--accent-soft);
+}
+
+.account-device-icon,
+.account-notification-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    background: var(--surface);
+    font-size: 21px;
+}
+
+.account-device-card b,
+.account-device-card small,
+.account-device-card time,
+.account-notification-card b,
+.account-notification-card small,
+.account-notification-card time,
+.account-library-card b,
+.account-library-card small,
+.account-library-card span,
+.account-data-card b,
+.account-data-card span {
+    display: block;
+}
+
+.account-device-card small,
+.account-notification-card small,
+.account-library-card small,
+.account-library-card span,
+.account-data-card span {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.account-device-card time,
+.account-notification-card time {
+    margin-top: 5px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.current-device-badge {
+    padding: 6px 9px;
+    border-radius: 999px;
+    background: var(--ok-soft);
+    color: var(--ok);
+    font-size: 11px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.account-toggle-row {
+    position: relative;
+    min-height: 68px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 54px;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 14px;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    background: var(--bg-soft);
+    cursor: pointer;
+}
+
+.account-toggle-row b,
+.account-toggle-row small {
+    display: block;
+}
+
+.account-toggle-row small {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.account-toggle-row input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.account-toggle-row i {
+    position: relative;
+    width: 54px;
+    height: 30px;
+    border-radius: 999px;
+    background: var(--surface-muted);
+    transition: background 0.18s ease;
+}
+
+.account-toggle-row i::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    transition: transform 0.18s ease;
+}
+
+.account-toggle-row input:checked + i {
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+}
+
+.account-toggle-row input:checked + i::after {
+    transform: translateX(24px);
+}
+
+.account-toggle-row:focus-within {
+    outline: none;
+    box-shadow: var(--focus);
+}
+
+.notification-toolbar {
+    margin-top: 17px;
+}
+
+.account-notification-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    cursor: pointer;
+}
+
+.account-notification-card.unread {
+    border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+    background: color-mix(in srgb, var(--accent-soft) 72%, var(--surface));
+}
+
+.account-notification-card.unread b::after {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-left: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    vertical-align: middle;
+}
+
+.profile-settings-trigger.has-notifications {
+    position: relative;
+}
+
+.profile-settings-trigger.has-notifications::after {
+    content: attr(data-notification-count);
+    position: absolute;
+    top: -7px;
+    right: -4px;
+    min-width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+    padding: 0 5px;
+    border: 2px solid var(--surface);
+    border-radius: 999px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 950;
+}
+
+.account-library-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    padding: 5px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--bg-soft);
+}
+
+.account-library-tabs button {
+    min-height: 42px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-weight: 850;
+}
+
+.account-library-tabs button.active {
+    background: var(--surface);
+    color: var(--accent);
+    box-shadow: var(--shadow-soft);
+}
+
+.account-library-card {
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+}
+
+.account-library-cover {
+    width: 52px;
+    height: 68px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--surface-muted);
+    font-size: 25px;
+}
+
+.account-library-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.account-library-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.account-library-actions button {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.account-password-card {
+    display: grid;
+    gap: 12px;
+    padding: 15px;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    background: var(--surface);
+}
+
+.account-password-form,
+.account-danger-form {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    gap: 8px;
+}
+
+.account-password-form input,
+.account-danger-form input {
+    min-width: 0;
+    min-height: 43px;
+    padding: 9px 11px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-soft);
+    color: var(--text);
+}
+
+.password-strength {
+    grid-column: 1 / -1;
+    min-height: 18px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.password-strength[data-score="0"],
+.password-strength[data-score="1"] { color: var(--danger); }
+.password-strength[data-score="2"] { color: var(--gold); }
+.password-strength[data-score="3"],
+.password-strength[data-score="4"] { color: var(--ok); }
+
+.account-data-card {
+    margin-bottom: 12px;
+}
+
+.account-data-card > div:first-child {
+    min-width: 0;
+}
+
+.danger-zone {
+    align-items: flex-start;
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--border));
+    background: var(--danger-soft);
+}
+
+.account-danger-form {
+    grid-template-columns: minmax(170px, 1fr) auto;
+    width: min(390px, 100%);
+}
+
+.account-settings-action.danger,
+.account-settings-action.danger-soft {
+    border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.personal-book-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 14px 0;
+}
+
+.personal-book-actions button {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    background: var(--surface-muted);
+    color: var(--text);
+    cursor: pointer;
+    font-weight: 850;
+}
+
+.personal-book-actions button.active {
+    border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+@media (max-width: 900px) {
+    .account-password-form {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .account-password-form input:first-child {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 700px) {
+    .account-settings-nav {
+        grid-template-columns: repeat(7, minmax(118px, 1fr)) !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x proximity;
+    }
+
+    .account-settings-nav-button {
+        scroll-snap-align: start;
+    }
+
+    .account-feature-toolbar,
+    .account-data-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .account-device-card {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .current-device-badge {
+        grid-column: 1 / -1;
+        width: fit-content;
+    }
+
+    .account-password-form,
+    .account-danger-form {
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+
+    .account-password-form input:first-child,
+    .password-strength {
+        grid-column: auto;
+    }
+
+    .account-library-tabs {
+        grid-template-columns: 1fr;
+    }
+
+    .account-library-card {
+        grid-template-columns: 48px minmax(0, 1fr);
+    }
+
+    .account-library-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 420px) {
+    .personal-book-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .account-toggle-row {
+        grid-template-columns: minmax(0, 1fr) 54px;
+    }
+}
