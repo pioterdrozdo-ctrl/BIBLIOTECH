@@ -1,0 +1,156 @@
+:root {
+    --motion-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --motion-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* Remove decorative motion that is visible for the entire session. */
+body.auth-page,
+.auth-brand img,
+.auth-theme-toggle {
+    animation: none;
+}
+
+/* The card appears once, so a short entrance helps establish hierarchy. */
+.auth-container {
+    animation: auth-card-enter 260ms var(--motion-ease-out) both;
+}
+
+@keyframes auth-card-enter {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* One shared indicator keeps the two tab states visually connected. */
+.tabs {
+    position: relative;
+    isolation: isolate;
+}
+
+.tabs::before {
+    content: "";
+    position: absolute;
+    inset-block: 4px;
+    inset-inline-start: 4px;
+    z-index: 0;
+    width: calc((100% - 16px) / 2);
+    border-radius: calc(var(--radius) - 2px);
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 20%, transparent);
+    pointer-events: none;
+    transform: translateX(0);
+    opacity: 1;
+    transition:
+        transform 180ms var(--motion-ease-in-out),
+        opacity 120ms ease;
+}
+
+.tabs[data-active-tab="register"]::before {
+    transform: translateX(calc(100% + 8px));
+}
+
+.tabs[data-active-tab="none"]::before {
+    opacity: 0;
+}
+
+.tab {
+    position: relative;
+    z-index: 1;
+    background: transparent;
+    transition:
+        color 140ms ease,
+        transform 140ms var(--motion-ease-out);
+}
+
+.tab.active {
+    background: transparent;
+    color: var(--on-accent);
+}
+
+html:not(.auth-using-keyboard) .tab:active {
+    transform: scale(0.97);
+}
+
+.auth-container button:not(.tab) {
+    transition:
+        transform 150ms var(--motion-ease-out),
+        box-shadow 180ms ease,
+        color 180ms ease,
+        background-color 180ms ease;
+}
+
+/* Neutralize the old universal hover rule on touch devices. */
+.auth-container button:not(.tab):hover {
+    transform: none;
+    box-shadow: none;
+}
+
+html:not(.auth-using-keyboard) .auth-container button:not(.tab):active {
+    transform: translateY(0) scale(0.97);
+}
+
+.auth-theme-toggle {
+    transition:
+        transform 150ms var(--motion-ease-out),
+        box-shadow 180ms ease,
+        background-color 180ms ease;
+}
+
+html:not(.auth-using-keyboard) .auth-theme-toggle:active {
+    transform: scale(0.94);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .auth-container button:not(.tab):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 26px color-mix(in srgb, var(--accent) 24%, transparent);
+    }
+
+    .auth-theme-toggle:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 38px color-mix(in srgb, var(--accent) 20%, transparent);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.auth-page,
+    .auth-brand img,
+    .auth-theme-toggle {
+        animation: none !important;
+    }
+
+    .auth-container {
+        animation: auth-card-fade 160ms ease-out both !important;
+    }
+
+    .tabs::before {
+        transition: opacity 120ms ease !important;
+    }
+
+    .tab,
+    .auth-container button:not(.tab),
+    .auth-theme-toggle {
+        transition:
+            color 120ms ease,
+            background-color 120ms ease,
+            border-color 120ms ease,
+            opacity 120ms ease !important;
+    }
+
+    .tab:active,
+    .auth-container button:not(.tab):active,
+    .auth-theme-toggle:active {
+        transform: none !important;
+    }
+}
+
+@keyframes auth-card-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
