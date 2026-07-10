@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const pool = require('../db/pool');
-const localStore = require('../services/localStore');
+const localStore = require('../services/registerAccountFallback');
 const { authMiddleware } = require('../middleware/auth');
 const { hashPassword, verifyPassword } = require('../utils/passwords');
 
@@ -37,7 +37,17 @@ async function ensureAccountSchema() {
         ALTER TABLE users ADD COLUMN IF NOT EXISTS reading_history_private_enabled BOOLEAN DEFAULT FALSE;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS comments_profile_enabled BOOLEAN DEFAULT TRUE;
 
+        CREATE TABLE IF NOT EXISTS book_rentals (
+            id SERIAL PRIMARY KEY,
+            book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
+            user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+            username VARCHAR(50),
+            rented_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            returned_at TIMESTAMP,
+            due_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP + INTERVAL '14 days')
+        );
         ALTER TABLE book_rentals ADD COLUMN IF NOT EXISTS due_at TIMESTAMP;
+        ALTER TABLE book_rentals ALTER COLUMN due_at SET DEFAULT (CURRENT_TIMESTAMP + INTERVAL '14 days');
         UPDATE book_rentals
         SET due_at = rented_at + INTERVAL '14 days'
         WHERE due_at IS NULL AND returned_at IS NULL;
@@ -65,8 +75,21 @@ async function ensureAccountSchema() {
             UNIQUE (user_id, unique_key)
         );
 
+        CREATE TABLE IF NOT EXISTS user_login_events (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            ip_address VARCHAR(80),
+            user_agent TEXT,
+            device VARCHAR(80),
+            os VARCHAR(80),
+            browser VARCHAR(80),
+            platform VARCHAR(80),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
         CREATE INDEX IF NOT EXISTS idx_user_book_lists_user ON user_book_lists(user_id);
         CREATE INDEX IF NOT EXISTS idx_account_notifications_user ON account_notifications(user_id, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_user_login_events_user_id ON user_login_events(user_id);
     `);
 }
 
@@ -87,6 +110,8 @@ function mapPreferences(row = {}) {
 }
 
 async function refreshNotifications(userId) {
+    const params = [userId];
+
     await pool.query(`
         INSERT INTO account_notifications (user_id, type, unique_key, title, message, book_id)
         SELECT r.user_id,
@@ -102,8 +127,10 @@ async function refreshNotifications(userId) {
           AND r.returned_at IS NULL
           AND r.due_at BETWEEN CURRENT_TIMESTAMP AND CURRENT_TIMESTAMP + INTERVAL '3 days'
           AND u.notification_due_enabled = TRUE
-        ON CONFLICT (user_id, unique_key) DO NOTHING;
+        ON CONFLICT (user_id, unique_key) DO NOTHING
+    `, params);
 
+    await pool.query(`
         INSERT INTO account_notifications (user_id, type, unique_key, title, message, book_id)
         SELECT r.user_id,
                'overdue',
@@ -118,12 +145,14 @@ async function refreshNotifications(userId) {
           AND r.returned_at IS NULL
           AND r.due_at < CURRENT_TIMESTAMP
           AND u.notification_overdue_enabled = TRUE
-        ON CONFLICT (user_id, unique_key) DO NOTHING;
+        ON CONFLICT (user_id, unique_key) DO NOTHING
+    `, params);
 
+    await pool.query(`
         INSERT INTO account_notifications (user_id, type, unique_key, title, message, book_id)
         SELECT l.user_id,
                'available',
-               'available:' || l.book_id || ':' || DATE_TRUNC('day', CURRENT_TIMESTAMP)::text,
+               'available:' || l.book_id || ':' || TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD'),
                'Книга снова доступна',
                '«' || COALESCE(b.title, 'Без названия') || '» появилась в наличии.',
                l.book_id
@@ -134,22 +163,23 @@ async function refreshNotifications(userId) {
           AND l.wishlist = TRUE
           AND b.copies > 0
           AND u.notification_available_enabled = TRUE
-        ON CONFLICT (user_id, unique_key) DO NOTHING;
+        ON CONFLICT (user_id, unique_key) DO NOTHING
+    `, params);
 
+    await pool.query(`
         INSERT INTO account_notifications (user_id, type, unique_key, title, message)
         SELECT e.user_id,
                'login',
                'login:' || e.id,
                'Вход в аккаунт',
-               COALESCE(e.browser, 'Браузер') || ' · ' || COALESCE(e.os, 'Неизвестная ОС') || ' · IP ' || COALESCE(e.ip_address, 'не определён'),
-               NULL
+               COALESCE(e.browser, 'Браузер') || ' · ' || COALESCE(e.os, 'Неизвестная ОС') || ' · IP ' || COALESCE(e.ip_address, 'не определён')
         FROM user_login_events e
         JOIN users u ON u.id = e.user_id
         WHERE e.user_id = $1 AND u.login_alerts_enabled = TRUE
         ORDER BY e.created_at DESC
         LIMIT 5
-        ON CONFLICT (user_id, unique_key) DO NOTHING;
-    `, [userId]);
+        ON CONFLICT (user_id, unique_key) DO NOTHING
+    `, params);
 }
 
 router.get('/', authMiddleware, async (req, res) => {
@@ -356,13 +386,15 @@ router.put('/library/:bookId', authMiddleware, async (req, res) => {
         await ensureAccountSchema();
         const result = await pool.query(`
             INSERT INTO user_book_lists (user_id, book_id, favorite, wishlist, updated_at)
-            VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+            SELECT $1, b.id, $3, $4, CURRENT_TIMESTAMP
+            FROM books b WHERE b.id = $2
             ON CONFLICT (user_id, book_id)
             DO UPDATE SET favorite = EXCLUDED.favorite,
                           wishlist = EXCLUDED.wishlist,
                           updated_at = CURRENT_TIMESTAMP
             RETURNING *
         `, [req.user.id, req.params.bookId, favorite, wishlist]);
+        if (!result.rows.length) return res.status(404).json({ error: 'Book not found' });
         res.json({ item: result.rows[0] });
     } catch (error) {
         try {
@@ -376,12 +408,15 @@ router.put('/library/:bookId', authMiddleware, async (req, res) => {
 router.post('/library/:bookId/viewed', authMiddleware, async (req, res) => {
     try {
         await ensureAccountSchema();
-        await pool.query(`
+        const result = await pool.query(`
             INSERT INTO user_book_lists (user_id, book_id, viewed_at, updated_at)
-            VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            SELECT $1, b.id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            FROM books b WHERE b.id = $2
             ON CONFLICT (user_id, book_id)
             DO UPDATE SET viewed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            RETURNING book_id
         `, [req.user.id, req.params.bookId]);
+        if (!result.rows.length) return res.status(404).json({ error: 'Book not found' });
         res.json({ ok: true });
     } catch (error) {
         localStore.recordAccountBookView(req.user.id, req.params.bookId);
