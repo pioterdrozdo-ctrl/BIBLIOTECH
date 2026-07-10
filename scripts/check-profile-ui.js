@@ -10,12 +10,14 @@ const customizeJs = fs.readFileSync(path.join(root, 'frontend/js/profile-customi
 const settingsJs = fs.readFileSync(path.join(root, 'frontend/js/profile-settings-modal.js'), 'utf8');
 const closeGuardJs = fs.readFileSync(path.join(root, 'frontend/js/account-settings-close-guard.js'), 'utf8');
 const rentalsGuardJs = fs.readFileSync(path.join(root, 'frontend/js/rentals-request-guard.js'), 'utf8');
+const reservationsJs = fs.readFileSync(path.join(root, 'frontend/js/profile-reservations.js'), 'utf8');
 const featuresJs = fs.readFileSync(path.join(root, 'frontend/js/account-settings-features.js'), 'utf8');
 const securityJs = fs.readFileSync(path.join(root, 'frontend/js/profile-security.js'), 'utf8');
 const profileCss = fs.readFileSync(path.join(root, 'frontend/css/profile-twitter-restored.css'), 'utf8');
 const customizeCss = fs.readFileSync(path.join(root, 'frontend/css/profile-customization-modal.css'), 'utf8');
 const settingsCss = fs.readFileSync(path.join(root, 'frontend/css/profile-settings-modal.css'), 'utf8');
 const featuresCss = fs.readFileSync(path.join(root, 'frontend/css/account-settings-features.css'), 'utf8');
+const reservationCss = fs.readFileSync(path.join(root, 'frontend/css/reservation-queue.css'), 'utf8');
 const pwaJs = fs.readFileSync(path.join(root, 'frontend/js/pwa.js'), 'utf8');
 const serverJs = fs.readFileSync(path.join(root, 'backend/server.js'), 'utf8');
 const accountRoute = fs.readFileSync(path.join(root, 'backend/routes/account.js'), 'utf8');
@@ -69,6 +71,11 @@ assert.ok(closeGuardJs.includes('accountSettingsEditProfileBtn'), 'settings-to-p
 assert.ok(rentalsGuardJs.includes("pathname === '/api/rentals/me'"), 'rental request guard does not target the profile endpoint');
 assert.ok(rentalsGuardJs.includes('inFlight'), 'rental request guard does not coalesce concurrent requests');
 assert.ok(rentalsGuardJs.includes('CACHE_TTL_MS'), 'rental request guard does not throttle repeated profile refreshes');
+assert.ok(reservationsJs.includes('profileReservationsPanel'), 'reservation profile panel is missing');
+assert.ok(reservationsJs.includes('/rentals/me'), 'reservation profile does not load queue state');
+assert.ok(reservationsJs.includes('data-cancel-reservation-id'), 'reservation cancellation action is missing');
+assert.ok(reservationsJs.includes('data-open-reservation-book'), 'reservation open-book action is missing');
+assert.ok(reservationsJs.includes('Можно забрать'), 'ready reservation state is missing');
 
 for (const section of ['devices', 'notifications', 'privacy', 'library', 'data']) {
     assert.ok(featuresJs.includes(`data-settings-section="${section}"`) || featuresJs.includes(`navButton('${section}'`), `${section} section is missing`);
@@ -97,18 +104,26 @@ assertBalancedCss(profileCss, 'profile-twitter-restored.css');
 assertBalancedCss(customizeCss, 'profile-customization-modal.css');
 assertBalancedCss(settingsCss, 'profile-settings-modal.css');
 assertBalancedCss(featuresCss, 'account-settings-features.css');
+assertBalancedCss(reservationCss, 'reservation-queue.css');
 assert.ok(customizeCss.includes('@media (max-width: 700px)'), 'customization mobile layout is missing');
 assert.ok(featuresCss.includes('@media (max-width: 700px)'), 'complete settings mobile layout is missing');
+assert.ok(reservationCss.includes('@media (max-width: 560px)'), 'reservation profile mobile layout is missing');
 
 assert.ok(pwaJs.indexOf('rentals-request-guard.js') < pwaJs.indexOf('profile-rentals.js'), 'PWA must load the rental guard before profile rentals');
+assert.ok(pwaJs.indexOf('profile-rentals.js') < pwaJs.indexOf('profile-reservations.js'), 'PWA must load reservations after rental profile');
 assert.ok(pwaJs.indexOf('profile-twitter.js') < pwaJs.indexOf('profile-customization-modal.js'), 'PWA must load customization after the profile controller');
 assert.ok(pwaJs.includes('profile-customization-modal.css'), 'customization CSS is not loaded');
+assert.ok(pwaJs.includes('reservation-queue.css'), 'reservation CSS is not loaded');
 assert.ok(pwaJs.includes('account-settings-features.js'), 'complete settings controller is not loaded');
 assert.ok(serverJs.includes('/api/account'), 'account API is not mounted');
+assert.ok(serverJs.indexOf('/js/profile-rentals.js') < serverJs.indexOf('/js/profile-reservations.js'), 'initial HTML must load reservations after rentals');
 assert.ok(serverJs.indexOf('/js/profile-twitter.js') < serverJs.indexOf('/js/profile-customization-modal.js'), 'initial HTML must load customization after profile');
 assert.ok(serverJs.includes('/css/profile-customization-modal.css'), 'customization CSS must be delivered in initial HTML');
-assert.ok(swJs.includes("CACHE_NAME = 'bibliotech-pwa-v24'"), 'PWA cache was not invalidated');
+assert.ok(serverJs.includes('/css/reservation-queue.css'), 'reservation CSS must be delivered in initial HTML');
+assert.ok(swJs.includes("CACHE_NAME = 'bibliotech-pwa-v25'"), 'PWA cache was not invalidated');
 assert.ok(swJs.includes('/js/profile-customization-modal.js'), 'PWA shell does not cache customization JavaScript');
+assert.ok(swJs.includes('/js/profile-reservations.js'), 'PWA shell does not cache reservation profile JavaScript');
 assert.ok(swJs.includes('/css/profile-customization-modal.css'), 'PWA shell does not cache customization CSS');
+assert.ok(swJs.includes('/css/reservation-queue.css'), 'PWA shell does not cache reservation CSS');
 
-console.log('Profile check OK: separate customization, bio, banner, account settings, sessions and mobile layouts validated.');
+console.log('Profile check OK: customization, account settings, rentals, reservation queue, sessions and mobile layouts validated.');
