@@ -149,6 +149,7 @@
         loadScript('js/profile-reservations.js?v=20260710-profile-reservations-1', '__bibliotechProfileReservationsLoading');
         loadScript('js/profile-twitter.js?v=20260710-profile-customize-modal-1', '__bibliotechProfileTwitterLoading');
         loadScript('js/profile-customization-modal.js?v=20260710-profile-customize-modal-1', '__bibliotechProfileCustomizationLoading');
+        loadScript('js/profile-banner-save-fix.js?v=20260710-profile-banner-save-2', '__bibliotechProfileBannerSaveFixLoading');
         loadScript('js/profile-settings-modal.js?v=20260710-profile-settings-2', '__bibliotechProfileSettingsLoading');
         loadScript('js/account-settings-close-guard.js?v=20260710-account-settings-close-1', '__bibliotechAccountSettingsCloseGuardLoading');
         loadScript('js/profile-security.js?v=20260710-profile-security-modal-1', '__bibliotechProfileSecurityLoading');
