@@ -146,6 +146,7 @@
         loadScript('js/profile-twitter.js?v=20260710-profile-settings-1', '__bibliotechProfileTwitterLoading');
         loadScript('js/profile-settings-modal.js?v=20260710-profile-settings-1', '__bibliotechProfileSettingsLoading');
         loadScript('js/profile-security.js?v=20260710-profile-security-modal-1', '__bibliotechProfileSecurityLoading');
+        loadScript('js/account-settings-features.js?v=20260710-account-settings-1', '__bibliotechAccountSettingsFeaturesLoading');
         loadScript('js/modal-visual-fix.js?v=20260710-modal-visual-fix-2', '__bibliotechModalVisualFixLoading');
         loadScript('js/card-rent-safe.js?v=20260710-card-rent-refined-1', '__bibliotechCardRentSafeLoading');
         loadScript('js/comment-clear-fix.js?v=20260710-comment-clear-1', '__bibliotechCommentClearFixLoading');
@@ -157,6 +158,7 @@
     if (isHomePage) {
         loadStylesheet('css/profile-twitter-restored.css?v=20260710-profile-evolved-2', '__bibliotechProfileTwitterRestoredCss');
         loadStylesheet('css/profile-settings-modal.css?v=20260710-profile-settings-1', '__bibliotechProfileSettingsCss');
+        loadStylesheet('css/account-settings-features.css?v=20260710-account-settings-1', '__bibliotechAccountSettingsFeaturesCss');
     }
 
     loadStylesheet('css/theme-mode-preview.css?v=20260710-theme-mode-preview-1', '__bibliotechThemeModePreviewCss');
