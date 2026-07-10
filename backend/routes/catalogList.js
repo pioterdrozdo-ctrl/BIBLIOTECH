@@ -1,9 +1,15 @@
 const express = require('express');
 const pool = require('../db/pool');
-const localStore = require('../services/localStore');
+const localStore = require('../services/registerReservationFallback');
 const { optionalAuthMiddleware } = require('../middleware/auth');
 const { normalizeBookQrFields } = require('../utils/bookQr');
 const { ensureBookMetadataSchema } = require('../services/bookMetadataSchema');
+const {
+    ensureReservationSchema,
+    reconcileReservationQueues,
+    getReservationSummaries,
+    attachReservationFields
+} = require('../services/reservationQueue');
 
 const router = express.Router();
 
@@ -81,8 +87,10 @@ async function ensureCatalogListSchema() {
             user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
             username VARCHAR(50),
             rented_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            returned_at TIMESTAMP
+            returned_at TIMESTAMP,
+            due_at TIMESTAMP
         );
+        ALTER TABLE book_rentals ADD COLUMN IF NOT EXISTS due_at TIMESTAMP;
         CREATE INDEX IF NOT EXISTS idx_books_location_id ON books(location_id);
         CREATE INDEX IF NOT EXISTS idx_book_rentals_book_id ON book_rentals(book_id);
         CREATE INDEX IF NOT EXISTS idx_book_rentals_user_id ON book_rentals(user_id);
@@ -91,6 +99,7 @@ async function ensureCatalogListSchema() {
         ON CONFLICT DO NOTHING;
     `);
     await ensureBookMetadataSchema();
+    await ensureReservationSchema();
 }
 
 router.get('/', optionalAuthMiddleware, async (req, res, next) => {
@@ -174,8 +183,14 @@ router.get('/', optionalAuthMiddleware, async (req, res, next) => {
 
     try {
         await ensureCatalogListSchema();
+        await reconcileReservationQueues();
         const result = await pool.query(query, params);
-        res.json(result.rows.filter(book => !isDemoBook(book)).map(mapListBook));
+        const summaries = await getReservationSummaries(pool, result.rows.map(book => book.id), req.user?.id || null);
+        const books = result.rows
+            .filter(book => !isDemoBook(book))
+            .map(book => attachReservationFields(book, summaries.get(Number(book.id))))
+            .map(mapListBook);
+        res.json(books);
     } catch (error) {
         if (!pool.isConfigured) {
             res.json(localStore.getBooks(req.query, req.user).filter(book => !isDemoBook(book)).map(mapListBook));

@@ -68,6 +68,7 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255) UNIQUE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'user';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS notification_available_enabled BOOLEAN DEFAULT TRUE;
 
 ALTER TABLE books ADD COLUMN IF NOT EXISTS description TEXT;
 ALTER TABLE books ADD COLUMN IF NOT EXISTS cover_data_url TEXT;
@@ -95,7 +96,38 @@ CREATE TABLE IF NOT EXISTS book_rentals (
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     username VARCHAR(50),
     rented_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    returned_at TIMESTAMP
+    returned_at TIMESTAMP,
+    due_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP + INTERVAL '14 days')
+);
+ALTER TABLE book_rentals ADD COLUMN IF NOT EXISTS due_at TIMESTAMP;
+ALTER TABLE book_rentals ALTER COLUMN due_at SET DEFAULT (CURRENT_TIMESTAMP + INTERVAL '14 days');
+UPDATE book_rentals SET due_at = rented_at + INTERVAL '14 days' WHERE due_at IS NULL AND returned_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS book_reservations (
+    id SERIAL PRIMARY KEY,
+    book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    username VARCHAR(50),
+    status VARCHAR(20) NOT NULL DEFAULT 'waiting',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ready_at TIMESTAMP,
+    expires_at TIMESTAMP,
+    fulfilled_at TIMESTAMP,
+    cancelled_at TIMESTAMP,
+    expired_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS account_notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    type VARCHAR(40) NOT NULL,
+    unique_key VARCHAR(120) NOT NULL,
+    title VARCHAR(180) NOT NULL,
+    message TEXT NOT NULL,
+    book_id INTEGER REFERENCES books(id) ON DELETE SET NULL,
+    read_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, unique_key)
 );
 
 -- Индексы
@@ -112,6 +144,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_books_isbn_unique ON books(isbn) WHERE isb
 CREATE INDEX IF NOT EXISTS idx_comments_book_id ON comments(book_id);
 CREATE INDEX IF NOT EXISTS idx_book_rentals_book_id ON book_rentals(book_id);
 CREATE INDEX IF NOT EXISTS idx_book_rentals_user_id ON book_rentals(user_id);
+CREATE INDEX IF NOT EXISTS idx_book_reservations_book_queue ON book_reservations(book_id, status, created_at, id);
+CREATE INDEX IF NOT EXISTS idx_book_reservations_user ON book_reservations(user_id, status, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_book_reservations_active_user_book
+    ON book_reservations(book_id, user_id)
+    WHERE status IN ('waiting', 'ready');
+CREATE INDEX IF NOT EXISTS idx_account_notifications_user ON account_notifications(user_id, created_at DESC);
 CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique_idx ON users (LOWER(email)) WHERE email IS NOT NULL;
 
 -- Триггер для updated_at

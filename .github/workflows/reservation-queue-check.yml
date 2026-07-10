@@ -1,0 +1,71 @@
+name: Reservation queue check
+
+on:
+  pull_request:
+    paths:
+      - 'backend/routes/reservations.js'
+      - 'backend/routes/rentals.js'
+      - 'backend/routes/catalogList.js'
+      - 'backend/services/reservationQueue.js'
+      - 'backend/services/localReservationStore.js'
+      - 'backend/services/registerReservationFallback.js'
+      - 'backend/server.js'
+      - 'backend/sql/init.sql'
+      - 'frontend/js/reservation-queue.js'
+      - 'frontend/js/profile-reservations.js'
+      - 'frontend/js/card-rent-safe.js'
+      - 'frontend/css/reservation-queue.css'
+      - 'frontend/js/pwa.js'
+      - 'frontend/sw.js'
+      - 'scripts/check-reservation-queue.js'
+      - '.github/workflows/reservation-queue-check.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/routes/reservations.js'
+      - 'backend/routes/rentals.js'
+      - 'backend/routes/catalogList.js'
+      - 'backend/services/reservationQueue.js'
+      - 'backend/services/localReservationStore.js'
+      - 'backend/services/registerReservationFallback.js'
+      - 'backend/server.js'
+      - 'backend/sql/init.sql'
+      - 'frontend/js/reservation-queue.js'
+      - 'frontend/js/profile-reservations.js'
+      - 'frontend/js/card-rent-safe.js'
+      - 'frontend/css/reservation-queue.css'
+      - 'frontend/js/pwa.js'
+      - 'frontend/sw.js'
+      - 'scripts/check-reservation-queue.js'
+
+permissions:
+  contents: read
+
+jobs:
+  check-reservation-queue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install application
+        run: npm install
+      - name: Check JavaScript syntax
+        run: |
+          node --check backend/routes/reservations.js
+          node --check backend/routes/rentals.js
+          node --check backend/routes/catalogList.js
+          node --check backend/services/reservationQueue.js
+          node --check backend/services/localReservationStore.js
+          node --check backend/services/registerReservationFallback.js
+          node --check backend/server.js
+          node --check frontend/js/reservation-queue.js
+          node --check frontend/js/profile-reservations.js
+          node --check frontend/js/card-rent-safe.js
+          node --check frontend/js/pwa.js
+          node --check frontend/sw.js
+          node --check scripts/check-reservation-queue.js
+      - name: Validate reservation queue
+        run: node scripts/check-reservation-queue.js

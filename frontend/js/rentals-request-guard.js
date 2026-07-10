@@ -52,5 +52,6 @@
     };
 
     document.addEventListener('bibliotech:rentals-changed', clearCache);
+    document.addEventListener('bibliotech:reservation-changed', clearCache);
     window.BibliotechRentalsRequestGuard = { clear: clearCache };
 })();

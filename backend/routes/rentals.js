@@ -1,7 +1,13 @@
 const express = require('express');
 const pool = require('../db/pool');
 const { authMiddleware, isAdmin } = require('../middleware/auth');
-const localStore = require('../services/localStore');
+const localStore = require('../services/registerReservationFallback');
+const {
+    ensureReservationSchema,
+    reconcileReservationQueues,
+    listUserReservations,
+    mapReservation
+} = require('../services/reservationQueue');
 
 const router = express.Router();
 
@@ -23,6 +29,7 @@ async function ensureRentalSchema() {
         CREATE INDEX IF NOT EXISTS idx_book_rentals_book_id ON book_rentals(book_id);
         CREATE INDEX IF NOT EXISTS idx_book_rentals_user_id ON book_rentals(user_id);
     `);
+    await ensureReservationSchema();
 }
 
 function mapRental(row) {
@@ -48,6 +55,7 @@ function mapRental(row) {
 router.get('/me', authMiddleware, async (req, res) => {
     try {
         await ensureRentalSchema();
+        await reconcileReservationQueues();
         const result = await pool.query(`
             SELECT r.*,
                    b.title AS book_title,
@@ -61,18 +69,23 @@ router.get('/me', authMiddleware, async (req, res) => {
             ORDER BY r.returned_at IS NULL DESC, r.rented_at DESC
             LIMIT 100
         `, [req.user.id]);
-        res.json({ rentals: result.rows.map(mapRental) });
+        const reservations = await listUserReservations(pool, req.user.id);
+        res.json({ rentals: result.rows.map(mapRental), reservations });
     } catch (error) {
         const rentals = localStore.listRentalsForAdmin()
             .filter(rental => Number(rental.user_id) === Number(req.user.id))
             .map(mapRental);
-        res.json({ rentals });
+        const reservations = typeof localStore.listReservationsForUser === 'function'
+            ? localStore.listReservationsForUser(req.user.id)
+            : [];
+        res.json({ rentals, reservations });
     }
 });
 
 router.get('/', authMiddleware, isAdmin, async (req, res) => {
     try {
         await ensureRentalSchema();
+        await reconcileReservationQueues();
         const result = await pool.query(`
             SELECT r.*, b.title AS book_title, b.author AS book_author, b.cover_data_url AS book_cover_data_url, COALESCE(u.username, r.username) AS username
             FROM book_rentals r
@@ -81,9 +94,30 @@ router.get('/', authMiddleware, isAdmin, async (req, res) => {
             ORDER BY r.returned_at IS NULL DESC, r.rented_at DESC
             LIMIT 100
         `);
-        res.json({ rentals: result.rows.map(mapRental) });
+        const reservationResult = await pool.query(`
+            WITH ranked AS (
+                SELECT r.*,
+                       CASE WHEN r.status = 'waiting' THEN
+                           ROW_NUMBER() OVER (PARTITION BY r.book_id, r.status ORDER BY r.created_at, r.id)
+                       ELSE 1 END AS queue_position
+                FROM book_reservations r
+                WHERE r.status IN ('waiting', 'ready')
+            )
+            SELECT r.*, b.title AS book_title, b.author AS book_author, b.cover_data_url AS book_cover_data_url
+            FROM ranked r
+            LEFT JOIN books b ON b.id = r.book_id
+            ORDER BY CASE WHEN r.status = 'ready' THEN 0 ELSE 1 END, r.created_at
+            LIMIT 200
+        `);
+        res.json({
+            rentals: result.rows.map(mapRental),
+            reservations: reservationResult.rows.map(row => mapReservation(row, Number(row.queue_position || 1)))
+        });
     } catch (error) {
-        res.json({ rentals: localStore.listRentalsForAdmin().map(mapRental) });
+        res.json({
+            rentals: localStore.listRentalsForAdmin().map(mapRental),
+            reservations: []
+        });
     }
 });
 

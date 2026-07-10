@@ -62,9 +62,30 @@
 
     function getCardRentState(card) {
         const text = card.textContent || '';
-        if (/закреплена за вами/i.test(text)) return { label: 'Вернуть', disabled: false, returnMode: true };
-        if (/нет в наличии|недоступно/i.test(text)) return { label: 'Недоступно', disabled: true, returnMode: false };
-        return { label: 'Арендовать', disabled: false, returnMode: false };
+        const reservationStatus = card.dataset.reservationStatus || '';
+        const queuePosition = card.dataset.queuePosition || '';
+        const rentedByMe = card.dataset.rentedByMe === 'true' || /закреплена за вами/i.test(text);
+        const available = card.dataset.available === 'true' && !/нет в наличии|недоступно/i.test(text);
+
+        if (rentedByMe) {
+            return { label: 'Вернуть', disabled: false, returnMode: true, readyMode: false, cancelMode: false };
+        }
+        if (reservationStatus === 'ready') {
+            return { label: 'Забрать книгу', disabled: false, returnMode: false, readyMode: true, cancelMode: false };
+        }
+        if (reservationStatus === 'waiting') {
+            return {
+                label: queuePosition ? `Отменить бронь · №${queuePosition}` : 'Отменить бронь',
+                disabled: false,
+                returnMode: true,
+                readyMode: false,
+                cancelMode: true
+            };
+        }
+        if (!available) {
+            return { label: 'Забронировать', disabled: false, returnMode: false, readyMode: false, cancelMode: false };
+        }
+        return { label: 'Арендовать', disabled: false, returnMode: false, readyMode: false, cancelMode: false };
     }
 
     function applyRentButtons() {
@@ -89,6 +110,8 @@
             button.textContent = state.label;
             button.disabled = state.disabled;
             button.classList.toggle('return-mode', state.returnMode);
+            button.classList.toggle('ready-mode', state.readyMode);
+            button.classList.toggle('cancel-reservation-mode', state.cancelMode);
         });
     }
 
@@ -96,8 +119,12 @@
         if (typeof window.openBook !== 'function') return;
         window.openBook(bookId);
         window.setTimeout(() => {
-            const rentButton = document.getElementById('rentBookBtn');
-            if (rentButton && !rentButton.disabled) rentButton.click();
+            const controller = window.BibliotechReservationQueue;
+            if (controller?.performReservationAction) controller.performReservationAction();
+            else {
+                const rentButton = document.getElementById('rentBookBtn');
+                if (rentButton && !rentButton.disabled) rentButton.click();
+            }
         }, 120);
     }
 
@@ -105,6 +132,15 @@
         if (window.__bibliotechCardRentSafeClickBound) return;
         window.__bibliotechCardRentSafeClickBound = true;
         document.addEventListener('click', event => {
+            const detailButton = event.target.closest('#rentBookBtn');
+            const controller = window.BibliotechReservationQueue;
+            if (detailButton && controller?.performReservationAction) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                if (!detailButton.disabled) controller.performReservationAction();
+                return;
+            }
+
             const button = event.target.closest('.card-rent-safe-btn');
             if (!button) return;
             event.preventDefault();
@@ -128,6 +164,7 @@
             applyRentButtons();
             return result;
         };
+        try { renderBooks = window.renderBooks; } catch {}
         applyRentButtons();
     }
 
@@ -135,6 +172,7 @@
         injectStyles();
         bindCardClick();
         wrapRenderBooks();
+        document.addEventListener('bibliotech:reservation-changed', () => window.setTimeout(applyRentButtons, 50));
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
