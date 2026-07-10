@@ -48,9 +48,10 @@ const homeCriticalStyles = [
 ];
 
 const homeCriticalScripts = [
+    '/js/rentals-request-guard.js?v=20260710-rentals-guard-1',
     '/js/profile-rentals.js?v=20260709-profile-rentals-1',
     '/js/profile-twitter.js?v=20260710-profile-settings-1',
-    '/js/profile-settings-modal.js?v=20260710-profile-settings-1',
+    '/js/profile-settings-modal.js?v=20260710-profile-settings-2',
     '/js/account-settings-close-guard.js?v=20260710-account-settings-close-1',
     '/js/profile-security.js?v=20260710-profile-security-modal-1',
     '/js/account-settings-features.js?v=20260710-account-settings-1',
@@ -116,9 +117,9 @@ function injectCriticalUiAssets(html, { home = false } = {}) {
         if (scriptTags) {
             const pwaPattern = /<script src="(?:\/)?js\/pwa\.js(?:\?[^\"]*)?"><\/script>/;
             if (pwaPattern.test(html)) {
-                html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-4"></script>`);
+                html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-5"></script>`);
             } else {
-                html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-4"></script>\n</body>`);
+                html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-5"></script>\n</body>`);
             }
         }
     }
