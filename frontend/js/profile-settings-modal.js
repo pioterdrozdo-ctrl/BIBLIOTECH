@@ -5,7 +5,6 @@
     const CORE_SECTIONS = new Set(['account', 'security']);
     const VALID_SECTIONS = new Set(['account', 'security', 'devices', 'notifications', 'privacy', 'library', 'data']);
     let lastTrigger = null;
-    let closeLockUntil = 0;
 
     function getSession() {
         try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
@@ -174,7 +173,6 @@
     }
 
     function open(section = 'account', trigger = null) {
-        if (Date.now() < closeLockUntil) return;
         const modal = ensureModal();
         lastTrigger = trigger || document.activeElement;
         refreshAccount();
@@ -191,7 +189,6 @@
     function close(options = {}) {
         const modal = document.getElementById('accountSettingsModal');
         if (!modal) return;
-        closeLockUntil = Date.now() + 180;
         modal.classList.remove('active');
         modal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('account-settings-open');
@@ -213,7 +210,7 @@
             document.getElementById('currentUserPill')?.click();
             setTimeout(() => document.getElementById('profileEditBtn')?.click(), 0);
         };
-        setTimeout(launch, 190);
+        setTimeout(launch, 0);
     }
 
     function wireModal(modal) {
