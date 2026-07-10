@@ -106,6 +106,14 @@ html:not(.auth-using-keyboard) .auth-theme-toggle:active {
     transform: scale(0.94);
 }
 
+/* Keyboard actions are intentionally instant. */
+html.auth-using-keyboard .tabs::before,
+html.auth-using-keyboard .tab,
+html.auth-using-keyboard .auth-container button:not(.tab),
+html.auth-using-keyboard .auth-theme-toggle {
+    transition: none;
+}
+
 @media (hover: hover) and (pointer: fine) {
     .auth-container button:not(.tab):hover {
         transform: translateY(-1px);
