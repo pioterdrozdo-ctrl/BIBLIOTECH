@@ -51,6 +51,7 @@ async function verifyInitialHtmlAssets() {
             const profileCss = html.indexOf('/css/profile-twitter-restored.css');
             const customizeCss = html.indexOf('/css/profile-customization-modal.css');
             const settingsCss = html.indexOf('/css/profile-settings-modal.css');
+            const minimalCss = html.indexOf('/css/home-minimal.css');
             const profileScript = html.indexOf('/js/profile-twitter.js');
             const customizeScript = html.indexOf('/js/profile-customization-modal.js');
             const settingsScript = html.indexOf('/js/profile-settings-modal.js');
@@ -58,6 +59,7 @@ async function verifyInitialHtmlAssets() {
             assert.ok(profileCss > 0 && profileCss < headEnd, 'Profile CSS is not present in the initial head');
             assert.ok(customizeCss > profileCss && customizeCss < headEnd, 'Customization CSS is not present after profile CSS');
             assert.ok(settingsCss > customizeCss && settingsCss < headEnd, 'Settings CSS is not present after customization CSS');
+            assert.ok(minimalCss > settingsCss && minimalCss < headEnd, 'Minimal home CSS must be the last home-specific style');
             assert.ok(profileScript > productScript, 'Profile controller must load after product polish');
             assert.ok(customizeScript > profileScript, 'Customization controller must load after the profile controller');
             assert.ok(settingsScript > customizeScript, 'Settings controller must load after customization');
@@ -66,6 +68,10 @@ async function verifyInitialHtmlAssets() {
             assert.equal((html.match(/\/js\/profile-customization-modal\.js/g) || []).length, 1, 'Customization controller is duplicated in initial HTML');
             assert.equal((html.match(/\/js\/profile-settings-modal\.js/g) || []).length, 1, 'Settings controller is duplicated in initial HTML');
             assert.equal((html.match(/\/js\/profile-security\.js/g) || []).length, 1, 'Security controller is duplicated in initial HTML');
+            assert.ok(html.includes('<h1>Каталог библиотеки</h1>'), 'Initial home HTML still has the old hero title');
+            assert.ok(html.includes('Поиск, выдача и учёт книг в одном месте.'), 'Initial home HTML does not contain the direct description');
+            assert.ok(!html.includes('Книги под контролем'), 'Marketing hero copy returned in initial HTML');
+            assert.ok(!html.includes('id="openAddBookBtnHero"'), 'Duplicate add-book action returned in the hero');
         }
     }
 }
@@ -202,11 +208,19 @@ async function checkHomeProfileAndSettings(browser) {
 
     assert.equal(await page.locator('link[href*="ui-refresh.css"]').count(), 1, 'Global refresh CSS is duplicated');
     assert.equal(await page.locator('link[href*="product-polish.css"]').count(), 1, 'Product polish CSS is duplicated');
+    assert.equal(await page.locator('link[href*="home-minimal.css"]').count(), 1, 'Minimal home CSS is duplicated or missing');
     assert.equal(await page.locator('link[href*="profile-twitter-restored.css"]').count(), 1, 'Profile CSS is duplicated');
     assert.equal(await page.locator('link[href*="profile-customization-modal.css"]').count(), 1, 'Customization CSS is duplicated');
     assert.equal(await page.locator('link[href*="profile-settings-modal.css"]').count(), 1, 'Settings CSS is duplicated');
     assert.equal(await page.locator('.product-hero-actions').count(), 1, 'Home hero actions are missing or duplicated');
-    assert.equal(await page.locator('.product-proof-chip').count(), 4, 'Home value proof is incomplete');
+    assert.equal(await page.locator('.product-hero-primary').count(), 1, 'Home hero must have one primary action');
+    assert.equal(await page.locator('.product-hero-secondary').count(), 0, 'Duplicate QR action remained in the hero');
+    assert.equal(await page.locator('.product-proof-chip').count(), 0, 'Marketing proof chips remained in the hero');
+    assert.equal(await page.locator('#openAddBookBtnHero').count(), 0, 'Duplicate add-book action remained in the hero');
+    assert.equal(await page.locator('.hero--info h1').textContent(), 'Каталог библиотеки', 'Minimal hero title is incorrect');
+    assert.equal(await page.locator('.hero--info p').textContent(), 'Поиск, выдача и учёт книг в одном месте.', 'Minimal hero description is incorrect');
+    assert.equal(await page.locator('.product-hero-primary').textContent(), 'Перейти к книгам', 'Hero action is unclear');
+    assert.equal(await page.locator('#catalog .title-section h1').textContent(), 'Каталог', 'Catalog title was not simplified');
 
     const beforeTheme = await page.evaluate(() => window.BibliotechTheme.getState());
     await page.locator('#floatingThemeToggle').click();
@@ -278,6 +292,8 @@ async function checkMobileHome(browser) {
     await page.waitForSelector('#menuIcon', { state: 'visible' });
     await page.waitForFunction(() => Boolean(window.BibliotechProfileCustomize) && Boolean(window.BibliotechProductPolish));
     assert.equal(await page.locator('.product-hero-actions').count(), 1, 'Mobile hero actions are missing');
+    assert.equal(await page.locator('.product-hero-primary').isVisible(), true, 'Mobile primary catalog action is not visible');
+    assert.equal(await page.locator('.product-proof-chip').count(), 0, 'Mobile marketing chips remained');
     await page.locator('#menuIcon').click();
     await page.waitForSelector('#navMenu.active');
     await page.waitForSelector('#currentUserPill', { state: 'visible' });
@@ -343,7 +359,7 @@ async function checkStaticPages(browser) {
 
     assert.deepEqual(criticalFailures, [], `Critical resource failures:\n${criticalFailures.join('\n')}`);
     assert.deepEqual(pageErrors, [], `Browser JavaScript errors:\n${pageErrors.join('\n')}`);
-    console.log('Runtime smoke check OK: unified design, first-run experience, profile, settings, themes and mobile layouts work.');
+    console.log('Runtime smoke check OK: minimal home, first-run experience, profile, settings, themes and mobile layouts work.');
 })().catch(error => {
     console.error(error.stack || error);
     process.exit(1);
