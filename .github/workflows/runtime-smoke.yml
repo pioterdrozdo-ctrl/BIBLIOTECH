@@ -1,0 +1,66 @@
+name: Runtime smoke check
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/runtime-smoke.js'
+      - '.github/workflows/runtime-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/runtime-smoke.js'
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install application
+        run: npm install
+      - name: Install browser test runtime
+        run: |
+          npm install --no-save playwright@1.52.0
+          npx playwright install --with-deps chromium
+      - name: Start server
+        env:
+          NODE_ENV: production
+          PORT: 4173
+          JWT_SECRET: runtime-smoke-secret
+        run: |
+          node backend/server.js > /tmp/bibliotech-server.log 2>&1 &
+          echo $! > /tmp/bibliotech-server.pid
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent http://127.0.0.1:4173/api/health > /tmp/health.json; then
+              cat /tmp/health.json
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/bibliotech-server.log
+          exit 1
+      - name: Test real pages in Chromium
+        env:
+          SMOKE_BASE_URL: http://127.0.0.1:4173
+        run: node scripts/runtime-smoke.js
+      - name: Print server log
+        if: always()
+        run: cat /tmp/bibliotech-server.log || true
+      - name: Stop server
+        if: always()
+        run: test -f /tmp/bibliotech-server.pid && kill $(cat /tmp/bibliotech-server.pid) || true
