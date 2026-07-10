@@ -264,14 +264,19 @@
         });
 
         if ('MutationObserver' in window) {
+            let wasActive = modal.classList.contains('active');
             new MutationObserver(() => {
-                if (modal.classList.contains('active')) {
+                const isActive = modal.classList.contains('active');
+                if (isActive === wasActive) return;
+                wasActive = isActive;
+
+                if (isActive) {
                     setTimeout(() => {
                         ensureModernStructure();
                         const current = VALID_VIEWS.has(modal.dataset.profileView) ? modal.dataset.profileView : 'overview';
                         setView(current, { scroll: false });
                     }, 0);
-                } else {
+                } else if ((modal.dataset.profileView || 'overview') !== 'overview') {
                     setView('overview', { scroll: false });
                 }
             }).observe(modal, { attributes: true, attributeFilter: ['class'] });
