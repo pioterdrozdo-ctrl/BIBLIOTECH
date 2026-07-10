@@ -131,6 +131,7 @@
     if (isAuthPage) {
         loadScript('js/auth-reset-fix.js?v=20260710-login-click-fix-1', '__bibliotechAuthResetFixLoading');
         loadScript('js/auth-2fa.js?v=20260709-2fa-login-2', '__bibliotechAuth2faLoading');
+        loadScript('js/entry-promo-removal.js?v=20260710-entry-promo-removal-1', '__bibliotechEntryPromoRemovalLoading');
     }
 
     if (isHomePage && !window.__bibliotechBookDetailPolishLoading) {
@@ -165,6 +166,7 @@
 
     if (isHomePage) {
         loadStylesheet('css/profile-twitter-restored.css?v=20260710-profile-evolved-2', '__bibliotechProfileTwitterRestoredCss');
+        loadStylesheet('css/profile-banner-persistence-fix.css?v=20260710-profile-banner-save-1', '__bibliotechProfileBannerPersistenceFixCss');
         loadStylesheet('css/profile-customization-modal.css?v=20260710-profile-customize-modal-1', '__bibliotechProfileCustomizationCss');
         loadStylesheet('css/profile-settings-modal.css?v=20260710-profile-settings-1', '__bibliotechProfileSettingsCss');
         loadStylesheet('css/account-settings-features.css?v=20260710-account-settings-1', '__bibliotechAccountSettingsFeaturesCss');
