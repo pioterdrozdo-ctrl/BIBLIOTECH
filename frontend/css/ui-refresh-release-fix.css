@@ -29,17 +29,78 @@
     scroll-margin-top: 96px;
 }
 
+/* Modern mobile browsers resize the visual viewport when their address bar moves.
+   Dynamic viewport units prevent page and modal jumps while retaining a fallback. */
+body,
+body.auth-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+.auth-container {
+    max-height: calc(100vh - 36px);
+    max-height: calc(100dvh - 36px);
+}
+
+.modal-content,
+.voice-modal-content {
+    max-height: min(88vh, 820px);
+    max-height: min(88dvh, 820px);
+}
+
 /* Preserve safe-area spacing when installed as a PWA. */
 @supports (padding-top: env(safe-area-inset-top)) {
     html.pwa-standalone header {
         top: max(10px, env(safe-area-inset-top));
         padding-top: 0;
     }
+
+    html.pwa-standalone .modal,
+    html.pwa-standalone .voice-modal {
+        padding-top: max(10px, env(safe-area-inset-top));
+        padding-right: max(10px, env(safe-area-inset-right));
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
+        padding-left: max(10px, env(safe-area-inset-left));
+    }
+}
+
+/* Touch devices should not keep desktop hover elevation after a tap. */
+@media (hover: none), (pointer: coarse) {
+    body {
+        background-attachment: scroll;
+    }
+
+    .book-card:hover,
+    .book-card:focus-visible,
+    .insight-card:hover,
+    .mini-widget:hover,
+    .reader-card:hover {
+        transform: none;
+    }
+
+    header nav a,
+    .profile-pill,
+    .language-current,
+    .lang-option,
+    .delete-btn,
+    .close-view-btn,
+    .profile-close-btn,
+    .qr-close-btn,
+    .voice-modal-close,
+    .close-sort-btn {
+        min-height: 44px;
+    }
 }
 
 @media (max-width: 820px) {
     .hero-wow .hero-content {
         padding-block: 30px;
+    }
+
+    header nav {
+        max-height: calc(100vh - 92px);
+        max-height: calc(100dvh - 92px);
+        overscroll-behavior: contain;
     }
 }
 
@@ -51,5 +112,91 @@
     #about-teaser,
     #insights {
         scroll-margin-top: 82px;
+    }
+
+    /* One readable card per row on real phone widths. The refresh layer previously
+       overrode the original single-column rule between 481px and 560px. */
+    .books-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    /* Keep microphone and QR actions side by side and give filters a full row. */
+    .search-action-dock {
+        grid-template-columns: 48px minmax(0, 1fr) !important;
+    }
+
+    .search-action-dock .filter-master-btn {
+        grid-column: 1 / -1;
+    }
+
+    .search-box input,
+    .form-group input,
+    .form-group textarea,
+    .input-wrapper input,
+    .qr-manual-row input,
+    .filter-number-control input,
+    .sort-select {
+        font-size: 16px;
+    }
+
+    .hero--info h1,
+    .stats-hero h1,
+    .about-hero-text h1,
+    .title-section h1 {
+        overflow-wrap: anywhere;
+        hyphens: auto;
+    }
+
+    .modal,
+    .voice-modal {
+        padding-top: max(10px, env(safe-area-inset-top));
+        padding-right: max(10px, env(safe-area-inset-right));
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
+        padding-left: max(10px, env(safe-area-inset-left));
+    }
+
+    .modal-content,
+    .voice-modal-content {
+        max-height: calc(100vh - 20px);
+        max-height: calc(100dvh - 20px);
+    }
+
+    .book-cover {
+        min-height: 218px;
+    }
+
+    .book-cover-img {
+        max-height: 184px;
+    }
+}
+
+@media (max-width: 380px) {
+    .container,
+    .app-container {
+        padding-inline: 11px;
+    }
+
+    header {
+        width: calc(100% - 12px);
+    }
+
+    .brand-logo span {
+        max-width: 116px;
+        font-size: 15px;
+    }
+
+    .hero-content {
+        padding-inline: 15px;
+    }
+
+    .hero--info h1,
+    .stats-hero h1,
+    .about-hero-text h1 {
+        font-size: 31px;
+    }
+
+    .search-sort-panel,
+    .modal-content {
+        padding-inline: 14px;
     }
 }
