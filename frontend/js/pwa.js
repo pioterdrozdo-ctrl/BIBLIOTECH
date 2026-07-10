@@ -54,8 +54,6 @@
             controller.bindControls();
         };
 
-        // script.js and app.js contain the legacy two-theme implementation.
-        // Replace only their public setup hooks before DOMContentLoaded runs.
         window.applyTheme = function (theme) {
             var state = controller.getState();
             return controller.apply(theme, state.mode, { persist: false });
@@ -145,21 +143,20 @@
 
     if (isHomePage) {
         loadScript('js/profile-rentals.js?v=20260709-profile-rentals-1', '__bibliotechProfileRentalsLoading');
-        loadScript('js/profile-security.js?v=20260710-profile-security-practical-1', '__bibliotechProfileSecurityLoading');
-        loadScript('js/profile-twitter.js?v=20260710-profile-evolved-2', '__bibliotechProfileTwitterLoading');
+        loadScript('js/profile-twitter.js?v=20260710-profile-settings-1', '__bibliotechProfileTwitterLoading');
+        loadScript('js/profile-settings-modal.js?v=20260710-profile-settings-1', '__bibliotechProfileSettingsLoading');
+        loadScript('js/profile-security.js?v=20260710-profile-security-modal-1', '__bibliotechProfileSecurityLoading');
         loadScript('js/modal-visual-fix.js?v=20260710-modal-visual-fix-2', '__bibliotechModalVisualFixLoading');
         loadScript('js/card-rent-safe.js?v=20260710-card-rent-refined-1', '__bibliotechCardRentSafeLoading');
         loadScript('js/comment-clear-fix.js?v=20260710-comment-clear-1', '__bibliotechCommentClearFixLoading');
-        // Old profile-compact stays disabled because it moved DOM blocks and could freeze the page.
-        // catalog-fix is already injected by backend/server.js for home.html, so do not load it twice here.
     }
 
-    // These are fallbacks for direct static hosting. Render already places them in the initial HTML.
     loadStylesheet('css/ui-refresh.css?v=20260710-ui-refresh-1', '__bibliotechUiRefreshCss');
     loadStylesheet('css/ui-refresh-release-fix.css?v=20260710-ui-release-fix-2', '__bibliotechUiReleaseFixCss');
 
     if (isHomePage) {
         loadStylesheet('css/profile-twitter-restored.css?v=20260710-profile-evolved-2', '__bibliotechProfileTwitterRestoredCss');
+        loadStylesheet('css/profile-settings-modal.css?v=20260710-profile-settings-1', '__bibliotechProfileSettingsCss');
     }
 
     loadStylesheet('css/theme-mode-preview.css?v=20260710-theme-mode-preview-1', '__bibliotechThemeModePreviewCss');
@@ -169,11 +166,7 @@
 
     window.addEventListener('load', function () {
         navigator.serviceWorker.register('/sw.js', { scope: '/' })
-            .then(function (registration) {
-                return registration.update();
-            })
-            .catch(function (error) {
-                console.warn('[BIBLIOTECH] Service worker registration failed:', error);
-            });
+            .then(function (registration) { return registration.update(); })
+            .catch(function (error) { console.warn('[BIBLIOTECH] Service worker registration failed:', error); });
     });
 })();
