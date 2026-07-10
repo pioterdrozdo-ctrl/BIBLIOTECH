@@ -39,13 +39,15 @@ const criticalUiStyles = [
 ];
 
 const homeCriticalStyles = [
-    '/css/profile-twitter-restored.css?v=20260710-profile-evolved-2'
+    '/css/profile-twitter-restored.css?v=20260710-profile-evolved-2',
+    '/css/profile-settings-modal.css?v=20260710-profile-settings-1'
 ];
 
 const homeCriticalScripts = [
     '/js/profile-rentals.js?v=20260709-profile-rentals-1',
-    '/js/profile-security.js?v=20260710-profile-security-practical-1',
-    '/js/profile-twitter.js?v=20260710-profile-evolved-2',
+    '/js/profile-twitter.js?v=20260710-profile-settings-1',
+    '/js/profile-settings-modal.js?v=20260710-profile-settings-1',
+    '/js/profile-security.js?v=20260710-profile-security-modal-1',
     '/js/modal-visual-fix.js?v=20260710-modal-visual-fix-2',
     '/js/card-rent-safe.js?v=20260710-card-rent-refined-1',
     '/js/comment-clear-fix.js?v=20260710-comment-clear-1'
@@ -108,9 +110,9 @@ function injectCriticalUiAssets(html, { home = false } = {}) {
         if (scriptTags) {
             const pwaPattern = /<script src="(?:\/)?js\/pwa\.js(?:\?[^\"]*)?"><\/script>/;
             if (pwaPattern.test(html)) {
-                html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-1"></script>`);
+                html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-2"></script>`);
             } else {
-                html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-1"></script>\n</body>`);
+                html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-2"></script>\n</body>`);
             }
         }
     }
@@ -154,7 +156,6 @@ function sendFrontendPage(fileName, options = {}) {
     };
 }
 
-// Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: isProduction ? 500 : 2000,
@@ -162,7 +163,6 @@ const limiter = rateLimit({
     legacyHeaders: false
 });
 
-// Middleware
 app.set('trust proxy', 1);
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -182,7 +182,6 @@ app.get('/manifest.webmanifest', (req, res) => {
     res.send(JSON.stringify(buildManifest(themeName)));
 });
 
-// Serve the final visual layer in the initial HTML so the browser never paints an old iteration first.
 app.get(['/', '/index.html'], sendFrontendPage('index.html'));
 app.get('/home.html', sendFrontendPage('home.html', { home: true }));
 app.get('/stats.html', sendFrontendPage('stats.html'));
@@ -205,7 +204,6 @@ app.use(express.static(frontendPath, {
     }
 }));
 
-// Routes
 app.use('/api/auth', securityRoutes);
 app.use('/api/auth', passwordResetEmailRoutes);
 app.use('/api/auth', authRoutes);
@@ -216,7 +214,6 @@ app.use('/api/stats', statsRoutes);
 app.use('/api/storage-locations', storageLocationRoutes);
 app.use('/api/rentals', rentalRoutes);
 
-// Health check
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'OK',
@@ -231,7 +228,6 @@ app.use('/api', (req, res) => {
 
 app.get('*', sendFrontendPage('index.html'));
 
-// Error handling
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ error: 'Something went wrong!' });
