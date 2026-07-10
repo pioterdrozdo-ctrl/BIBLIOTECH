@@ -123,9 +123,7 @@
         forceVisible(container);
         new MutationObserver(() => forceVisible(container)).observe(container, {
             childList: true,
-            subtree: true,
-            attributes: true,
-            attributeFilter: ['class', 'style', 'hidden']
+            subtree: true
         });
 
         window.setTimeout(recoverCatalog, 500);
