@@ -9,6 +9,7 @@ const pageErrors = [];
 const criticalStylePaths = [
     '/css/ui-refresh.css',
     '/css/ui-refresh-release-fix.css',
+    '/css/product-polish.css',
     '/css/theme-mode-preview.css',
     '/css/liquid-theme-toggle.css'
 ];
@@ -40,6 +41,12 @@ async function verifyInitialHtmlAssets() {
             assert.ok(position > 0 && position < headEnd, `${pagePath} does not preload ${asset} before first paint`);
         }
 
+        const productScript = html.indexOf('/js/product-polish.js');
+        const pwaScript = html.indexOf('/js/pwa.js');
+        assert.ok(productScript > bodyStart, `${pagePath} does not preload the product polish controller`);
+        assert.ok(pwaScript > productScript, `${pagePath} must load product polish before pwa.js`);
+        assert.equal((html.match(/\/js\/product-polish\.js/g) || []).length, 1, `${pagePath} duplicates product polish`);
+
         if (pagePath === '/home.html') {
             const profileCss = html.indexOf('/css/profile-twitter-restored.css');
             const customizeCss = html.indexOf('/css/profile-customization-modal.css');
@@ -48,15 +55,13 @@ async function verifyInitialHtmlAssets() {
             const customizeScript = html.indexOf('/js/profile-customization-modal.js');
             const settingsScript = html.indexOf('/js/profile-settings-modal.js');
             const securityScript = html.indexOf('/js/profile-security.js');
-            const pwaScript = html.indexOf('/js/pwa.js');
             assert.ok(profileCss > 0 && profileCss < headEnd, 'Profile CSS is not present in the initial head');
             assert.ok(customizeCss > profileCss && customizeCss < headEnd, 'Customization CSS is not present after profile CSS');
             assert.ok(settingsCss > customizeCss && settingsCss < headEnd, 'Settings CSS is not present after customization CSS');
-            assert.ok(profileScript > bodyStart, 'Profile controller is not present in the initial HTML');
+            assert.ok(profileScript > productScript, 'Profile controller must load after product polish');
             assert.ok(customizeScript > profileScript, 'Customization controller must load after the profile controller');
             assert.ok(settingsScript > customizeScript, 'Settings controller must load after customization');
             assert.ok(securityScript > settingsScript, 'Security controller must load after the settings mount exists');
-            assert.ok(pwaScript > securityScript, 'Profile stack must load before pwa.js');
             assert.equal((html.match(/\/js\/profile-twitter\.js/g) || []).length, 1, 'Profile controller is duplicated in initial HTML');
             assert.equal((html.match(/\/js\/profile-customization-modal\.js/g) || []).length, 1, 'Customization controller is duplicated in initial HTML');
             assert.equal((html.match(/\/js\/profile-settings-modal\.js/g) || []).length, 1, 'Settings controller is duplicated in initial HTML');
@@ -82,14 +87,18 @@ async function attachDiagnostics(page, label) {
     });
 }
 
-async function setSession(page, role = 'admin') {
-    await page.addInitScript(({ role }) => {
+async function setSession(page, role = 'admin', { welcomeSeen = true, username } = {}) {
+    await page.addInitScript(({ role, welcomeSeen, username }) => {
+        const resolvedName = username || (role === 'admin' ? 'Smoke Admin' : 'Smoke User');
         localStorage.setItem('bibliotech_current_user', JSON.stringify({
-            username: role === 'admin' ? 'Smoke Admin' : 'Smoke User',
+            username: resolvedName,
             role,
             guest: false
         }));
-    }, { role });
+        if (welcomeSeen) {
+            localStorage.setItem(`bibliotech_product_welcome_v1_${resolvedName.trim().toLowerCase()}`, '1');
+        }
+    }, { role, welcomeSeen, username });
 }
 
 async function assertEvolvedProfile(page, label) {
@@ -135,14 +144,43 @@ async function assertSettingsModal(page, label) {
 }
 
 async function checkLoginPage(browser) {
-    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-    await attachDiagnostics(page, 'login');
-    const response = await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' });
+    const desktop = await browser.newPage({ viewport: { width: 1280, height: 820 } });
+    await attachDiagnostics(desktop, 'login-desktop');
+    const response = await desktop.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' });
     assert.equal(response?.status(), 200, 'Login page failed to load');
-    await page.waitForSelector('body');
-    assert.equal(await page.locator('script[src="js/theme-bootstrap.js"]').count(), 1, 'Theme bootstrap is missing on login page');
-    await page.waitForFunction(() => Boolean(window.BibliotechTheme));
-    await page.waitForTimeout(250);
+    await desktop.waitForFunction(() => Boolean(window.BibliotechTheme) && Boolean(window.BibliotechProductPolish));
+    await desktop.waitForSelector('.auth-product-shell');
+    assert.equal(await desktop.locator('.auth-product-story').isVisible(), true, 'Product story is not visible on desktop login');
+    assert.equal(await desktop.locator('.auth-value-card').count(), 3, 'Login value proposition is incomplete');
+    assert.equal(await desktop.locator('.auth-container').isVisible(), true, 'Login form is not visible');
+    assert.equal(await desktop.locator('link[href*="product-polish.css"]').count(), 1, 'Product polish CSS is duplicated on login');
+    await desktop.close();
+
+    const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await attachDiagnostics(mobile, 'login-mobile');
+    await mobile.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' });
+    await mobile.waitForSelector('.auth-product-shell');
+    assert.equal(await mobile.locator('.auth-container').isVisible(), true, 'Mobile login form is not visible');
+    const authBox = await mobile.locator('.auth-container').boundingBox();
+    assert.ok(authBox && authBox.width >= 350, `Mobile login width is too small: ${authBox?.width}`);
+    await mobile.close();
+}
+
+async function checkFirstRunExperience(browser) {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    await setSession(page, 'user', { welcomeSeen: false, username: 'First Visit User' });
+    await attachDiagnostics(page, 'first-run');
+    await page.goto(`${baseUrl}/home.html`, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#productWelcomeModal.active', { timeout: 5000 });
+    assert.equal(await page.locator('.product-welcome-item').count(), 3, 'First-run experience does not explain the three main scenarios');
+    assert.equal(await page.locator('#productWelcomeStart').isVisible(), true, 'First-run primary action is missing');
+    await page.locator('#productWelcomeStart').click();
+    await page.waitForFunction(() => !document.getElementById('productWelcomeModal')?.classList.contains('active'));
+    const remembered = await page.evaluate(() => localStorage.getItem('bibliotech_product_welcome_v1_first visit user'));
+    assert.equal(remembered, '1', 'First-run experience was not remembered');
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1100);
+    assert.equal(await page.locator('#productWelcomeModal.active').count(), 0, 'First-run experience returned after it was completed');
     await page.close();
 }
 
@@ -155,6 +193,7 @@ async function checkHomeProfileAndSettings(browser) {
     assert.equal(response?.status(), 200, 'Home page failed to load');
     await page.waitForSelector('#currentUserPill', { state: 'visible' });
     await page.waitForFunction(() => Boolean(window.BibliotechTheme)
+        && Boolean(window.BibliotechProductPolish)
         && Boolean(window.BibliotechProfile)
         && Boolean(window.BibliotechProfileCustomize)
         && Boolean(window.BibliotechSettings)
@@ -162,9 +201,12 @@ async function checkHomeProfileAndSettings(browser) {
     await page.waitForTimeout(500);
 
     assert.equal(await page.locator('link[href*="ui-refresh.css"]').count(), 1, 'Global refresh CSS is duplicated');
+    assert.equal(await page.locator('link[href*="product-polish.css"]').count(), 1, 'Product polish CSS is duplicated');
     assert.equal(await page.locator('link[href*="profile-twitter-restored.css"]').count(), 1, 'Profile CSS is duplicated');
     assert.equal(await page.locator('link[href*="profile-customization-modal.css"]').count(), 1, 'Customization CSS is duplicated');
     assert.equal(await page.locator('link[href*="profile-settings-modal.css"]').count(), 1, 'Settings CSS is duplicated');
+    assert.equal(await page.locator('.product-hero-actions').count(), 1, 'Home hero actions are missing or duplicated');
+    assert.equal(await page.locator('.product-proof-chip').count(), 4, 'Home value proof is incomplete');
 
     const beforeTheme = await page.evaluate(() => window.BibliotechTheme.getState());
     await page.locator('#floatingThemeToggle').click();
@@ -234,7 +276,8 @@ async function checkMobileHome(browser) {
     const response = await page.goto(`${baseUrl}/home.html`, { waitUntil: 'domcontentloaded' });
     assert.equal(response?.status(), 200, 'Mobile home page failed to load');
     await page.waitForSelector('#menuIcon', { state: 'visible' });
-    await page.waitForFunction(() => Boolean(window.BibliotechProfileCustomize));
+    await page.waitForFunction(() => Boolean(window.BibliotechProfileCustomize) && Boolean(window.BibliotechProductPolish));
+    assert.equal(await page.locator('.product-hero-actions').count(), 1, 'Mobile hero actions are missing');
     await page.locator('#menuIcon').click();
     await page.waitForSelector('#navMenu.active');
     await page.waitForSelector('#currentUserPill', { state: 'visible' });
@@ -274,8 +317,11 @@ async function checkStaticPages(browser) {
         await attachDiagnostics(page, path);
         const response = await page.goto(`${baseUrl}${path}`, { waitUntil: 'domcontentloaded' });
         assert.ok(response && response.status() < 400, `${path} returned ${response?.status()}`);
-        await page.waitForSelector('body');
+        await page.waitForFunction(() => Boolean(window.BibliotechProductPolish));
         assert.equal(await page.locator('link[href*="ui-refresh.css"]').count(), 1, `${path} global refresh CSS is duplicated`);
+        assert.equal(await page.locator('link[href*="product-polish.css"]').count(), 1, `${path} product polish CSS is duplicated`);
+        assert.equal(await page.locator('#profileModal').count(), 0, `${path} still contains the legacy profile modal`);
+        assert.equal(await page.locator('#currentUserPill').getAttribute('title'), 'Открыть полноценный профиль', `${path} profile action is not clear`);
         await page.waitForTimeout(150);
         await page.close();
     }
@@ -287,6 +333,7 @@ async function checkStaticPages(browser) {
     const browser = await chromium.launch({ headless: true });
     try {
         await checkLoginPage(browser);
+        await checkFirstRunExperience(browser);
         await checkHomeProfileAndSettings(browser);
         await checkMobileHome(browser);
         await checkStaticPages(browser);
@@ -296,7 +343,7 @@ async function checkStaticPages(browser) {
 
     assert.deepEqual(criticalFailures, [], `Critical resource failures:\n${criticalFailures.join('\n')}`);
     assert.deepEqual(pageErrors, [], `Browser JavaScript errors:\n${pageErrors.join('\n')}`);
-    console.log('Runtime smoke check OK: profile customization, settings, repeated opens, themes and mobile layouts work.');
+    console.log('Runtime smoke check OK: unified design, first-run experience, profile, settings, themes and mobile layouts work.');
 })().catch(error => {
     console.error(error.stack || error);
     process.exit(1);

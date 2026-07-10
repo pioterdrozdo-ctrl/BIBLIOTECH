@@ -72,7 +72,7 @@
         var pill = document.getElementById('currentUserPill');
         if (!pill || pill.dataset.profileBridgeReady === 'true') return;
         pill.dataset.profileBridgeReady = 'true';
-        pill.title = 'Открыть профиль';
+        pill.title = 'Открыть полноценный профиль';
         pill.addEventListener('click', function () {
             try { localStorage.setItem(PROFILE_OPEN_KEY, '1'); } catch (e) {}
             window.location.href = 'home.html#profile';
@@ -126,6 +126,8 @@
         if (isHomePage) openPendingProfile();
     }
 
+    loadScript('js/product-polish.js?v=20260710-product-polish-1', '__bibliotechProductPolishLoading');
+
     if (isAuthPage) {
         loadScript('js/auth-reset-fix.js?v=20260710-login-click-fix-1', '__bibliotechAuthResetFixLoading');
         loadScript('js/auth-2fa.js?v=20260709-2fa-login-2', '__bibliotechAuth2faLoading');
@@ -157,6 +159,7 @@
 
     loadStylesheet('css/ui-refresh.css?v=20260710-ui-refresh-1', '__bibliotechUiRefreshCss');
     loadStylesheet('css/ui-refresh-release-fix.css?v=20260710-ui-release-fix-2', '__bibliotechUiReleaseFixCss');
+    loadStylesheet('css/product-polish.css?v=20260710-product-polish-1', '__bibliotechProductPolishCss');
 
     if (isHomePage) {
         loadStylesheet('css/profile-twitter-restored.css?v=20260710-profile-evolved-2', '__bibliotechProfileTwitterRestoredCss');
