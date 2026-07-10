@@ -92,7 +92,7 @@ function buildManifest(themeName = 'forest') {
             {
                 name: 'Каталог',
                 short_name: 'Каталог',
-                url: `/home.html?source=pwa-shortcut&theme=${encodeURIComponent(themeName)}`,
+                url: '/home.html?source=pwa-shortcut',
                 icons: [{ src: theme.icon, sizes: '256x256', type: 'image/png' }]
             },
             {
