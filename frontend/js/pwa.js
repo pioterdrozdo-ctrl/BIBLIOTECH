@@ -142,6 +142,7 @@
     }
 
     if (isHomePage) {
+        loadScript('js/catalog-visibility-guard.js?v=20260710-catalog-restore-1', '__bibliotechCatalogVisibilityGuardLoading');
         loadScript('js/book-metadata.js?v=20260710-book-metadata-1', '__bibliotechBookMetadataLoading');
         loadScript('js/reservation-queue.js?v=20260710-reservation-queue-1', '__bibliotechReservationQueueLoading');
         loadScript('js/rentals-request-guard.js?v=20260710-rentals-guard-1', '__bibliotechRentalsRequestGuardLoading');
