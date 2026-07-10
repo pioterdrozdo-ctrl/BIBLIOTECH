@@ -30,6 +30,7 @@ function assertBalancedCss(source, filename) {
 
 function validateArchitecture() {
     const route = read('backend/routes/bookMetadata.js');
+    const service = read('backend/services/isbnMetadata.js');
     const schema = read('backend/services/bookMetadataSchema.js');
     const fallback = read('backend/services/localBookMetadataStore.js');
     const server = read('backend/server.js');
@@ -45,6 +46,7 @@ function validateArchitecture() {
     assert.ok(route.includes("router.put('/books/:id', authMiddleware, isAdmin"), 'metadata update endpoint is not admin protected');
     assert.ok(route.includes('normalizeBookMetadataInput'), 'book metadata validation is not wired');
     assert.ok(route.includes('DUPLICATE_ISBN'), 'duplicate ISBN handling is missing');
+    assert.ok(service.includes("['http:', 'https:'].includes(url.protocol)"), 'metadata source URL protocol validation is missing');
     assert.ok(server.includes("app.use('/api/book-metadata', bookMetadataRoutes)"), 'metadata routes are not mounted');
 
     for (const column of ['isbn', 'publication_year', 'publisher', 'genre', 'language', 'metadata_source_url']) {
@@ -93,6 +95,8 @@ function response(status, payload) {
     assert.equal(normalizePublicationYear('unknown'), null);
     assert.throws(() => normalizeBookMetadataInput({ isbn: '9780140328720' }), error => error.code === 'INVALID_ISBN');
     assert.throws(() => normalizeBookMetadataInput({ publicationYear: 'not a year' }), error => error.code === 'INVALID_PUBLICATION_YEAR');
+    assert.equal(normalizeBookMetadataInput({ metadataSourceUrl: 'javascript:alert(1)' }).metadataSourceUrl, null);
+    assert.equal(normalizeBookMetadataInput({ metadataSourceUrl: 'https://openlibrary.org/books/OL1M' }).metadataSourceUrl, 'https://openlibrary.org/books/OL1M');
 
     const mapped = mapOpenLibraryMetadata(
         '9780140328721',
@@ -115,6 +119,7 @@ function response(status, payload) {
     assert.equal(mapped.language, 'Английский');
     assert.match(mapped.genre, /Children/);
     assert.match(mapped.description, /clever fox/);
+    assert.equal(mapped.sourceUrl, 'https://openlibrary.org/books/OL1M');
 
     let fetchCalls = 0;
     const fakeFetch = async url => {
@@ -157,7 +162,7 @@ function response(status, payload) {
         error => error.code === 'INVALID_ISBN'
     );
 
-    console.log('ISBN metadata check OK: validation, Open Library mapping, caching, schema, UI, search and PWA integration work.');
+    console.log('ISBN metadata check OK: validation, URL safety, Open Library mapping, caching, schema, UI, search and PWA integration work.');
 })().catch(error => {
     console.error(error.stack || error);
     process.exit(1);
