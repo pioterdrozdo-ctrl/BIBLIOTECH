@@ -14,6 +14,7 @@
     <script src="js/theme-bootstrap.js"></script>
     <title>Админ | BIBLIOTECH</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/book-import.css">
 </head>
 <body class="admin-page">
 <div class="wrapper">
@@ -40,8 +41,23 @@
         <section class="admin-hero">
             <div class="container">
                 <span class="eyebrow">Панель администратора</span>
-                <h1>Пользователи BIBLIOTECH</h1>
-                <p>Здесь видно аккаунты, роли, последние входы и доступ. Нажмите на пользователя, чтобы открыть подробности, заморозить или удалить аккаунт.</p>
+                <h1>Управление BIBLIOTECH</h1>
+                <p>Пользователи, места хранения, аренда и безопасное пополнение каталога находятся в одном рабочем пространстве.</p>
+            </div>
+        </section>
+
+        <section class="container admin-import-launcher" aria-labelledby="bookImportLauncherTitle">
+            <div class="admin-import-launcher-copy">
+                <span class="admin-import-icon" aria-hidden="true">⇧</span>
+                <div>
+                    <span class="admin-import-kicker">Каталог</span>
+                    <h2 id="bookImportLauncherTitle">Массовый импорт книг</h2>
+                    <p>Загрузите CSV или Excel-файл, проверьте строки и только потом подтвердите добавление. Ошибки и дубликаты будут показаны заранее.</p>
+                </div>
+            </div>
+            <div class="admin-import-launcher-actions">
+                <button class="admin-import-template-btn" id="downloadBookImportTemplateBtn" type="button">Скачать шаблон</button>
+                <button class="admin-import-open-btn" id="openBookImportBtn" type="button">Импортировать книги</button>
             </div>
         </section>
 
@@ -130,7 +146,100 @@
     <footer>© 2026 BIBLIOTECH. Все права защищены.</footer>
 </div>
 
+<div class="book-import-modal" id="bookImportModal" aria-hidden="true">
+    <section class="book-import-dialog" role="dialog" aria-modal="true" aria-labelledby="bookImportTitle">
+        <header class="book-import-header">
+            <div>
+                <span class="admin-import-kicker">Безопасное пополнение каталога</span>
+                <h2 id="bookImportTitle">Импорт книг</h2>
+                <p>Поддерживаются CSV и XLSX до 5 МБ и 500 строк. Сначала файл будет только проверен.</p>
+            </div>
+            <button class="book-import-close" id="closeBookImportBtn" type="button" aria-label="Закрыть импорт">×</button>
+        </header>
+
+        <div class="book-import-body">
+            <section class="book-import-upload-stage" id="bookImportUploadStage">
+                <input id="bookImportFileInput" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+                <button class="book-import-dropzone" id="bookImportDropzone" type="button">
+                    <span class="book-import-dropzone-icon" aria-hidden="true">⇧</span>
+                    <b>Перетащите файл сюда</b>
+                    <span>или нажмите, чтобы выбрать CSV / XLSX</span>
+                    <small>Обязательные столбцы: «Название» и «Автор»</small>
+                </button>
+                <div class="book-import-help-grid">
+                    <article><span>1</span><div><b>Загрузите файл</b><small>До 500 книг за один импорт</small></div></article>
+                    <article><span>2</span><div><b>Проверьте строки</b><small>Ошибки и дубликаты видны заранее</small></div></article>
+                    <article><span>3</span><div><b>Подтвердите</b><small>Запись выполняется одной транзакцией</small></div></article>
+                </div>
+            </section>
+
+            <section class="book-import-loading" id="bookImportLoading" hidden aria-live="polite">
+                <span class="book-import-spinner" aria-hidden="true"></span>
+                <b>Проверяем файл</b>
+                <p>Читаем строки, сопоставляем места хранения и ищем дубликаты.</p>
+            </section>
+
+            <section class="book-import-preview-stage" id="bookImportPreviewStage" hidden>
+                <div class="book-import-file-head">
+                    <div>
+                        <span>Выбранный файл</span>
+                        <b id="bookImportFileName">—</b>
+                        <small id="bookImportFileMeta">—</small>
+                    </div>
+                    <button id="bookImportReplaceFileBtn" type="button">Выбрать другой</button>
+                </div>
+
+                <div class="book-import-summary" id="bookImportSummary" aria-label="Результат проверки"></div>
+
+                <div class="book-import-strategy" id="bookImportStrategyBlock" hidden>
+                    <div>
+                        <b>Что делать с книгами, которые уже есть в каталоге?</b>
+                        <span>Сравнение выполняется по названию и автору без учёта регистра.</span>
+                    </div>
+                    <select id="bookImportDuplicateStrategy">
+                        <option value="skip">Пропустить существующие книги</option>
+                        <option value="merge_copies">Добавить количество к существующим</option>
+                    </select>
+                </div>
+
+                <div class="book-import-table-shell">
+                    <table class="book-import-table">
+                        <thead>
+                            <tr>
+                                <th>Строка</th>
+                                <th>Статус</th>
+                                <th>Книга</th>
+                                <th>Автор</th>
+                                <th>Кол-во</th>
+                                <th>Место</th>
+                                <th>Проверка</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookImportPreviewBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="book-import-result-stage" id="bookImportResultStage" hidden aria-live="polite">
+                <span class="book-import-result-icon" aria-hidden="true">✓</span>
+                <h3>Импорт завершён</h3>
+                <p id="bookImportResultText">Каталог обновлён.</p>
+                <div class="book-import-result-grid" id="bookImportResultGrid"></div>
+            </section>
+
+            <div class="book-import-error" id="bookImportError" hidden role="alert"></div>
+        </div>
+
+        <footer class="book-import-footer">
+            <button class="book-import-secondary" id="bookImportCancelBtn" type="button">Отмена</button>
+            <button class="book-import-primary" id="bookImportCommitBtn" type="button" disabled>Добавить книги</button>
+            <a class="book-import-primary" id="bookImportOpenCatalogBtn" href="home.html#catalog" hidden>Открыть каталог</a>
+        </footer>
+    </section>
+</div>
+
 <script src="js/admin.js"></script>
+<script src="js/book-import.js"></script>
 <script src="js/pwa.js"></script>
 </body>
 </html>
