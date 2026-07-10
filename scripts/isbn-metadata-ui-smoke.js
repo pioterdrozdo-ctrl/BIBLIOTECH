@@ -18,6 +18,12 @@ async function request(path, { token, method = 'GET', body } = {}) {
     return { response, payload };
 }
 
+function makeIsbn13(seed) {
+    const body = `978${String(seed).replace(/\D/g, '').slice(-9).padStart(9, '0')}`;
+    const sum = body.split('').reduce((total, digit, index) => total + Number(digit) * (index % 2 === 0 ? 1 : 3), 0);
+    return body + String((10 - (sum % 10)) % 10);
+}
+
 async function login() {
     const result = await request('/api/auth/login', {
         method: 'POST',
@@ -35,21 +41,21 @@ async function seedPage(page, auth) {
     }, { auth });
 }
 
-async function verifyDesktop(browser, auth) {
+async function verifyDesktop(browser, auth, isbn, title) {
     const page = await browser.newPage({ viewport: { width: 1360, height: 900 } });
     const errors = [];
     page.on('pageerror', error => errors.push(error.stack || error.message));
     await seedPage(page, auth);
 
-    await page.route('**/api/book-metadata/isbn/9780140328721', async route => {
+    await page.route(`**/api/book-metadata/isbn/${isbn}`, async route => {
         await route.fulfill({
             status: 200,
             contentType: 'application/json',
             body: JSON.stringify({
                 message: 'Данные найдены. Проверьте их перед сохранением книги.',
                 metadata: {
-                    isbn: '9780140328721',
-                    title: 'Fantastic Mr. Fox',
+                    isbn,
+                    title,
                     author: 'Roald Dahl',
                     description: 'A clever fox protects his family.',
                     publisher: 'Puffin',
@@ -78,15 +84,15 @@ async function verifyDesktop(browser, auth) {
     assert.equal(await page.locator('#bookGenre').count(), 1, 'genre field is missing');
     assert.equal(await page.locator('#bookLanguage').count(), 1, 'language field is missing');
 
-    await page.locator('#bookIsbn').fill('978-0-14-032872-1');
+    await page.locator('#bookIsbn').fill(isbn);
     await page.locator('#lookupBookIsbnBtn').click();
     await page.waitForSelector('#bookIsbnPreview:not([hidden])');
-    assert.equal(await page.locator('#bookIsbnPreview').getByText('Fantastic Mr. Fox').count(), 1, 'lookup preview title is missing');
+    assert.equal(await page.locator('#bookIsbnPreview').getByText(title).count(), 1, 'lookup preview title is missing');
     assert.equal(await page.locator('#bookIsbnPreview').getByText('Roald Dahl').count(), 1, 'lookup preview author is missing');
     assert.equal(await page.locator('#applyIsbnMetadataBtn').isVisible(), true, 'apply metadata action is missing');
 
     await page.locator('#applyIsbnMetadataBtn').click();
-    assert.equal(await page.locator('#bookTitle').inputValue(), 'Fantastic Mr. Fox');
+    assert.equal(await page.locator('#bookTitle').inputValue(), title);
     assert.equal(await page.locator('#bookAuthor').inputValue(), 'Roald Dahl');
     assert.equal(await page.locator('#bookPublicationYear').inputValue(), '1988');
     assert.equal(await page.locator('#bookPublisher').inputValue(), 'Puffin');
@@ -97,11 +103,11 @@ async function verifyDesktop(browser, auth) {
     await page.locator('#bookCopies').fill('2');
     await page.locator('#bookForm .submit-modal').click();
     await page.waitForFunction(() => !document.getElementById('bookModal')?.classList.contains('active'), { timeout: 20000 });
-    await page.waitForFunction(() => Array.from(document.querySelectorAll('.book-card .book-title')).some(node => node.textContent.includes('Fantastic Mr. Fox')));
+    await page.waitForFunction(expectedTitle => Array.from(document.querySelectorAll('.book-card .book-title')).some(node => node.textContent.includes(expectedTitle)), title);
 
-    const catalog = await request('/api/books?search=9780140328721', { token: auth.token });
+    const catalog = await request(`/api/books?search=${encodeURIComponent(isbn)}`, { token: auth.token });
     assert.equal(catalog.response.status, 200);
-    const created = catalog.payload.find(book => book.isbn === '9780140328721');
+    const created = catalog.payload.find(book => book.isbn === isbn);
     assert.ok(created, 'saved ISBN book is missing from catalog API');
     assert.equal(created.publisher, 'Puffin');
     assert.equal(created.genre, 'Children’s fiction, Foxes');
@@ -110,13 +116,13 @@ async function verifyDesktop(browser, auth) {
     await page.locator(`.book-card[data-id="${created.id}"]`).click();
     await page.waitForSelector('#viewModal.active');
     await page.waitForSelector('#viewBibliographicMeta:not([hidden])');
-    assert.equal(await page.locator('#viewBibliographicMeta').getByText('9780140328721').count(), 1, 'ISBN is missing in book details');
-    assert.equal(await page.locator('#viewBibliographicMeta').getByText('Puffin').count(), 1, 'publisher is missing in book details');
+    assert.equal(await page.locator('#viewBibliographicMeta').getByText(isbn).count(), 1, 'ISBN is missing in book details');
+    assert.equal(await page.locator('#viewBibliographicMeta').getByText('Puffin', { exact: true }).count(), 1, 'publisher is missing in book details');
     assert.equal(await page.locator('#viewBibliographicMeta').getByText('Английский').count(), 1, 'language is missing in book details');
 
     await page.locator('#editBookBtn').click();
     await page.waitForSelector('#bookModal.active');
-    assert.equal(await page.locator('#bookIsbn').inputValue(), '9780140328721', 'ISBN is not restored in edit form');
+    assert.equal(await page.locator('#bookIsbn').inputValue(), isbn, 'ISBN is not restored in edit form');
     assert.equal(await page.locator('#bookPublicationYear').inputValue(), '1988', 'year is not restored in edit form');
     assert.equal(await page.locator('#bookPublisher').inputValue(), 'Puffin', 'publisher is not restored in edit form');
     await page.locator('#bookPublisher').fill('Puffin Books');
@@ -126,7 +132,7 @@ async function verifyDesktop(browser, auth) {
     const detail = await request(`/api/books/${created.id}`, { token: auth.token });
     assert.equal(detail.response.status, 200);
     assert.equal(detail.payload.publisher, 'Puffin Books');
-    assert.equal(detail.payload.isbn, '9780140328721');
+    assert.equal(detail.payload.isbn, isbn);
 
     const cleanup = await request(`/api/books/${created.id}`, { token: auth.token, method: 'DELETE' });
     assert.ok([200, 204].includes(cleanup.response.status), `Cleanup failed: ${cleanup.response.status}`);
@@ -139,8 +145,6 @@ async function verifyMobile(browser, auth) {
     await seedPage(page, auth);
     await page.goto(`${baseUrl}/home.html`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => Boolean(window.BibliotechBookMetadata));
-    await page.locator('#menuIcon').click();
-    await page.waitForSelector('#navMenu.active');
     await page.locator('#openModalBtn').click();
     await page.waitForSelector('#bookModal.active');
     await page.waitForSelector('#bookIsbn');
@@ -154,9 +158,12 @@ async function verifyMobile(browser, auth) {
 
 (async () => {
     const auth = await login();
+    const stamp = Date.now();
+    const isbn = makeIsbn13(stamp);
+    const title = `ISBN UI ${stamp}`;
     const browser = await chromium.launch({ headless: true });
     try {
-        await verifyDesktop(browser, auth);
+        await verifyDesktop(browser, auth, isbn, title);
         await verifyMobile(browser, auth);
     } finally {
         await browser.close();
