@@ -2,8 +2,10 @@
     'use strict';
 
     const SESSION_KEY = 'bibliotech_current_user';
-    const VALID_SECTIONS = new Set(['account', 'security']);
+    const CORE_SECTIONS = new Set(['account', 'security']);
+    const VALID_SECTIONS = new Set(['account', 'security', 'devices', 'notifications', 'privacy', 'library', 'data']);
     let lastTrigger = null;
+    let closeLockUntil = 0;
 
     function getSession() {
         try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
@@ -147,7 +149,12 @@
         const modal = ensureModal();
         const role = getRole();
         let section = VALID_SECTIONS.has(requested) ? requested : 'account';
-        if (role === 'guest' && section === 'security') section = 'account';
+        if (role === 'guest' && section !== 'account') section = 'account';
+
+        if (!CORE_SECTIONS.has(section) && window.BibliotechAccountFeatures?.setSection) {
+            window.BibliotechAccountFeatures.setSection(section, options);
+            return;
+        }
 
         modal.dataset.settingsSection = section;
         modal.querySelectorAll('[data-settings-section]').forEach(button => {
@@ -167,6 +174,7 @@
     }
 
     function open(section = 'account', trigger = null) {
+        if (Date.now() < closeLockUntil) return;
         const modal = ensureModal();
         lastTrigger = trigger || document.activeElement;
         refreshAccount();
@@ -183,9 +191,15 @@
     function close(options = {}) {
         const modal = document.getElementById('accountSettingsModal');
         if (!modal) return;
+        closeLockUntil = Date.now() + 180;
         modal.classList.remove('active');
         modal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('account-settings-open');
+        queueMicrotask(() => {
+            modal.classList.remove('active');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('account-settings-open');
+        });
         if (options.restoreFocus !== false && lastTrigger?.isConnected) lastTrigger.focus({ preventScroll: true });
     }
 
@@ -199,8 +213,7 @@
             document.getElementById('currentUserPill')?.click();
             setTimeout(() => document.getElementById('profileEditBtn')?.click(), 0);
         };
-        if (typeof queueMicrotask === 'function') queueMicrotask(launch);
-        else Promise.resolve().then(launch);
+        setTimeout(launch, 190);
     }
 
     function wireModal(modal) {
