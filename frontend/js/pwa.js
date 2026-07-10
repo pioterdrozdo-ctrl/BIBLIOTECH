@@ -126,7 +126,7 @@
         if (isHomePage) openPendingProfile();
     }
 
-    loadScript('js/product-polish.js?v=20260710-product-polish-1', '__bibliotechProductPolishLoading');
+    loadScript('js/product-polish.js?v=20260710-product-polish-2', '__bibliotechProductPolishLoading');
 
     if (isAuthPage) {
         loadScript('js/auth-reset-fix.js?v=20260710-login-click-fix-1', '__bibliotechAuthResetFixLoading');
@@ -166,6 +166,7 @@
         loadStylesheet('css/profile-customization-modal.css?v=20260710-profile-customize-modal-1', '__bibliotechProfileCustomizationCss');
         loadStylesheet('css/profile-settings-modal.css?v=20260710-profile-settings-1', '__bibliotechProfileSettingsCss');
         loadStylesheet('css/account-settings-features.css?v=20260710-account-settings-1', '__bibliotechAccountSettingsFeaturesCss');
+        loadStylesheet('css/home-minimal.css?v=20260710-home-minimal-1', '__bibliotechHomeMinimalCss');
     }
 
     loadStylesheet('css/theme-mode-preview.css?v=20260710-theme-mode-preview-1', '__bibliotechThemeModePreviewCss');
