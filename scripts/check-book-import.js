@@ -86,7 +86,7 @@ function validateArchitecture() {
     assert.ok(css.includes('@media (max-width: 700px)'), 'mobile import layout is missing');
     assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'), 'reduced-motion support is missing');
 
-    assert.ok(sw.includes("CACHE_NAME = 'bibliotech-pwa-v23'"), 'PWA cache was not invalidated');
+    assert.ok(sw.includes("CACHE_NAME = 'bibliotech-pwa-v24'"), 'PWA cache was not invalidated');
     assert.ok(sw.includes("'/admin.html'"), 'admin page is not cached');
     assert.ok(sw.includes("'/css/book-import.css'"), 'import CSS is not cached');
     assert.ok(sw.includes("'/js/book-import.js'"), 'import JavaScript is not cached');
