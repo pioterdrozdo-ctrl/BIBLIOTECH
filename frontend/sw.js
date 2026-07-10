@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v11';
+const CACHE_NAME = 'bibliotech-pwa-v12';
 const APP_SHELL = [
     '/',
     '/index.html',
@@ -11,6 +11,7 @@ const APP_SHELL = [
     '/css/ui-refresh.css',
     '/css/ui-refresh-release-fix.css',
     '/css/profile-twitter-restored.css',
+    '/css/theme-mode-preview.css',
     '/css/liquid-theme-toggle.css',
     '/js/app.js',
     '/js/script.js',
