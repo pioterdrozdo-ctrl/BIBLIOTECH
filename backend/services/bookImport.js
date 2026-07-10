@@ -7,6 +7,7 @@ const ExcelJS = require('exceljs');
 const MAX_IMPORT_ROWS = 500;
 const MAX_DESCRIPTION_LENGTH = 10000;
 const MAX_COPIES = 9999;
+const MAX_IMPORT_COLUMNS = 50;
 const SUPPORTED_EXTENSIONS = new Set(['.csv', '.xlsx']);
 
 const HEADER_ALIASES = {
@@ -146,6 +147,12 @@ function parseDelimitedText(text) {
         cell += char;
     }
 
+    if (quoted) {
+        const error = new Error('В CSV-файле не закрыты кавычки.');
+        error.code = 'INVALID_CSV';
+        throw error;
+    }
+
     row.push(cell);
     if (row.some(value => String(value).trim())) rows.push(row);
     return rows;
@@ -158,7 +165,7 @@ function tableToObjects(table) {
         throw error;
     }
 
-    const headers = table[0].map(asText);
+    const headers = table[0].slice(0, MAX_IMPORT_COLUMNS).map(asText);
     if (!headers.some(Boolean)) {
         const error = new Error('В первой строке должны быть заголовки столбцов.');
         error.code = 'MISSING_HEADERS';
@@ -202,7 +209,7 @@ async function parseXlsx(buffer) {
     const table = [];
     worksheet.eachRow({ includeEmpty: false }, row => {
         const values = [];
-        const maxColumn = Math.max(row.cellCount, worksheet.columnCount);
+        const maxColumn = Math.min(Math.max(row.cellCount, worksheet.actualColumnCount || 0), MAX_IMPORT_COLUMNS);
         for (let column = 1; column <= maxColumn; column += 1) {
             const cell = row.getCell(column);
             const value = cell.value && typeof cell.value === 'object' && Object.prototype.hasOwnProperty.call(cell.value, 'result')
@@ -351,7 +358,15 @@ function buildPreview(rawRows, existingBooks = [], locations = []) {
 
     const firstFileRows = new Map();
     const rows = (rawRows || []).map((raw, index) => {
-        const normalized = normalizeImportRow({ rowNumber: raw?.rowNumber || index + 2, ...(raw?.values ? raw : { values: raw }) }, locations);
+        const sourceValues = raw?.values && typeof raw.values === 'object'
+            ? raw.values
+            : raw?.data && typeof raw.data === 'object'
+                ? raw.data
+                : raw;
+        const normalized = normalizeImportRow({
+            rowNumber: raw?.rowNumber || index + 2,
+            values: sourceValues
+        }, locations);
         const key = buildBookKey(normalized.data.title, normalized.data.author);
         let duplicate = null;
 
