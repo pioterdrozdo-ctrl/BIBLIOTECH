@@ -131,6 +131,7 @@
     if (isAuthPage) {
         loadScript('js/auth-reset-fix.js?v=20260710-login-click-fix-1', '__bibliotechAuthResetFixLoading');
         loadScript('js/auth-2fa.js?v=20260709-2fa-login-2', '__bibliotechAuth2faLoading');
+        loadScript('js/entry-promo-removal.js?v=20260710-entry-promo-removal-1', '__bibliotechEntryPromoRemovalLoading');
     }
 
     if (isHomePage && !window.__bibliotechBookDetailPolishLoading) {
@@ -142,6 +143,7 @@
     }
 
     if (isHomePage) {
+        loadScript('js/catalog-visibility-guard.js?v=20260710-catalog-restore-1', '__bibliotechCatalogVisibilityGuardLoading');
         loadScript('js/book-metadata.js?v=20260710-book-metadata-1', '__bibliotechBookMetadataLoading');
         loadScript('js/reservation-queue.js?v=20260710-reservation-queue-1', '__bibliotechReservationQueueLoading');
         loadScript('js/rentals-request-guard.js?v=20260710-rentals-guard-1', '__bibliotechRentalsRequestGuardLoading');
@@ -149,6 +151,7 @@
         loadScript('js/profile-reservations.js?v=20260710-profile-reservations-1', '__bibliotechProfileReservationsLoading');
         loadScript('js/profile-twitter.js?v=20260710-profile-customize-modal-1', '__bibliotechProfileTwitterLoading');
         loadScript('js/profile-customization-modal.js?v=20260710-profile-customize-modal-1', '__bibliotechProfileCustomizationLoading');
+        loadScript('js/profile-custom-banner-storage.js?v=20260710-profile-banner-storage-1', '__bibliotechProfileCustomBannerStorageLoading');
         loadScript('js/profile-settings-modal.js?v=20260710-profile-settings-2', '__bibliotechProfileSettingsLoading');
         loadScript('js/account-settings-close-guard.js?v=20260710-account-settings-close-1', '__bibliotechAccountSettingsCloseGuardLoading');
         loadScript('js/profile-security.js?v=20260710-profile-security-modal-1', '__bibliotechProfileSecurityLoading');
@@ -164,6 +167,7 @@
 
     if (isHomePage) {
         loadStylesheet('css/profile-twitter-restored.css?v=20260710-profile-evolved-2', '__bibliotechProfileTwitterRestoredCss');
+        loadStylesheet('css/profile-banner-persistence-fix.css?v=20260710-profile-banner-save-1', '__bibliotechProfileBannerPersistenceFixCss');
         loadStylesheet('css/profile-customization-modal.css?v=20260710-profile-customize-modal-1', '__bibliotechProfileCustomizationCss');
         loadStylesheet('css/profile-settings-modal.css?v=20260710-profile-settings-1', '__bibliotechProfileSettingsCss');
         loadStylesheet('css/account-settings-features.css?v=20260710-account-settings-1', '__bibliotechAccountSettingsFeaturesCss');
