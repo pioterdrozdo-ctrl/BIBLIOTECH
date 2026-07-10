@@ -127,3 +127,9 @@ body #catalog .premium-search-box > label {
         transition: none !important;
     }
 }
+
+/* The decorative catalogue preview shown in the screenshot is intentionally removed. */
+html body .wrapper .hero-wow .container .hero-content .hero-visual,
+html body .wrapper .hero-wow .product-command-card {
+    display: none !important;
+}
