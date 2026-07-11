@@ -1,0 +1,44 @@
+/* Compact vertical rhythm for the statistics page only. */
+
+body.stats-page .stats-main {
+    padding-top: 86px !important;
+}
+
+body.stats-page .stats-hero {
+    padding: 24px 0 14px !important;
+}
+
+body.stats-page .stats-hero h1 {
+    margin: 8px 0 14px !important;
+}
+
+body.stats-page .stats-hero p {
+    margin: 0 !important;
+}
+
+body.stats-page .insights-section.stats-only {
+    padding-top: 18px !important;
+    padding-bottom: 40px !important;
+}
+
+body.stats-page .insights-grid,
+body.stats-page .stats-layout,
+body.stats-page .mini-widgets {
+    margin-top: 0 !important;
+    margin-bottom: 18px !important;
+}
+
+@media (max-width: 720px) {
+    body.stats-page .stats-main {
+        padding-top: 74px !important;
+    }
+
+    body.stats-page .stats-hero {
+        padding: 18px 0 10px !important;
+    }
+
+    body.stats-page .insights-section.stats-only {
+        padding-top: 12px !important;
+        padding-bottom: 28px !important;
+    }
+}
