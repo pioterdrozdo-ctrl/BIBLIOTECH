@@ -3,6 +3,5 @@
     <style name="Theme.Bibliotech.Launcher" parent="Theme.Bibliotech">
         <item name="android:windowSplashScreenBackground">@color/bibliotech_background</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_bibliotech</item>
-        <item name="android:postSplashScreenTheme">@style/Theme.Bibliotech</item>
     </style>
 </resources>
