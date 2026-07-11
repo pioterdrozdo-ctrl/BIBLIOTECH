@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Bibliotech.Launcher" parent="Theme.Bibliotech">
+        <item name="android:windowSplashScreenBackground">@color/bibliotech_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_bibliotech</item>
+    </style>
+</resources>
