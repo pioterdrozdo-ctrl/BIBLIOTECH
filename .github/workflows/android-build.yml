@@ -40,19 +40,29 @@ jobs:
       - name: Install Android SDK 35
         run: |
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
-          if ! sdkmanager 'platforms;android-35' 'build-tools;35.0.0' > /tmp/sdk-install.log 2>&1; then
-            tail -n 120 /tmp/sdk-install.log
+          if ! sdkmanager 'platforms;android-35' 'build-tools;35.0.0' > sdk-install.log 2>&1; then
+            tail -n 120 sdk-install.log
             exit 1
           fi
 
       - name: Build debug AAB
         run: |
           chmod +x gradlew
-          if ! ./gradlew :app:bundleDebug --no-daemon --stacktrace > /tmp/android-build.log 2>&1; then
-            tail -n 180 /tmp/android-build.log
+          if ! ./gradlew :app:bundleDebug --no-daemon --stacktrace > android-build.log 2>&1; then
+            tail -n 180 android-build.log
             exit 1
           fi
-          tail -n 40 /tmp/android-build.log
+          tail -n 40 android-build.log
+
+      - name: Upload build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-diagnostics
+          path: |
+            android-app/android-build.log
+            android-app/sdk-install.log
+          if-no-files-found: ignore
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
