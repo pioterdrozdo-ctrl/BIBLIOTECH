@@ -2,13 +2,8 @@ name: Android App Bundle
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - 'android-app/**'
-      - '.github/workflows/android-build.yml'
   push:
     branches:
-      - main
       - feature/google-play-app
     paths:
       - 'android-app/**'
@@ -18,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  build-debug-bundle:
+  build-google-play-release:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -40,33 +35,77 @@ jobs:
       - name: Install Android SDK 36
         run: |
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
-          if ! sdkmanager 'platforms;android-36' 'build-tools;35.0.0' > sdk-install.log 2>&1; then
-            tail -n 120 sdk-install.log
-            exit 1
-          fi
+          sdkmanager 'platforms;android-36' 'build-tools;35.0.0' > sdk-install.log 2>&1
 
-      - name: Build debug AAB
+      - name: Create private upload key
+        shell: bash
         run: |
+          set -euo pipefail
+          PASSWORD="$(openssl rand -hex 18)"
+          keytool -genkeypair -v \
+            -keystore bibliotech-upload.jks \
+            -storetype PKCS12 \
+            -storepass "$PASSWORD" \
+            -keypass "$PASSWORD" \
+            -alias bibliotech \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname 'CN=BIBLIOTECH, OU=Mobile, O=BIBLIOTECH, L=Berlin, ST=Berlin, C=DE' \
+            >/dev/null 2>&1
+
+          cat > keystore.properties <<EOF
+          storeFile=bibliotech-upload.jks
+          storePassword=$PASSWORD
+          keyAlias=bibliotech
+          keyPassword=$PASSWORD
+          EOF
+
+          mkdir -p google-play-package
+          cat > google-play-package/UPLOAD-KEY.txt <<EOF
+          BIBLIOTECH Google Play upload key
+
+          Package name: com.bibliotech.app
+          Key alias: bibliotech
+          Keystore password: $PASSWORD
+          Key password: $PASSWORD
+
+          Keep bibliotech-upload.jks and this file private and backed up.
+          EOF
+
+          keytool -exportcert -rfc \
+            -keystore bibliotech-upload.jks \
+            -storepass "$PASSWORD" \
+            -alias bibliotech \
+            -file google-play-package/upload-certificate.pem \
+            >/dev/null 2>&1
+
+      - name: Build signed release AAB
+        shell: bash
+        run: |
+          set -euo pipefail
           chmod +x gradlew
-          if ! ./gradlew :app:bundleDebug --no-daemon --stacktrace > android-build.log 2>&1; then
-            tail -n 180 android-build.log
-            exit 1
-          fi
-          tail -n 40 android-build.log
+          ./gradlew :app:bundleRelease --no-daemon --stacktrace > android-release-build.log 2>&1
+          cp app/build/outputs/bundle/release/app-release.aab google-play-package/BIBLIOTECH-1.0.0.aab
+          cp bibliotech-upload.jks google-play-package/bibliotech-upload.jks
+          cp README.md google-play-package/README-GOOGLE-PLAY.md
+          sha256sum google-play-package/BIBLIOTECH-1.0.0.aab > google-play-package/SHA256SUMS.txt
+
+      - name: Upload private Google Play package
+        uses: actions/upload-artifact@v4
+        with:
+          name: bibliotech-google-play-release
+          path: android-app/google-play-package/
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Upload build diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: android-build-diagnostics
+          name: android-release-diagnostics
           path: |
-            android-app/android-build.log
+            android-app/android-release-build.log
             android-app/sdk-install.log
           if-no-files-found: ignore
-
-      - name: Upload AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: bibliotech-debug-aab
-          path: android-app/app/build/outputs/bundle/debug/app-debug.aab
-          if-no-files-found: error
+          retention-days: 1
