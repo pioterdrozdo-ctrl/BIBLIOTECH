@@ -39,13 +39,20 @@ jobs:
 
       - name: Install Android SDK 35
         run: |
-          yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          if ! sdkmanager 'platforms;android-35' 'build-tools;35.0.0' > /tmp/sdk-install.log 2>&1; then
+            tail -n 120 /tmp/sdk-install.log
+            exit 1
+          fi
 
       - name: Build debug AAB
         run: |
           chmod +x gradlew
-          ./gradlew :app:bundleDebug --no-daemon --stacktrace
+          if ! ./gradlew :app:bundleDebug --no-daemon --stacktrace > /tmp/android-build.log 2>&1; then
+            tail -n 180 /tmp/android-build.log
+            exit 1
+          fi
+          tail -n 40 /tmp/android-build.log
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
