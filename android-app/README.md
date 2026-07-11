@@ -13,7 +13,7 @@
 
 ## Открытие проекта
 
-Откройте папку `android-app` в Android Studio. Установите Android SDK Platform 35, если Android Studio предложит это сделать.
+Откройте папку `android-app` в Android Studio. Установите Android SDK Platform 36, если Android Studio предложит это сделать.
 
 Для проверки из терминала:
 
