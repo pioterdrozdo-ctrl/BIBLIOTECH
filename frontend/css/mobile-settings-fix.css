@@ -1,0 +1,196 @@
+/* Mobile settings layout: keep headers, tabs and content in separate rows. */
+
+@media (max-width: 720px) {
+    #accountSettingsModal,
+    .profile-customize-modal {
+        align-items: stretch !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+
+    #accountSettingsModal .account-settings-dialog,
+    .profile-customize-modal .profile-customize-dialog {
+        width: 100% !important;
+        height: 100dvh !important;
+        min-height: 0 !important;
+        max-height: 100dvh !important;
+        margin: 0 !important;
+        padding-bottom: 0 !important;
+        border-radius: 0 !important;
+        overflow: hidden !important;
+    }
+
+    #accountSettingsModal .account-settings-dialog {
+        grid-template-rows: auto minmax(0, 1fr) !important;
+    }
+
+    #accountSettingsModal .account-settings-header {
+        min-width: 0;
+        min-height: 68px !important;
+        gap: 10px !important;
+        padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 12px max(14px, env(safe-area-inset-left)) !important;
+        flex: 0 0 auto;
+    }
+
+    #accountSettingsModal .account-settings-title-wrap {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    #accountSettingsModal .account-settings-header h2 {
+        max-width: 100%;
+        font-size: clamp(20px, 6vw, 24px) !important;
+        line-height: 1.08 !important;
+        overflow-wrap: anywhere;
+    }
+
+    #accountSettingsModal .account-settings-close {
+        width: 40px !important;
+        height: 40px !important;
+        flex: 0 0 40px !important;
+    }
+
+    #accountSettingsModal .account-settings-layout {
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-rows: auto minmax(0, 1fr) !important;
+    }
+
+    #accountSettingsModal .account-settings-nav {
+        position: relative !important;
+        top: auto !important;
+        z-index: 1 !important;
+        display: grid !important;
+        grid-template-columns: none !important;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(112px, 132px);
+        gap: 6px !important;
+        min-width: 0;
+        padding: 8px 10px !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x proximity;
+    }
+
+    #accountSettingsModal .account-settings-nav-button {
+        width: auto !important;
+        min-width: 0 !important;
+        min-height: 46px !important;
+        grid-template-columns: 30px minmax(0, 1fr) !important;
+        gap: 7px !important;
+        padding: 6px 8px !important;
+        scroll-snap-align: start;
+    }
+
+    #accountSettingsModal .account-settings-nav-icon {
+        width: 30px !important;
+        height: 30px !important;
+    }
+
+    #accountSettingsModal .account-settings-nav-label,
+    #accountSettingsModal .account-settings-nav-label b {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #accountSettingsModal .account-settings-content {
+        min-width: 0;
+        min-height: 0;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        padding: 14px 12px max(22px, env(safe-area-inset-bottom)) !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #accountSettingsModal .account-settings-section,
+    #accountSettingsModal .account-settings-user-card,
+    #accountSettingsModal .account-settings-row,
+    #accountSettingsModal .account-feature-toolbar,
+    #accountSettingsModal .account-data-card,
+    #accountSettingsModal .account-device-card,
+    #accountSettingsModal .account-notification-card,
+    #accountSettingsModal .account-library-card,
+    #accountSettingsModal .account-password-card {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    #accountSettingsModal .account-settings-row,
+    #accountSettingsModal .account-feature-toolbar,
+    #accountSettingsModal .account-data-card {
+        grid-template-columns: minmax(0, 1fr) !important;
+        align-items: stretch !important;
+    }
+
+    #accountSettingsModal .account-settings-action {
+        width: 100% !important;
+        max-width: 100%;
+    }
+
+    .profile-customize-modal .profile-customize-dialog {
+        grid-template-rows: auto minmax(0, 1fr) auto !important;
+    }
+
+    .profile-customize-modal .profile-customize-header {
+        min-width: 0;
+        align-items: center !important;
+        gap: 10px !important;
+        padding: max(12px, env(safe-area-inset-top)) 12px 12px !important;
+    }
+
+    .profile-customize-modal .profile-customize-header > div {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .profile-customize-modal .profile-customize-header h2 {
+        font-size: clamp(21px, 6.5vw, 27px) !important;
+        overflow-wrap: anywhere;
+    }
+
+    .profile-customize-modal .profile-customize-close {
+        width: 40px !important;
+        height: 40px !important;
+        flex: 0 0 40px !important;
+    }
+
+    .profile-customize-modal .profile-customize-content {
+        min-width: 0;
+        min-height: 0;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .profile-customize-modal .profile-customize-footer {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px !important;
+        padding: 10px 12px max(10px, env(safe-area-inset-bottom)) !important;
+    }
+
+    .profile-customize-modal .profile-customize-footer > * {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 380px) {
+    #accountSettingsModal .account-settings-nav {
+        grid-auto-columns: minmax(104px, 118px);
+    }
+
+    #accountSettingsModal .account-settings-nav-button {
+        grid-template-columns: 28px minmax(0, 1fr) !important;
+        padding-inline: 6px !important;
+    }
+
+    .profile-customize-modal .profile-customize-footer {
+        grid-template-columns: 1fr !important;
+    }
+}
