@@ -2,9 +2,7 @@ plugins {
     id 'com.android.application'
 }
 
-import java.util.Properties
-
-final Properties signingProperties = new Properties()
+final java.util.Properties signingProperties = new java.util.Properties()
 final File signingPropertiesFile = rootProject.file('keystore.properties')
 if (signingPropertiesFile.exists()) {
     signingPropertiesFile.withInputStream { signingProperties.load(it) }
