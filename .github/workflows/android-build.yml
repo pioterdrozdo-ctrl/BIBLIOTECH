@@ -1,0 +1,52 @@
+name: Android App Bundle
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'android-app/**'
+      - '.github/workflows/android-build.yml'
+  push:
+    branches:
+      - main
+      - feature/google-play-app
+    paths:
+      - 'android-app/**'
+      - '.github/workflows/android-build.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-debug-bundle:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-app
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android SDK 35
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+
+      - name: Build debug AAB
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:bundleDebug --no-daemon --stacktrace
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: bibliotech-debug-aab
+          path: android-app/app/build/outputs/bundle/debug/app-debug.aab
+          if-no-files-found: error
