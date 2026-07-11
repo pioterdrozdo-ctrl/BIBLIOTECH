@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v26-commercial';
+const CACHE_NAME = 'bibliotech-pwa-v30-apple-balance';
 const APP_SHELL = [
     '/',
     '/index.html',
@@ -23,6 +23,7 @@ const APP_SHELL = [
     '/css/theme-mode-preview.css',
     '/css/liquid-theme-toggle.css',
     '/css/commercial-polish.css',
+    '/css/apple-polish.css',
     '/js/app.js',
     '/js/script.js',
     '/js/catalog-fix.js',
@@ -46,6 +47,7 @@ const APP_SHELL = [
     '/vendor/jsQR.js',
     '/vendor/qrcode-generator.js',
     '/img/appicon.png',
+    '/img/appicon-system-v2.png',
     '/img/appicon-light.png',
     '/img/appicon-dark.png',
     '/img/appicon-forest.png',

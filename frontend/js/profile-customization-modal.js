@@ -90,7 +90,7 @@
 
     function readThemeState() {
         const state = window.BibliotechTheme?.getState?.();
-        const theme = state?.theme || localStorage.getItem('theme') || 'forest';
+        const theme = state?.theme || localStorage.getItem('theme') || 'light';
         const fallbackMode = ['dark', 'forest', 'ocean', 'violet', 'mono'].includes(theme) ? 'dark' : 'light';
         return {
             theme,
@@ -101,7 +101,7 @@
     function syncThemeControls(value = draft || readThemeState()) {
         const modal = document.getElementById('profileCustomizeModal');
         if (!modal || !value) return;
-        const theme = value.theme || 'forest';
+        const theme = value.theme || 'light';
         const mode = value.mode === 'dark' ? 'dark' : 'light';
         const meta = window.BibliotechTheme?.meta?.[theme];
 

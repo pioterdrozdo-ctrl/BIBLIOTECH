@@ -9,6 +9,7 @@ const css = fs.readFileSync(path.join(root, 'frontend/css/product-polish.css'), 
 const homeCss = fs.readFileSync(path.join(root, 'frontend/css/home-minimal.css'), 'utf8');
 const reservationCss = fs.readFileSync(path.join(root, 'frontend/css/reservation-queue.css'), 'utf8');
 const commercialCss = fs.readFileSync(path.join(root, 'frontend/css/commercial-polish.css'), 'utf8');
+const appleCss = fs.readFileSync(path.join(root, 'frontend/css/apple-polish.css'), 'utf8');
 const js = fs.readFileSync(path.join(root, 'frontend/js/product-polish.js'), 'utf8');
 const appJs = fs.readFileSync(path.join(root, 'frontend/js/script.js'), 'utf8');
 const pwa = fs.readFileSync(path.join(root, 'frontend/js/pwa.js'), 'utf8');
@@ -37,6 +38,7 @@ assertBalancedCss(css, 'product-polish.css');
 assertBalancedCss(homeCss, 'home-minimal.css');
 assertBalancedCss(reservationCss, 'reservation-queue.css');
 assertBalancedCss(commercialCss, 'commercial-polish.css');
+assertBalancedCss(appleCss, 'apple-polish.css');
 assert.ok(css.includes('.auth-product-shell'), 'auth product layout is missing');
 assert.ok(css.includes('.product-hero-actions'), 'home hero actions are not styled');
 assert.ok(css.includes('.product-welcome-modal'), 'first-run experience is not styled');
@@ -75,6 +77,7 @@ assert.ok(pwa.includes('product-polish.js?v=20260710-product-polish-2'), 'PWA do
 assert.ok(pwa.includes('product-polish.css?v=20260710-product-polish-1'), 'PWA does not load product polish CSS');
 assert.ok(pwa.includes('home-minimal.css?v=20260710-home-minimal-1'), 'PWA does not load minimal home CSS');
 assert.ok(pwa.includes('commercial-polish.css?v=20260710-commercial-polish-1'), 'PWA does not load final commercial CSS');
+assert.ok(pwa.includes('apple-polish.css?v=20260711-apple-polish-4'), 'PWA does not load final Apple CSS');
 assert.ok(!pwa.includes('hero-empty-space.css'), 'obsolete empty hero patch is still loaded');
 assert.ok(!pwa.includes('profile-hide-theme-badge.css'), 'theme status is still hidden by an obsolete patch');
 assert.ok(pwa.includes('book-metadata.js?v=20260710-book-metadata-1'), 'PWA does not load ISBN metadata JavaScript');
@@ -85,9 +88,11 @@ assert.ok(pwa.indexOf('reservation-queue.js') < pwa.indexOf('card-rent-safe.js')
 assert.ok(pwa.indexOf('profile-rentals.js') < pwa.indexOf('profile-reservations.js'), 'profile reservations must load after rental profile');
 assert.ok(pwa.indexOf('product-polish.css') < pwa.indexOf('home-minimal.css'), 'minimal home CSS must load after global product polish');
 assert.ok(pwa.indexOf('liquid-theme-toggle.css') < pwa.indexOf('commercial-polish.css'), 'commercial CSS must be loaded last');
+assert.ok(pwa.indexOf('commercial-polish.css') < pwa.indexOf('apple-polish.css'), 'Apple CSS must load after commercial CSS');
 
 assert.ok(server.includes("'/css/home-minimal.css?v=20260710-home-minimal-1'"), 'server does not preload minimal home CSS');
 assert.ok(server.includes("'/css/commercial-polish.css?v=20260710-commercial-polish-1'"), 'server does not preload commercial CSS');
+assert.ok(server.includes("'/css/apple-polish.css?v=20260711-apple-polish-4'"), 'server does not preload Apple CSS');
 assert.ok(server.includes("'/css/book-metadata.css?v=20260710-book-metadata-1'"), 'server does not preload ISBN metadata CSS');
 assert.ok(server.includes("'/css/reservation-queue.css?v=20260710-reservation-queue-1'"), 'server does not preload reservation CSS');
 assert.ok(server.includes("'/js/reservation-queue.js?v=20260710-reservation-queue-1'"), 'server does not preload reservation JavaScript');
@@ -122,6 +127,7 @@ assert.ok(sw.includes("'/js/reservation-queue.js'"), 'PWA shell does not cache r
 assert.ok(sw.includes("'/js/profile-reservations.js'"), 'PWA shell does not cache profile reservations');
 assert.ok(sw.includes("'/js/product-polish.js'"), 'PWA shell does not cache product polish JavaScript');
 assert.ok(sw.includes("'/css/commercial-polish.css'"), 'PWA shell does not cache commercial CSS');
+assert.ok(sw.includes("'/css/apple-polish.css'"), 'PWA shell does not cache Apple CSS');
 assert.ok(sw.includes("cache.match(request, { ignoreSearch: true })"), 'versioned offline assets are not matched safely');
 assert.ok(sw.includes('return Response.error()'), 'offline asset failures still return HTML to scripts or styles');
 

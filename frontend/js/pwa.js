@@ -177,6 +177,7 @@
     loadStylesheet('css/theme-mode-preview.css?v=20260710-theme-mode-preview-1', '__bibliotechThemeModePreviewCss');
     loadStylesheet('css/liquid-theme-toggle.css?v=20260710-liquid-theme-2', '__bibliotechLiquidThemeToggleCss');
     loadStylesheet('css/commercial-polish.css?v=20260710-commercial-polish-1', '__bibliotechCommercialPolishCss');
+    loadStylesheet('css/apple-polish.css?v=20260711-apple-polish-4', '__bibliotechApplePolishCss');
 
     if (!('serviceWorker' in navigator)) return;
 

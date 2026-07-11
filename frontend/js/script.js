@@ -1828,7 +1828,7 @@ function updateThemeIcon(theme) {
         coffee: 'appicon-coffee.png',
         mono: 'appicon-mono.png'
     };
-    const normalized = allowed.includes(theme) ? theme : 'forest';
+    const normalized = allowed.includes(theme) ? theme : 'light';
     const iconPath = `img/${iconFiles[normalized] || iconFiles.light}`;
     const setLink = (rel, attr, href = iconPath) => {
         let link = document.querySelector(`link[rel="${rel}"]`);
@@ -1851,7 +1851,7 @@ function updateThemeIcon(theme) {
 
 function applyTheme(theme) {
     const allowedThemes = ['light', 'dark', 'forest', 'ocean', 'sunset', 'violet', 'coffee', 'mono'];
-    const normalized = allowedThemes.includes(theme) ? theme : 'forest';
+    const normalized = allowedThemes.includes(theme) ? theme : 'light';
     const darkThemes = ['dark', 'forest', 'ocean', 'violet', 'mono'];
     const themeColors = {
         light: '#f9f6f0',
@@ -1890,13 +1890,13 @@ function applyTheme(theme) {
 }
 
 function setupTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'forest';
+    const savedTheme = localStorage.getItem('theme') || 'light';
     applyTheme(savedTheme);
 
     const btn = $('#floatingThemeToggle');
     if (btn) {
         btn.addEventListener('click', () => {
-            const current = localStorage.getItem('theme') || 'forest';
+            const current = localStorage.getItem('theme') || 'light';
             const next = document.body.classList.contains('dark-theme') ? 'light' : 'dark';
             localStorage.setItem('theme', next);
             applyTheme(next);

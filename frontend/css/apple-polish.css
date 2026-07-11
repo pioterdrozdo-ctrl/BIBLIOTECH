@@ -1,0 +1,1609 @@
+/*
+ * BIBLIOTECH Apple-inspired interface layer.
+ *
+ * This file is intentionally loaded after every legacy stylesheet. It keeps
+ * the existing feature set and theme engine, while giving all pages one calm,
+ * tactile and responsive visual language.
+ */
+
+:root {
+    --apple-max: 1200px;
+    --apple-blue: #007aff;
+    --apple-blue-strong: #0066d6;
+    --apple-glass: color-mix(in srgb, var(--surface) 76%, transparent);
+    --apple-glass-heavy: color-mix(in srgb, var(--surface) 90%, transparent);
+    --apple-hairline: color-mix(in srgb, var(--text) 10%, transparent);
+    --apple-highlight: rgba(255, 255, 255, .72);
+    --apple-shadow-xl: 0 32px 90px rgba(20, 31, 48, .12), 0 2px 8px rgba(20, 31, 48, .05);
+    --apple-shadow-lg: 0 20px 50px rgba(20, 31, 48, .1), 0 1px 4px rgba(20, 31, 48, .05);
+    --apple-shadow-md: 0 10px 30px rgba(20, 31, 48, .08), 0 1px 3px rgba(20, 31, 48, .04);
+    --apple-radius-xl: 32px;
+    --apple-radius-lg: 24px;
+    --apple-radius-md: 18px;
+    --apple-radius-sm: 13px;
+    --apple-spring: cubic-bezier(.22, .8, .2, 1);
+    --apple-fast: 180ms;
+}
+
+html.theme-mode-dark,
+body.theme-mode-dark {
+    --apple-highlight: rgba(255, 255, 255, .11);
+    --apple-shadow-xl: 0 34px 96px rgba(0, 0, 0, .38), 0 2px 8px rgba(0, 0, 0, .18);
+    --apple-shadow-lg: 0 22px 54px rgba(0, 0, 0, .3), 0 1px 4px rgba(0, 0, 0, .2);
+    --apple-shadow-md: 0 12px 32px rgba(0, 0, 0, .24), 0 1px 3px rgba(0, 0, 0, .18);
+}
+
+html {
+    background: var(--bg);
+    scroll-behavior: smooth;
+    scroll-padding-top: 104px;
+    -webkit-text-size-adjust: 100%;
+}
+
+body,
+body.auth-page {
+    min-width: 320px;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif !important;
+    font-optical-sizing: auto;
+    font-feature-settings: "kern", "liga", "calt", "ss01";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    background:
+        radial-gradient(circle at 10% -8%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 34rem),
+        radial-gradient(circle at 94% 12%, color-mix(in srgb, var(--blue) 8%, transparent), transparent 30rem),
+        linear-gradient(180deg, color-mix(in srgb, var(--bg-soft) 95%, white 5%), var(--bg)) !important;
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: .45;
+    background: linear-gradient(115deg, transparent 28%, color-mix(in srgb, var(--surface) 35%, transparent) 48%, transparent 68%);
+}
+
+::selection {
+    color: var(--text);
+    background: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--accent) 70%, white 10%) !important;
+    outline-offset: 3px !important;
+    box-shadow: none !important;
+}
+
+a,
+button,
+input,
+select,
+textarea {
+    font: inherit;
+    -webkit-tap-highlight-color: transparent;
+}
+
+a,
+button {
+    touch-action: manipulation;
+    transition:
+        transform var(--apple-fast) var(--apple-spring),
+        opacity var(--apple-fast) var(--apple-spring),
+        color var(--apple-fast) ease-out,
+        background-color var(--apple-fast) ease-out,
+        border-color var(--apple-fast) ease-out,
+        box-shadow var(--apple-fast) ease-out !important;
+}
+
+button:active,
+a:active,
+.book-card:active,
+.reader-card:active {
+    transform: scale(.975) !important;
+    transition-duration: 90ms !important;
+}
+
+.container,
+.app-container {
+    width: min(var(--apple-max), calc(100% - 40px)) !important;
+    margin-inline: auto !important;
+}
+
+.eyebrow,
+.profile-kicker,
+.admin-eyebrow,
+.detail-kicker,
+.admin-import-kicker {
+    color: var(--accent) !important;
+    font-size: .72rem !important;
+    font-weight: 780 !important;
+    line-height: 1.2 !important;
+    letter-spacing: .12em !important;
+    text-transform: uppercase;
+}
+
+/* Floating glass navigation */
+header {
+    top: max(10px, env(safe-area-inset-top)) !important;
+    width: min(var(--apple-max), calc(100% - 32px)) !important;
+    margin-inline: auto !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: 22px !important;
+    background: var(--apple-glass) !important;
+    box-shadow: var(--apple-shadow-md) !important;
+    backdrop-filter: blur(28px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+}
+
+header.is-scrolled {
+    background: var(--apple-glass-heavy) !important;
+    border-color: color-mix(in srgb, var(--accent) 16%, var(--apple-hairline)) !important;
+    border-top-color: var(--apple-highlight) !important;
+    box-shadow: var(--apple-shadow-lg) !important;
+}
+
+.header-inner {
+    min-height: 66px !important;
+    padding-inline: 7px !important;
+}
+
+.brand-logo {
+    gap: 10px !important;
+    color: var(--text) !important;
+    font-size: 1rem !important;
+    font-weight: 780 !important;
+    letter-spacing: -.015em !important;
+}
+
+.brand-logo img {
+    width: 40px !important;
+    height: 40px !important;
+    border: 1px solid var(--apple-highlight) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 19%, transparent) !important;
+}
+
+header nav ul {
+    gap: 3px !important;
+}
+
+header nav a,
+.profile-pill,
+.language-current {
+    min-height: 40px !important;
+    padding: 8px 12px !important;
+    border: 1px solid transparent !important;
+    border-radius: 12px !important;
+    color: var(--muted) !important;
+    font-size: .82rem !important;
+    font-weight: 650 !important;
+}
+
+header nav li.active a,
+header nav a[aria-current="page"] {
+    color: var(--text) !important;
+    background: color-mix(in srgb, var(--surface-muted) 82%, transparent) !important;
+    box-shadow: inset 0 0 0 1px var(--apple-highlight), 0 1px 4px color-mix(in srgb, var(--text) 8%, transparent) !important;
+}
+
+header nav a:hover,
+.profile-pill:hover,
+.language-current:hover,
+.language-switcher.open .language-current {
+    color: var(--text) !important;
+    background: color-mix(in srgb, var(--surface-muted) 70%, transparent) !important;
+}
+
+header nav li.btn a {
+    color: var(--danger) !important;
+    background: color-mix(in srgb, var(--danger) 8%, transparent) !important;
+    border-color: color-mix(in srgb, var(--danger) 14%, transparent) !important;
+}
+
+.menu_icon {
+    width: 44px !important;
+    height: 44px !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: 13px !important;
+    background: color-mix(in srgb, var(--surface-muted) 78%, transparent) !important;
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--text) 6%, transparent) !important;
+}
+
+.lang-menu {
+    padding: 8px !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: 18px !important;
+    background: var(--apple-glass-heavy) !important;
+    box-shadow: var(--apple-shadow-lg) !important;
+    backdrop-filter: blur(28px) saturate(180%) !important;
+}
+
+/* Hero */
+body .hero-wow {
+    padding: 34px 0 54px !important;
+}
+
+body .hero-wow .hero-content {
+    min-height: 500px !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: clamp(34px, 6vw, 82px) !important;
+    padding: clamp(42px, 6vw, 76px) !important;
+    overflow: hidden !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: var(--apple-radius-xl) !important;
+    background:
+        radial-gradient(circle at 88% 16%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 24rem),
+        linear-gradient(145deg, color-mix(in srgb, var(--surface) 92%, transparent), color-mix(in srgb, var(--surface-muted) 70%, transparent)) !important;
+    box-shadow: var(--apple-shadow-xl) !important;
+    backdrop-filter: blur(30px) saturate(150%) !important;
+}
+
+body .hero-wow .hero--info {
+    max-width: 820px !important;
+}
+
+body .hero-wow .hero--info h2 {
+    margin-bottom: 16px !important;
+    color: var(--accent) !important;
+    font-size: .76rem !important;
+    font-weight: 760 !important;
+    letter-spacing: .14em !important;
+}
+
+body .hero-wow .hero--info h1 {
+    max-width: 680px !important;
+    margin: 0 !important;
+    font-size: clamp(3rem, 6vw, 5rem) !important;
+    font-weight: 760 !important;
+    line-height: .96 !important;
+    letter-spacing: -.065em !important;
+    text-wrap: balance;
+}
+
+body .hero-wow .hero--info p {
+    max-width: 590px !important;
+    margin: 24px 0 0 !important;
+    color: var(--muted) !important;
+    font-size: clamp(1.05rem, 1.6vw, 1.25rem) !important;
+    line-height: 1.55 !important;
+    letter-spacing: -.015em !important;
+}
+
+body .hero-wow .product-hero-actions {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 10px !important;
+    margin-top: 32px !important;
+}
+
+body .hero-wow .product-hero-primary,
+body .hero-wow .product-hero-secondary,
+.about-link-btn,
+.about-secondary-btn,
+.admin-import-open-btn,
+.admin-import-template-btn {
+    min-height: 50px !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px !important;
+    border-radius: 999px !important;
+    font-size: .92rem !important;
+    font-weight: 680 !important;
+    letter-spacing: -.01em;
+}
+
+body .hero-wow .product-hero-primary,
+.about-link-btn,
+.admin-import-open-btn {
+    color: var(--on-accent) !important;
+    border: 1px solid color-mix(in srgb, var(--accent-strong) 70%, transparent) !important;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 90%, white 10%), var(--accent-strong)) !important;
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 24%, transparent), inset 0 1px 0 rgba(255, 255, 255, .3) !important;
+}
+
+body .hero-wow .product-hero-secondary,
+.about-secondary-btn,
+.admin-import-template-btn {
+    color: var(--text) !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    background: color-mix(in srgb, var(--surface) 72%, transparent) !important;
+    box-shadow: 0 5px 18px color-mix(in srgb, var(--text) 7%, transparent) !important;
+}
+
+body .hero-wow .hero-visual > .product-command-card {
+    min-height: 330px !important;
+    padding: clamp(22px, 3vw, 30px) !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: 28px !important;
+    background: var(--apple-glass-heavy) !important;
+    box-shadow: var(--apple-shadow-lg) !important;
+    backdrop-filter: blur(28px) saturate(160%) !important;
+}
+
+.product-command-head,
+.product-command-footer,
+.product-command-search,
+.product-command-metrics article {
+    border-color: var(--apple-hairline) !important;
+}
+
+.product-command-search {
+    min-height: 54px !important;
+    border-radius: 15px !important;
+    background: color-mix(in srgb, var(--surface-muted) 76%, transparent) !important;
+    box-shadow: inset 0 1px 2px color-mix(in srgb, var(--text) 5%, transparent) !important;
+}
+
+.product-command-metrics article {
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: 18px !important;
+    background: color-mix(in srgb, var(--surface) 68%, transparent) !important;
+}
+
+.product-command-metrics b {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.04em !important;
+}
+
+/* Content sections and cards */
+.reader-zone,
+.about-teaser,
+.insights-section,
+.about-values-section,
+.about-contact-section {
+    padding-block: clamp(46px, 7vw, 86px) !important;
+}
+
+.section-heading {
+    max-width: 760px !important;
+    margin-bottom: 30px !important;
+}
+
+.section-heading h2,
+.about-teaser-panel h2,
+.about-panel h2 {
+    margin: 8px 0 12px !important;
+    font-size: clamp(2rem, 4.1vw, 3.25rem) !important;
+    font-weight: 740 !important;
+    line-height: 1.02 !important;
+    letter-spacing: -.05em !important;
+    text-wrap: balance;
+}
+
+.section-heading p,
+.about-teaser-panel p,
+.about-panel p {
+    color: var(--muted) !important;
+    font-size: 1rem !important;
+    line-height: 1.65 !important;
+}
+
+.reader-grid,
+.about-values-grid,
+.insights-grid,
+.mini-widgets {
+    gap: 16px !important;
+}
+
+.reader-card,
+.insight-card,
+.mini-widget,
+.stats-side-panel,
+.showcase-panel,
+.about-teaser-panel,
+.about-panel,
+.admin-import-launcher,
+.admin-users-panel {
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: var(--apple-radius-lg) !important;
+    background: color-mix(in srgb, var(--surface) 80%, transparent) !important;
+    box-shadow: var(--apple-shadow-md) !important;
+    backdrop-filter: blur(24px) saturate(145%) !important;
+}
+
+.reader-card,
+.insight-card,
+.mini-widget {
+    padding: clamp(22px, 3vw, 30px) !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .reader-card:hover,
+    .insight-card:hover,
+    .mini-widget:hover,
+    .book-card:hover {
+        transform: translateY(-4px) !important;
+        border-color: color-mix(in srgb, var(--accent) 24%, var(--apple-hairline)) !important;
+        box-shadow: var(--apple-shadow-lg) !important;
+    }
+}
+
+.reader-icon {
+    width: 46px !important;
+    height: 46px !important;
+    display: grid !important;
+    place-items: center;
+    margin-bottom: 22px !important;
+    border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent) !important;
+    border-radius: 14px !important;
+    background: color-mix(in srgb, var(--accent-soft) 78%, transparent) !important;
+    font-size: 1.35rem !important;
+}
+
+.reader-card h3 {
+    margin-bottom: 9px !important;
+    font-size: 1.2rem !important;
+    font-weight: 710 !important;
+    letter-spacing: -.025em !important;
+}
+
+.reader-card p {
+    color: var(--muted) !important;
+    line-height: 1.6 !important;
+}
+
+/* Catalog */
+.app-container {
+    margin-top: clamp(28px, 5vw, 68px) !important;
+    margin-bottom: clamp(70px, 9vw, 120px) !important;
+    padding: clamp(22px, 4vw, 42px) !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: var(--apple-radius-xl) !important;
+    background: color-mix(in srgb, var(--surface) 76%, transparent) !important;
+    box-shadow: var(--apple-shadow-xl) !important;
+    backdrop-filter: blur(30px) saturate(150%) !important;
+}
+
+.app-container > .header {
+    margin-bottom: 26px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.title-section h1 {
+    font-size: clamp(2rem, 4vw, 3.2rem) !important;
+    font-weight: 740 !important;
+    line-height: 1 !important;
+    letter-spacing: -.055em !important;
+}
+
+.title-section p {
+    margin-top: 8px !important;
+    color: var(--muted) !important;
+}
+
+.add-book-btn,
+.submit-modal,
+.sort-apply-btn,
+.qr-start-btn,
+.rent-book-btn,
+.admin-panel-actions button {
+    min-height: 48px !important;
+    border: 1px solid color-mix(in srgb, var(--accent-strong) 64%, transparent) !important;
+    border-radius: 999px !important;
+    color: var(--on-accent) !important;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 90%, white 10%), var(--accent-strong)) !important;
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 22%, transparent), inset 0 1px 0 rgba(255, 255, 255, .28) !important;
+}
+
+.search-sort-panel {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: end !important;
+    gap: 14px !important;
+    margin-bottom: 18px !important;
+    padding: 14px !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: 20px !important;
+    background: color-mix(in srgb, var(--surface-muted) 64%, transparent) !important;
+    box-shadow: inset 0 1px 2px color-mix(in srgb, var(--text) 4%, transparent) !important;
+}
+
+.premium-search-box > label {
+    margin: 0 0 7px 4px !important;
+    color: var(--muted) !important;
+    font-size: .74rem !important;
+    font-weight: 680 !important;
+}
+
+.search-input-wrapper,
+.premium-search-input {
+    min-height: 54px !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: 16px !important;
+    background: var(--apple-glass-heavy) !important;
+    box-shadow: 0 5px 16px color-mix(in srgb, var(--text) 6%, transparent) !important;
+}
+
+.search-input-wrapper:focus-within {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--apple-hairline)) !important;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 13%, transparent), 0 7px 20px color-mix(in srgb, var(--text) 7%, transparent) !important;
+}
+
+.search-input-wrapper input {
+    color: var(--text) !important;
+    font-size: 1rem !important;
+}
+
+.search-action-dock {
+    gap: 8px !important;
+}
+
+.voice-search-btn,
+.qr-scan-btn,
+.open-sort-btn,
+.sort-clear-btn,
+.close-sort-btn,
+.cancel-modal,
+.confirm-cancel,
+.qr-stop-btn {
+    min-height: 50px !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: 15px !important;
+    color: var(--text) !important;
+    background: color-mix(in srgb, var(--surface) 78%, transparent) !important;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--text) 6%, transparent) !important;
+}
+
+.active-filter-bar {
+    gap: 8px !important;
+    margin: 0 0 22px !important;
+    padding: 0 !important;
+}
+
+.filter-pill {
+    min-height: 36px !important;
+    padding: 8px 13px !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-radius: 999px !important;
+    color: var(--muted) !important;
+    background: color-mix(in srgb, var(--surface) 62%, transparent) !important;
+    font-size: .8rem !important;
+    font-weight: 650 !important;
+}
+
+.filter-pill.active {
+    color: var(--text) !important;
+    border-color: color-mix(in srgb, var(--accent) 22%, var(--apple-hairline)) !important;
+    background: color-mix(in srgb, var(--accent-soft) 72%, var(--surface)) !important;
+}
+
+.books-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 18px !important;
+}
+
+.book-card {
+    min-width: 0;
+    overflow: hidden !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: 22px !important;
+    background: color-mix(in srgb, var(--surface) 88%, transparent) !important;
+    box-shadow: var(--apple-shadow-md) !important;
+}
+
+.book-cover {
+    border-radius: 16px !important;
+    background: color-mix(in srgb, var(--surface-muted) 78%, transparent) !important;
+}
+
+.book-cover-img {
+    border-radius: 14px !important;
+}
+
+.book-title {
+    font-size: 1.08rem !important;
+    font-weight: 710 !important;
+    line-height: 1.25 !important;
+    letter-spacing: -.025em !important;
+}
+
+.book-author,
+.book-description {
+    color: var(--muted) !important;
+}
+
+.book-meta {
+    border-top-color: var(--apple-hairline) !important;
+}
+
+/* Secondary pages */
+.stats-main,
+.about-main,
+.admin-main {
+    padding-top: 112px !important;
+}
+
+.stats-hero,
+.about-hero-page,
+.admin-hero {
+    padding: clamp(54px, 8vw, 100px) 0 !important;
+    background: transparent !important;
+}
+
+.stats-hero h1,
+.about-hero-text h1,
+.admin-hero h1 {
+    max-width: 900px;
+    margin: 10px 0 18px !important;
+    font-size: clamp(2.8rem, 6vw, 5.1rem) !important;
+    font-weight: 750 !important;
+    line-height: .98 !important;
+    letter-spacing: -.065em !important;
+    text-wrap: balance;
+}
+
+.stats-hero p,
+.about-hero-text p,
+.admin-hero p {
+    max-width: 720px !important;
+    color: var(--muted) !important;
+    font-size: clamp(1rem, 1.7vw, 1.2rem) !important;
+    line-height: 1.65 !important;
+}
+
+.about-logo-showcase {
+    min-height: 330px !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: var(--apple-radius-xl) !important;
+    background: var(--apple-glass) !important;
+    box-shadow: var(--apple-shadow-xl) !important;
+    backdrop-filter: blur(30px) saturate(160%) !important;
+}
+
+.about-logo-showcase img {
+    width: clamp(126px, 14vw, 180px) !important;
+    border: 1px solid var(--apple-highlight) !important;
+    border-radius: 38px !important;
+    box-shadow: 0 24px 54px color-mix(in srgb, var(--accent) 24%, transparent) !important;
+}
+
+html.theme-light .about-logo-showcase img,
+html.theme-dark .about-logo-showcase img {
+    box-shadow: 0 24px 54px rgba(0, 0, 0, .24) !important;
+}
+
+.insight-card strong,
+.meter-ring span,
+.admin-metric b,
+.profile-stat-card b {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.045em !important;
+}
+
+.admin-users-table,
+.book-import-table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+.admin-users-table th,
+.admin-users-table td,
+.book-import-table th,
+.book-import-table td {
+    border-bottom-color: var(--apple-hairline) !important;
+}
+
+/* Modals, sheets and notifications */
+.modal,
+.book-import-modal,
+.voice-modal,
+.product-welcome-modal,
+.profile-customize-modal,
+.account-settings-modal {
+    background: color-mix(in srgb, #0c111b 35%, transparent) !important;
+    backdrop-filter: blur(14px) saturate(125%) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(125%) !important;
+}
+
+.modal-content,
+.book-import-dialog,
+.voice-modal-content,
+.product-welcome-card,
+.profile-customize-dialog,
+.account-settings-dialog {
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: 28px !important;
+    background: var(--apple-glass-heavy) !important;
+    box-shadow: 0 42px 120px rgba(0, 0, 0, .3) !important;
+    backdrop-filter: blur(34px) saturate(175%) !important;
+    -webkit-backdrop-filter: blur(34px) saturate(175%) !important;
+}
+
+.modal.active .modal-content,
+.book-import-modal.active .book-import-dialog,
+.voice-modal.active .voice-modal-content,
+.product-welcome-modal.active .product-welcome-card {
+    animation: apple-materialize 260ms var(--apple-spring) both !important;
+    transform-origin: 50% 40%;
+}
+
+@keyframes apple-materialize {
+    from { opacity: 0; transform: translateY(14px) scale(.965); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-content input,
+.modal-content textarea,
+.modal-content select,
+.book-import-dialog input,
+.account-settings-dialog input,
+.profile-customize-dialog input {
+    border: 1px solid var(--apple-hairline) !important;
+    border-radius: 14px !important;
+    color: var(--text) !important;
+    background: color-mix(in srgb, var(--surface-muted) 70%, transparent) !important;
+    box-shadow: inset 0 1px 2px color-mix(in srgb, var(--text) 5%, transparent) !important;
+}
+
+.modal-content input:focus,
+.modal-content textarea:focus,
+.modal-content select:focus,
+.book-import-dialog input:focus,
+.account-settings-dialog input:focus,
+.profile-customize-dialog input:focus {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--apple-hairline)) !important;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 13%, transparent) !important;
+}
+
+.profile-close-btn,
+.close-view-btn,
+.qr-close-btn,
+.book-import-close,
+.voice-modal-close {
+    width: 38px !important;
+    height: 38px !important;
+    display: grid !important;
+    place-items: center;
+    border: 1px solid var(--apple-hairline) !important;
+    border-radius: 50% !important;
+    color: var(--muted) !important;
+    background: color-mix(in srgb, var(--surface-muted) 78%, transparent) !important;
+    box-shadow: inset 0 1px 0 var(--apple-highlight) !important;
+}
+
+.toast-stack {
+    top: max(22px, env(safe-area-inset-top)) !important;
+    right: max(22px, env(safe-area-inset-right)) !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: min(380px, calc(100vw - 44px)) !important;
+    max-height: calc(100dvh - 44px);
+    align-content: start;
+    pointer-events: none;
+}
+
+.custom-notification.toast {
+    width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: start;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: 18px !important;
+    background: var(--apple-glass-heavy) !important;
+    box-shadow: var(--apple-shadow-lg) !important;
+    backdrop-filter: blur(28px) saturate(180%) !important;
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateY(-100%) scale(.98);
+    transition:
+        opacity 160ms var(--apple-spring),
+        transform 160ms var(--apple-spring) !important;
+    transform-origin: top right;
+}
+
+.custom-notification.toast.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition-duration: 220ms !important;
+}
+
+/* Authentication */
+body.auth-page {
+    min-height: 100dvh !important;
+    display: grid !important;
+    place-items: center;
+    padding: clamp(18px, 4vw, 46px) !important;
+}
+
+.auth-product-shell {
+    width: min(var(--apple-max), 100%) !important;
+    min-height: min(760px, calc(100dvh - 42px)) !important;
+    grid-template-columns: minmax(0, 1.12fr) minmax(350px, .78fr) !important;
+    gap: clamp(24px, 4vw, 56px) !important;
+}
+
+.auth-product-story {
+    min-height: 680px !important;
+    padding: clamp(38px, 5vw, 64px) !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: var(--apple-radius-xl) !important;
+    background:
+        radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 25rem),
+        linear-gradient(145deg, color-mix(in srgb, var(--surface) 90%, transparent), color-mix(in srgb, var(--surface-muted) 68%, transparent)) !important;
+    box-shadow: var(--apple-shadow-xl) !important;
+    backdrop-filter: blur(30px) saturate(160%) !important;
+}
+
+.auth-product-story h2 {
+    margin: 52px 0 22px !important;
+    font-size: clamp(3.25rem, 5.8vw, 5.15rem) !important;
+    font-weight: 750 !important;
+    line-height: .94 !important;
+    letter-spacing: -.07em !important;
+    text-wrap: balance;
+}
+
+.auth-product-story > div > p {
+    max-width: 620px !important;
+    color: var(--muted) !important;
+    font-size: clamp(1rem, 1.5vw, 1.2rem) !important;
+    line-height: 1.65 !important;
+}
+
+.auth-value-grid {
+    gap: 12px !important;
+    margin-top: 36px !important;
+}
+
+.auth-value-card {
+    min-height: 140px !important;
+    padding: 20px !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: 19px !important;
+    background: color-mix(in srgb, var(--surface) 64%, transparent) !important;
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--text) 6%, transparent) !important;
+}
+
+.auth-container {
+    width: 100% !important;
+    max-width: 470px !important;
+    padding: clamp(26px, 4vw, 40px) !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: 28px !important;
+    background: var(--apple-glass-heavy) !important;
+    box-shadow: var(--apple-shadow-xl) !important;
+    backdrop-filter: blur(32px) saturate(175%) !important;
+}
+
+.auth-brand img {
+    width: 58px !important;
+    height: 58px !important;
+    border: 1px solid var(--apple-highlight) !important;
+    border-radius: 17px !important;
+    box-shadow: 0 10px 26px color-mix(in srgb, var(--accent) 21%, transparent) !important;
+}
+
+.tabs {
+    padding: 4px !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-radius: 15px !important;
+    background: color-mix(in srgb, var(--surface-muted) 70%, transparent) !important;
+    box-shadow: inset 0 1px 2px color-mix(in srgb, var(--text) 5%, transparent) !important;
+}
+
+.tab {
+    min-height: 44px !important;
+    border-radius: 11px !important;
+    color: var(--muted) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.tab.active {
+    color: var(--text) !important;
+    background: var(--surface) !important;
+    box-shadow: 0 3px 12px color-mix(in srgb, var(--text) 10%, transparent), inset 0 1px 0 var(--apple-highlight) !important;
+}
+
+.auth-container input {
+    min-height: 52px !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-radius: 14px !important;
+    color: var(--text) !important;
+    background: color-mix(in srgb, var(--surface-muted) 66%, transparent) !important;
+    box-shadow: inset 0 1px 2px color-mix(in srgb, var(--text) 5%, transparent) !important;
+}
+
+.auth-container input:focus {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--apple-hairline)) !important;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 13%, transparent) !important;
+}
+
+.auth-container button:not(.clear-input-btn):not(.auth-link-btn):not(.tab) {
+    min-height: 50px !important;
+    border-radius: 14px !important;
+}
+
+.auth-container .form > button:first-of-type {
+    border-color: color-mix(in srgb, var(--accent-strong) 60%, transparent) !important;
+    color: var(--on-accent) !important;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 90%, white 10%), var(--accent-strong)) !important;
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 22%, transparent), inset 0 1px 0 rgba(255, 255, 255, .28) !important;
+}
+
+.guest-btn {
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    color: var(--text) !important;
+    background: color-mix(in srgb, var(--surface-muted) 70%, transparent) !important;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--text) 6%, transparent) !important;
+}
+
+.auth-theme-toggle,
+.floating-theme-toggle {
+    width: 48px !important;
+    height: 48px !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: 50% !important;
+    background: var(--apple-glass) !important;
+    box-shadow: var(--apple-shadow-md) !important;
+    backdrop-filter: blur(22px) saturate(170%) !important;
+}
+
+.floating-theme-toggle {
+    right: max(18px, env(safe-area-inset-right)) !important;
+    bottom: max(18px, env(safe-area-inset-bottom)) !important;
+}
+
+footer {
+    padding: 30px 20px calc(30px + env(safe-area-inset-bottom)) !important;
+    color: var(--muted) !important;
+    font-size: .82rem !important;
+    letter-spacing: .01em !important;
+}
+
+/*
+ * Lightweight floating-glass system.
+ * Actual backdrop blur is reserved for large chrome and modal layers. Repeated
+ * cards and buttons use translucent fills, edge light and depth instead of
+ * allocating dozens of expensive live blur surfaces.
+ */
+.product-hero-primary,
+.product-hero-secondary,
+.about-link-btn,
+.about-secondary-btn,
+.admin-import-open-btn,
+.admin-import-template-btn {
+    border-top-color: var(--apple-highlight) !important;
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, white 54%, transparent),
+        inset 0 -1px 0 color-mix(in srgb, var(--text) 7%, transparent),
+        0 7px 18px color-mix(in srgb, var(--text) 8%, transparent) !important;
+    background-clip: padding-box !important;
+}
+
+/* Settings: one glass surface, restrained rows, one clear active state. */
+.account-settings-dialog {
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    background:
+        linear-gradient(145deg,
+            color-mix(in srgb, var(--surface) 94%, transparent),
+            color-mix(in srgb, var(--bg-soft) 86%, transparent)) !important;
+    box-shadow:
+        inset 0 1px 0 var(--apple-highlight),
+        0 36px 100px rgba(0, 0, 0, .3) !important;
+}
+
+.account-settings-header {
+    border-bottom-color: var(--apple-hairline) !important;
+    background: color-mix(in srgb, var(--surface) 62%, transparent) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.account-settings-nav {
+    gap: 4px !important;
+    border-color: var(--apple-hairline) !important;
+    background: color-mix(in srgb, var(--surface-muted) 38%, transparent) !important;
+    box-shadow: inset -1px 0 0 color-mix(in srgb, white 22%, transparent) !important;
+}
+
+.account-settings-nav-button {
+    border-color: transparent !important;
+    border-top-color: transparent !important;
+    border-radius: 13px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.account-settings-nav-button.active {
+    border-color: color-mix(in srgb, var(--accent) 18%, var(--apple-hairline)) !important;
+    border-top-color: color-mix(in srgb, white 38%, transparent) !important;
+    background:
+        linear-gradient(145deg,
+            color-mix(in srgb, var(--accent-soft) 54%, var(--surface)),
+            color-mix(in srgb, var(--surface) 74%, transparent)) !important;
+    color: var(--text) !important;
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, white 34%, transparent),
+        0 8px 20px color-mix(in srgb, var(--text) 7%, transparent) !important;
+}
+
+.account-settings-nav-icon {
+    border: 1px solid color-mix(in srgb, var(--text) 7%, transparent) !important;
+    background: color-mix(in srgb, var(--surface) 62%, transparent) !important;
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 26%, transparent) !important;
+}
+
+.account-settings-nav-button.active .account-settings-nav-icon {
+    border-color: color-mix(in srgb, var(--accent) 16%, transparent) !important;
+    background: color-mix(in srgb, var(--accent-soft) 62%, var(--surface)) !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .account-settings-nav-button:hover {
+        transform: none !important;
+        background: color-mix(in srgb, var(--surface) 48%, transparent) !important;
+        color: var(--text) !important;
+    }
+
+    .account-settings-nav-button.active:hover {
+        background:
+            linear-gradient(145deg,
+                color-mix(in srgb, var(--accent-soft) 58%, var(--surface)),
+                color-mix(in srgb, var(--surface) 78%, transparent)) !important;
+    }
+}
+
+.reader-card,
+.insight-card,
+.mini-widget,
+.stats-side-panel,
+.showcase-panel,
+.about-teaser-panel,
+.about-panel,
+.admin-import-launcher,
+.admin-users-panel,
+.book-card,
+.search-sort-panel,
+.about-logo-showcase {
+    background:
+        linear-gradient(145deg,
+            color-mix(in srgb, var(--surface) 88%, transparent),
+            color-mix(in srgb, var(--surface-muted) 62%, transparent)) !important;
+    box-shadow:
+        inset 0 1px 0 var(--apple-highlight),
+        inset 0 -1px 0 color-mix(in srgb, var(--text) 5%, transparent),
+        0 18px 44px color-mix(in srgb, var(--text) 9%, transparent) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+header,
+header nav,
+.lang-menu,
+.app-container,
+.modal-content,
+.book-import-dialog,
+.voice-modal-content,
+.product-welcome-card,
+.profile-customize-dialog,
+.account-settings-dialog,
+.auth-container,
+.toast {
+    border-top-color: var(--apple-highlight) !important;
+    box-shadow:
+        inset 0 1px 0 var(--apple-highlight),
+        inset 0 -1px 0 color-mix(in srgb, var(--text) 6%, transparent),
+        var(--apple-shadow-lg) !important;
+}
+
+.modal-content,
+.book-import-dialog,
+.voice-modal-content,
+.product-welcome-card,
+.profile-customize-dialog,
+.account-settings-dialog {
+    background:
+        linear-gradient(145deg,
+            color-mix(in srgb, var(--surface) 92%, transparent),
+            color-mix(in srgb, var(--surface-muted) 78%, transparent)) !important;
+    backdrop-filter: blur(24px) saturate(155%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(155%) !important;
+}
+
+.modal,
+.book-import-modal,
+.voice-modal,
+.product-welcome-modal,
+.profile-customize-modal,
+.account-settings-modal {
+    backdrop-filter: blur(8px) saturate(115%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(115%) !important;
+}
+
+.reader-zone,
+.about-teaser,
+.about-values-section,
+.about-contact-section,
+.insights-section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 720px;
+}
+
+/* About hero: let the mark float; avoid the card-inside-card effect. */
+.about-logo-showcase {
+    min-height: 360px !important;
+    position: relative;
+    isolation: isolate;
+    overflow: visible !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.about-logo-showcase::before {
+    content: "";
+    width: min(28vw, 300px);
+    aspect-ratio: 1;
+    position: absolute;
+    z-index: -1;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+        color-mix(in srgb, var(--accent) 16%, transparent),
+        color-mix(in srgb, var(--accent) 5%, transparent) 48%,
+        transparent 72%);
+    filter: blur(20px);
+    opacity: .85;
+    pointer-events: none;
+}
+
+.about-logo-showcase .logo-halo {
+    display: none !important;
+}
+
+.about-logo-showcase img {
+    width: clamp(138px, 14vw, 182px) !important;
+    height: clamp(138px, 14vw, 182px) !important;
+    aspect-ratio: 1 !important;
+    object-fit: cover !important;
+    border: 1px solid color-mix(in srgb, white 38%, transparent) !important;
+    border-radius: 38px !important;
+    box-shadow:
+        0 26px 58px rgba(0, 0, 0, .2),
+        0 8px 24px color-mix(in srgb, var(--accent) 16%, transparent) !important;
+}
+
+.about-logo-showcase span {
+    margin-top: 22px !important;
+    padding: 8px 13px !important;
+    border: 1px solid var(--apple-hairline) !important;
+    border-top-color: var(--apple-highlight) !important;
+    border-radius: 999px !important;
+    background: color-mix(in srgb, var(--surface) 58%, transparent) !important;
+    color: var(--muted) !important;
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--text) 7%, transparent) !important;
+    backdrop-filter: blur(12px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    header,
+    header nav,
+    .lang-menu,
+    .app-container,
+    .auth-container,
+    .custom-notification.toast {
+        backdrop-filter: blur(22px) saturate(165%) !important;
+        -webkit-backdrop-filter: blur(22px) saturate(165%) !important;
+    }
+}
+
+/* Tablet */
+@media (max-width: 980px) {
+    .container,
+    .app-container {
+        width: min(100% - 28px, var(--apple-max)) !important;
+    }
+
+    header {
+        width: calc(100% - 24px) !important;
+    }
+
+    body .hero-wow .hero-content {
+        grid-template-columns: 1fr !important;
+        min-height: auto !important;
+    }
+
+    body .hero-wow .hero-visual {
+        width: 100% !important;
+        min-height: 0 !important;
+    }
+
+    body .hero-wow .hero-visual > .product-command-card {
+        min-height: 300px !important;
+    }
+
+    .books-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .auth-product-shell {
+        grid-template-columns: 1fr !important;
+        max-width: 720px !important;
+    }
+
+    .auth-product-story {
+        min-height: auto !important;
+    }
+
+    .auth-container {
+        max-width: none !important;
+    }
+}
+
+/* Mobile sheet navigation and one-column content */
+@media (max-width: 720px) {
+    :root {
+        --apple-radius-xl: 26px;
+        --apple-radius-lg: 21px;
+    }
+
+    html {
+        scroll-padding-top: 88px;
+    }
+
+    .container,
+    .app-container {
+        width: min(100% - 20px, var(--apple-max)) !important;
+    }
+
+    header {
+        top: max(6px, env(safe-area-inset-top)) !important;
+        width: calc(100% - 14px) !important;
+        border-radius: 18px !important;
+        backdrop-filter: blur(18px) saturate(150%) !important;
+        -webkit-backdrop-filter: blur(18px) saturate(150%) !important;
+    }
+
+    .header-inner {
+        min-height: 58px !important;
+    }
+
+    .brand-logo img {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 11px !important;
+    }
+
+    header nav {
+        top: calc(100% + 8px) !important;
+        right: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        padding: 8px !important;
+        border: 1px solid var(--apple-hairline) !important;
+        border-top-color: var(--apple-highlight) !important;
+        border-radius: 20px !important;
+        background: var(--apple-glass-heavy) !important;
+        box-shadow: var(--apple-shadow-xl) !important;
+        backdrop-filter: blur(18px) saturate(155%) !important;
+        -webkit-backdrop-filter: blur(18px) saturate(155%) !important;
+        transform-origin: top right;
+    }
+
+    header nav.active {
+        animation: apple-menu-in 260ms var(--apple-spring) both !important;
+    }
+
+    @keyframes apple-menu-in {
+        from { opacity: 0; transform: translateY(-6px) scale(.97); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    header nav ul {
+        gap: 3px !important;
+    }
+
+    .account-settings-nav {
+        box-shadow: inset 0 -1px 0 color-mix(in srgb, white 18%, transparent) !important;
+    }
+
+    header nav a,
+    .profile-pill,
+    .language-current {
+        width: 100% !important;
+        min-height: 46px !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
+    }
+
+    body .hero-wow {
+        padding: 22px 0 36px !important;
+    }
+
+    body .hero-wow .hero-content {
+        gap: 34px !important;
+        padding: 30px 22px 24px !important;
+        border-radius: 26px !important;
+    }
+
+    body .hero-wow .hero--info h1 {
+        font-size: clamp(2.65rem, 13vw, 4.1rem) !important;
+        line-height: .97 !important;
+    }
+
+    body .hero-wow .hero--info p {
+        font-size: 1rem !important;
+        line-height: 1.55 !important;
+    }
+
+    body .hero-wow .product-hero-actions {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+    }
+
+    body .hero-wow .product-hero-primary,
+    body .hero-wow .product-hero-secondary {
+        width: 100% !important;
+    }
+
+    .product-command-metrics {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    .product-command-search kbd,
+    .product-command-footer {
+        display: none !important;
+    }
+
+    .reader-zone,
+    .about-teaser,
+    .insights-section,
+    .about-values-section,
+    .about-contact-section {
+        padding-block: 42px !important;
+    }
+
+    .reader-grid,
+    .about-values-grid,
+    .insights-grid,
+    .mini-widgets,
+    .books-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .app-container {
+        padding: 18px !important;
+        border-radius: 26px !important;
+    }
+
+    .app-container > .header {
+        align-items: flex-start !important;
+        gap: 16px !important;
+    }
+
+    .header-actions,
+    .add-book-btn {
+        width: 100% !important;
+    }
+
+    .search-sort-panel {
+        grid-template-columns: 1fr !important;
+        padding: 10px !important;
+    }
+
+    .search-action-dock {
+        display: grid !important;
+        grid-template-columns: 52px 76px minmax(0, 1fr) !important;
+    }
+
+    .search-action-dock > button {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .book-card:hover,
+    .reader-card:hover,
+    .insight-card:hover,
+    .mini-widget:hover {
+        transform: none !important;
+    }
+
+    .stats-main,
+    .about-main,
+    .admin-main {
+        padding-top: 88px !important;
+    }
+
+    .stats-hero,
+    .about-hero-page,
+    .admin-hero {
+        padding: 46px 0 !important;
+    }
+
+    .stats-hero h1,
+    .about-hero-text h1,
+    .admin-hero h1 {
+        font-size: clamp(2.55rem, 13vw, 4.1rem) !important;
+    }
+
+    .modal,
+    .book-import-modal,
+    .voice-modal,
+    .product-welcome-modal,
+    .profile-customize-modal,
+    .account-settings-modal {
+        align-items: flex-end !important;
+        padding: max(10px, env(safe-area-inset-top)) 8px 8px !important;
+    }
+
+    .modal-content,
+    .book-import-dialog,
+    .voice-modal-content,
+    .product-welcome-card,
+    .profile-customize-dialog,
+    .account-settings-dialog {
+        width: 100% !important;
+        max-height: calc(100dvh - 18px) !important;
+        margin: 0 !important;
+        border-radius: 26px 26px 20px 20px !important;
+        padding-bottom: max(24px, env(safe-area-inset-bottom)) !important;
+        backdrop-filter: blur(18px) saturate(145%) !important;
+        -webkit-backdrop-filter: blur(18px) saturate(145%) !important;
+    }
+
+    .auth-product-shell {
+        gap: 14px !important;
+    }
+
+    .auth-product-story {
+        display: none !important;
+    }
+
+    .auth-container {
+        padding: 24px 18px !important;
+        border-radius: 24px !important;
+    }
+
+    .auth-brand h1 {
+        font-size: 1.7rem !important;
+        letter-spacing: -.045em !important;
+    }
+
+    .toast-stack {
+        top: max(10px, env(safe-area-inset-top)) !important;
+        right: 10px !important;
+        left: 10px !important;
+        bottom: auto !important;
+        width: auto !important;
+        max-height: calc(100dvh - 20px);
+    }
+
+    .floating-theme-toggle {
+        width: 46px !important;
+        height: 46px !important;
+    }
+}
+
+@media (max-width: 390px) {
+    .brand-logo span {
+        display: none !important;
+    }
+
+    body .hero-wow .hero-content {
+        padding-inline: 18px !important;
+    }
+
+    .product-command-metrics {
+        grid-template-columns: 1fr !important;
+    }
+
+    .search-action-dock {
+        grid-template-columns: 48px 68px minmax(0, 1fr) !important;
+    }
+}
+
+@media (hover: none), (pointer: coarse) {
+    a,
+    button,
+    input,
+    select,
+    textarea {
+        min-height: 44px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto !important;
+    }
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+
+    button:active,
+    a:active,
+    .book-card:active,
+    .reader-card:active,
+    .reader-card:hover,
+    .book-card:hover {
+        transform: none !important;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    header,
+    header nav,
+    .lang-menu,
+    .app-container,
+    .reader-card,
+    .insight-card,
+    .mini-widget,
+    .stats-side-panel,
+    .showcase-panel,
+    .about-teaser-panel,
+    .about-panel,
+    .modal-content,
+    .book-import-dialog,
+    .voice-modal-content,
+    .product-welcome-card,
+    .auth-product-story,
+    .auth-container,
+    .custom-notification.toast {
+        background: var(--surface) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+}
+
+@media (prefers-contrast: more) {
+    header,
+    .app-container,
+    .reader-card,
+    .insight-card,
+    .mini-widget,
+    .book-card,
+    .modal-content,
+    .auth-container {
+        border-color: currentColor !important;
+        background: var(--surface) !important;
+    }
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+    header,
+    header nav,
+    .lang-menu,
+    .app-container,
+    .modal-content,
+    .auth-container,
+    .custom-notification.toast {
+        background: var(--surface) !important;
+    }
+}

@@ -149,11 +149,11 @@
         story.innerHTML = `
             <div>
                 <div class="auth-product-brand">
-                    <img src="img/appicon.png" alt="" aria-hidden="true">
+                    <img src="img/appicon-system-v2.png" alt="" aria-hidden="true">
                     <span>BIBLIOTECH</span>
                 </div>
-                <h2>Библиотека, в которой ничего не теряется</h2>
-                <p>Каталог, поиск, аренда, QR-коды, отзывы и аналитика работают как единый продукт — без таблиц, хаоса и лишних действий.</p>
+                <h2>Ваша библиотека. Всегда под рукой.</h2>
+                <p>Каталог, поиск, аренда, QR-коды, отзывы и аналитика собраны в одном спокойном и понятном пространстве.</p>
                 <div class="auth-value-grid">
                     <article class="auth-value-card"><span>⌕</span><div><b>Находите за секунды</b><small>По названию, автору, описанию и QR-коду</small></div></article>
                     <article class="auth-value-card"><span>▣</span><div><b>Контролируйте выдачу</b><small>Наличие, аренда и места хранения</small></div></article>

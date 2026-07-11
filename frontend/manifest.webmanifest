@@ -14,19 +14,19 @@
   "categories": ["education", "books", "productivity"],
   "icons": [
     {
-      "src": "/img/appicon.png",
+      "src": "/img/appicon-system-v2.png",
       "sizes": "256x256",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/img/appicon-light.png",
+      "src": "/img/appicon-system-v2.png",
       "sizes": "256x256",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/img/appicon-dark.png",
+      "src": "/img/appicon-system-v2.png",
       "sizes": "256x256",
       "type": "image/png",
       "purpose": "any maskable"
@@ -37,7 +37,7 @@
       "name": "Каталог",
       "short_name": "Каталог",
       "url": "/home.html?source=pwa-shortcut",
-      "icons": [{ "src": "/img/appicon.png", "sizes": "256x256" }]
+      "icons": [{ "src": "/img/appicon-system-v2.png", "sizes": "256x256" }]
     },
     {
       "name": "Статистика",

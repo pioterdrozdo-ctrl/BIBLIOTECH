@@ -29,8 +29,8 @@ const app = express();
 const frontendPath = path.join(__dirname, '..', 'frontend');
 const isProduction = process.env.NODE_ENV === 'production';
 const manifestThemes = {
-    light: { icon: '/img/appicon-light.png', themeColor: '#f5f2ec', backgroundColor: '#f5f2ec' },
-    dark: { icon: '/img/appicon-dark.png', themeColor: '#0d1512', backgroundColor: '#0d1512' },
+    light: { icon: '/img/appicon-system-v2.png', themeColor: '#f5f5f7', backgroundColor: '#f5f5f7' },
+    dark: { icon: '/img/appicon-system-v2.png', themeColor: '#0d1512', backgroundColor: '#0d1512' },
     forest: { icon: '/img/appicon-forest.png', themeColor: '#071b13', backgroundColor: '#071b13' },
     ocean: { icon: '/img/appicon-ocean.png', themeColor: '#071724', backgroundColor: '#071724' },
     sunset: { icon: '/img/appicon-sunset.png', themeColor: '#fff3e3', backgroundColor: '#fff3e3' },
@@ -52,7 +52,8 @@ const criticalUiScripts = [
 ];
 
 const finalUiStyles = [
-    '/css/commercial-polish.css?v=20260710-commercial-polish-1'
+    '/css/commercial-polish.css?v=20260710-commercial-polish-1',
+    '/css/apple-polish.css?v=20260711-apple-polish-4'
 ];
 
 const homeCriticalStyles = [
@@ -82,7 +83,7 @@ const homeCriticalScripts = [
     '/js/comment-clear-fix.js?v=20260710-comment-clear-1'
 ];
 
-function buildManifest(themeName = 'forest') {
+function buildManifest(themeName = 'light') {
     const theme = manifestThemes[themeName] || manifestThemes.light;
     return {
         name: 'BIBLIOTECH',
@@ -211,8 +212,8 @@ app.use((req, res, next) => {
 });
 
 app.get('/manifest.webmanifest', (req, res) => {
-    const requestedTheme = String(req.query.theme || 'forest').toLowerCase();
-    const themeName = Object.prototype.hasOwnProperty.call(manifestThemes, requestedTheme) ? requestedTheme : 'forest';
+    const requestedTheme = String(req.query.theme || 'light').toLowerCase();
+    const themeName = Object.prototype.hasOwnProperty.call(manifestThemes, requestedTheme) ? requestedTheme : 'light';
     res.setHeader('Cache-Control', 'no-cache');
     res.type('application/manifest+json; charset=utf-8');
     res.send(JSON.stringify(buildManifest(themeName)));

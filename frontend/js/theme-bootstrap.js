@@ -14,20 +14,20 @@
   ];
 
   var THEME_META = {
-    light: { name: 'Классика', description: 'зелёная библиотека', icon: 'appicon-light.png' },
-    dark: { name: 'Графит', description: 'мята и антрацит', icon: 'appicon-dark.png' },
+    light: { name: 'Системная', description: 'светлая и воздушная', icon: 'appicon-system-v2.png' },
+    dark: { name: 'Графит', description: 'чёрный монохром', icon: 'appicon-system-v2.png' },
     forest: { name: 'Лесная', description: 'мох и зелёные листья', icon: 'appicon-forest.png' },
     ocean: { name: 'Океан', description: 'сине-бирюзовая', icon: 'appicon-ocean.png' },
     sunset: { name: 'Закат', description: 'оранжево-розовая', icon: 'appicon-sunset.png' },
     violet: { name: 'Фиолетовая', description: 'лаванда и неон', icon: 'appicon-violet.png' },
     coffee: { name: 'Кофейная', description: 'уют и бумага', icon: 'appicon-coffee.png' },
-    mono: { name: 'Монохром', description: 'чёрно-белый минимализм', icon: 'appicon-mono.png' }
+    mono: { name: 'Монохром', description: 'чёрно-белый минимализм', icon: 'appicon-system-v2.png' }
   };
 
   var PALETTE_VALUES = {
     light: {
-      light: ['#f5f2ec','#fbfaf6','#ffffff','#ffffff','#eef4ef','#1e2521','#68736c','rgba(31, 43, 36, 0.13)','#2f7d5a','#216245','#dfeee5','#ffffff','#c2953e','#2f6fb3','#b74c43','#fae7e4','#267d56','#e0f2e8'],
-      dark: ['#071711','#0d241a','#132d22','#173629','#1b3c2e','#f0fbf5','#aac6b6','rgba(216, 255, 232, 0.15)','#79d99e','#b9ef7d','rgba(121, 217, 158, 0.15)','#06130d','#e4bd61','#82baff','#ff9188','rgba(255, 145, 136, 0.13)','#8be1a7','rgba(139, 225, 167, 0.13)']
+      light: ['#f5f5f7','#fbfbfd','#ffffff','#ffffff','#eef0f4','#1d1d1f','#6e6e73','rgba(0, 0, 0, 0.10)','#0066cc','#0055b3','#e8f2ff','#ffffff','#b7791f','#007aff','#ff3b30','#ffebe9','#248a3d','#e5f6e9'],
+      dark: ['#000000','#101012','#1c1c1e','#242426','#2c2c2e','#f5f5f7','#a1a1a6','rgba(255, 255, 255, 0.14)','#0a84ff','#409cff','rgba(10, 132, 255, 0.16)','#000000','#ffd60a','#64d2ff','#ff453a','rgba(255, 69, 58, 0.14)','#30d158','rgba(48, 209, 88, 0.14)']
     },
     dark: {
       light: ['#edf1ef','#f7f9f8','#ffffff','#ffffff','#e4ebe7','#1c2420','#5f6b65','rgba(28, 42, 35, 0.14)','#496b5d','#2c4e40','#dce8e2','#ffffff','#a88947','#4a7398','#ac4c49','#f7e5e4','#3c765d','#dfede6'],
@@ -70,7 +70,7 @@
   }
 
   function normalizeTheme(theme) {
-    return THEMES.indexOf(theme) !== -1 ? theme : 'forest';
+    return THEMES.indexOf(theme) !== -1 ? theme : 'light';
   }
 
   function normalizeMode(mode, theme) {
@@ -86,7 +86,7 @@
   function getStoredState() {
     var savedTheme = safeGet(THEME_KEY);
     var queryTheme = readQuery('theme');
-    var theme = normalizeTheme(savedTheme || queryTheme || 'forest');
+    var theme = normalizeTheme(savedTheme || queryTheme || 'light');
     var savedMode = safeGet(MODE_KEY);
     var queryMode = readQuery('mode');
     var mode = normalizeMode(savedMode || queryMode, theme);
@@ -159,12 +159,14 @@
 
   function updateBrandAssets(theme, mode) {
     var meta = THEME_META[theme] || THEME_META.light;
-    var iconPath = 'img/' + meta.icon;
-    setLink('icon', { type: 'image/png', href: iconPath });
-    setLink('apple-touch-icon', { href: iconPath });
+    var iconName = mode === 'dark' ? (meta.darkIcon || meta.icon) : (meta.lightIcon || meta.icon);
+    var iconPath = 'img/' + iconName;
+    var browserIconPath = 'img/appicon-system-v2.png';
+    setLink('icon', { type: 'image/png', href: browserIconPath });
+    setLink('apple-touch-icon', { href: browserIconPath });
     setLink('manifest', { href: '/manifest.webmanifest?theme=' + encodeURIComponent(theme) + '&mode=' + encodeURIComponent(mode) });
 
-    document.querySelectorAll('.brand-logo img, .auth-brand img, .logo-orb img, .about-logo-showcase img').forEach(function (img) {
+    document.querySelectorAll('.brand-logo img, .auth-brand img, .auth-product-brand img, .logo-orb img, .about-logo-showcase img').forEach(function (img) {
       var absolute = new URL(iconPath, document.baseURI).href;
       if (img.src !== absolute) img.src = iconPath;
       if (img.hasAttribute('srcset')) img.removeAttribute('srcset');

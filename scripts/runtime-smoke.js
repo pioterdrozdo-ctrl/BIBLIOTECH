@@ -12,7 +12,8 @@ const criticalStylePaths = [
     '/css/product-polish.css',
     '/css/theme-mode-preview.css',
     '/css/liquid-theme-toggle.css',
-    '/css/commercial-polish.css'
+    '/css/commercial-polish.css',
+    '/css/apple-polish.css'
 ];
 
 function sameOrigin(url) {
@@ -54,6 +55,7 @@ async function verifyInitialHtmlAssets() {
             const settingsCss = html.indexOf('/css/profile-settings-modal.css');
             const minimalCss = html.indexOf('/css/home-minimal.css');
             const commercialCss = html.indexOf('/css/commercial-polish.css');
+            const appleCss = html.indexOf('/css/apple-polish.css');
             const profileScript = html.indexOf('/js/profile-twitter.js');
             const customizeScript = html.indexOf('/js/profile-customization-modal.js');
             const settingsScript = html.indexOf('/js/profile-settings-modal.js');
@@ -63,6 +65,7 @@ async function verifyInitialHtmlAssets() {
             assert.ok(settingsCss > customizeCss && settingsCss < headEnd, 'Settings CSS is not present after customization CSS');
             assert.ok(minimalCss > settingsCss && minimalCss < headEnd, 'Minimal home CSS must be the last home-specific style');
             assert.ok(commercialCss > minimalCss && commercialCss < headEnd, 'Commercial CSS must be the final visual layer');
+            assert.ok(appleCss > commercialCss && appleCss < headEnd, 'Apple CSS must be the final visual layer');
             assert.ok(profileScript > productScript, 'Profile controller must load after product polish');
             assert.ok(customizeScript > profileScript, 'Customization controller must load after the profile controller');
             assert.ok(settingsScript > customizeScript, 'Settings controller must load after customization');
