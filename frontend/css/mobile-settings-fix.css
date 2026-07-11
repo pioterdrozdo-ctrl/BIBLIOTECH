@@ -58,44 +58,63 @@
         grid-template-rows: auto minmax(0, 1fr) !important;
     }
 
+    /* Horizontal tab rail. Fixed items prevent long labels from covering neighbours. */
     #accountSettingsModal .account-settings-nav {
         position: relative !important;
         top: auto !important;
         z-index: 1 !important;
-        display: grid !important;
-        grid-template-columns: none !important;
-        grid-auto-flow: column;
-        grid-auto-columns: minmax(112px, 132px);
-        gap: 6px !important;
+        display: flex !important;
+        flex-flow: row nowrap !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        width: 100% !important;
         min-width: 0;
         padding: 8px 10px !important;
         overflow-x: auto !important;
         overflow-y: hidden !important;
         overscroll-behavior-x: contain;
         scroll-snap-type: x proximity;
+        scroll-padding-inline: 10px;
     }
 
     #accountSettingsModal .account-settings-nav-button {
-        width: auto !important;
-        min-width: 0 !important;
-        min-height: 46px !important;
+        box-sizing: border-box !important;
+        flex: 0 0 136px !important;
+        width: 136px !important;
+        min-width: 136px !important;
+        max-width: 136px !important;
+        min-height: 52px !important;
+        display: grid !important;
         grid-template-columns: 30px minmax(0, 1fr) !important;
+        align-items: center !important;
         gap: 7px !important;
-        padding: 6px 8px !important;
+        padding: 7px 9px !important;
+        overflow: hidden !important;
         scroll-snap-align: start;
     }
 
     #accountSettingsModal .account-settings-nav-icon {
         width: 30px !important;
         height: 30px !important;
+        min-width: 30px !important;
     }
 
     #accountSettingsModal .account-settings-nav-label,
     #accountSettingsModal .account-settings-nav-label b {
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        display: block !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+
+    #accountSettingsModal .account-settings-nav-label b {
+        font-size: 13px !important;
+    }
+
+    #accountSettingsModal .account-settings-nav-label small {
+        display: none !important;
     }
 
     #accountSettingsModal .account-settings-content {
@@ -181,13 +200,19 @@
 }
 
 @media (max-width: 380px) {
-    #accountSettingsModal .account-settings-nav {
-        grid-auto-columns: minmax(104px, 118px);
+    #accountSettingsModal .account-settings-nav-button {
+        flex-basis: 126px !important;
+        width: 126px !important;
+        min-width: 126px !important;
+        max-width: 126px !important;
+        grid-template-columns: 28px minmax(0, 1fr) !important;
+        padding-inline: 7px !important;
     }
 
-    #accountSettingsModal .account-settings-nav-button {
-        grid-template-columns: 28px minmax(0, 1fr) !important;
-        padding-inline: 6px !important;
+    #accountSettingsModal .account-settings-nav-icon {
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
     }
 
     .profile-customize-modal .profile-customize-footer {
