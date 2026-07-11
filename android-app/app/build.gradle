@@ -12,6 +12,10 @@ android {
     namespace 'com.bibliotech.app'
     compileSdk 35
 
+    buildFeatures {
+        resValues true
+    }
+
     defaultConfig {
         applicationId 'com.bibliotech.app'
         minSdk 23
