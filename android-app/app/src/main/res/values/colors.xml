@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bibliotech_background">#F5F5F7</color>
+    <color name="bibliotech_background_dark">#0D1512</color>
+    <color name="bibliotech_green">#2F7D5A</color>
+    <color name="bibliotech_green_dark">#1F5E42</color>
+    <color name="white">#FFFFFF</color>
+</resources>
