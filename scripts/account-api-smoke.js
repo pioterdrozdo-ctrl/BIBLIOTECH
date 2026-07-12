@@ -131,17 +131,48 @@ async function ensureCatalogBook(token) {
     });
     assert.equal(deleteSoleAdmin.response.status, 409, 'sole administrator deletion was not blocked');
 
-    const reset = await must('/api/auth/password-reset/request', {
+    const resetRequest = await request('/api/auth/password-reset/request', {
         method: 'POST',
         body: { email: 'admin@bibliotech.local' }
     });
-    assert.ok(reset.devCode, 'development reset code was not returned');
-    await must('/api/auth/password-reset/confirm', {
-        method: 'POST',
-        body: { email: 'admin@bibliotech.local', code: reset.devCode, password: 'GreenScreen' }
-    });
 
-    console.log('Account API smoke OK: sessions, password, devices, notifications, privacy, library, export and delete guard validated.');
+    if (resetRequest.response.status === 200 && resetRequest.payload.devCode) {
+        await must('/api/auth/password-reset/confirm', {
+            method: 'POST',
+            body: {
+                email: 'admin@bibliotech.local',
+                code: resetRequest.payload.devCode,
+                password: 'GreenScreen'
+            }
+        });
+    } else {
+        if (resetRequest.response.status === 503) {
+            assert.equal(
+                resetRequest.payload.reason,
+                'LOCAL_FALLBACK_NO_EMAIL',
+                `unexpected password reset refusal: ${JSON.stringify(resetRequest.payload)}`
+            );
+            assert.equal(resetRequest.payload.emailSent, false, 'failed reset request incorrectly reports a sent email');
+        } else {
+            assert.equal(resetRequest.response.status, 200, `unexpected password reset status: ${resetRequest.response.status}`);
+            assert.equal(resetRequest.payload.emailSent, true, 'successful reset request neither sent email nor returned a development code');
+        }
+
+        const restored = await must('/api/account/password', {
+            token: relogin.token,
+            method: 'POST',
+            body: { currentPassword: 'GreenScreen2', newPassword: 'GreenScreen' }
+        });
+        assert.ok(restored.token, 'password restore did not return a replacement token');
+    }
+
+    const finalLogin = await must('/api/auth/login', {
+        method: 'POST',
+        body: { username: 'admin', password: 'GreenScreen' }
+    });
+    assert.ok(finalLogin.token, 'original administrator password was not restored');
+
+    console.log('Account API smoke OK: sessions, password, secure reset fallback, devices, notifications, privacy, library, export and delete guard validated.');
 })().catch(error => {
     console.error(error.stack || error);
     process.exit(1);
