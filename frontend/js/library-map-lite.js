@@ -16,7 +16,8 @@
         locationNote: document.getElementById('mapLiteLocationNote'),
         books: document.getElementById('mapLiteBooks'),
         svg: document.getElementById('mapLiteSvg'),
-        fullMap: document.getElementById('openFullMapLink')
+        fullMap: document.getElementById('openFullMapLink'),
+        backLink: document.querySelector('.map-lite-back')
     };
 
     const state = {
@@ -51,6 +52,9 @@
     }
 
     function renderBookHeader() {
+        if (elements.backLink) {
+            elements.backLink.href = bookId ? `home.html?book=${encodeURIComponent(bookId)}` : 'home.html';
+        }
         if (!bookId) {
             elements.title.textContent = 'Книга не выбрана';
             elements.meta.textContent = 'Вернитесь в каталог и нажмите «Показать на карте» в карточке нужной книги.';
