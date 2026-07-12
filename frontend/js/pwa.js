@@ -1,5 +1,6 @@
 (function () {
     var PROFILE_OPEN_KEY = 'bibliotech_open_profile';
+    var LANGUAGE_KEY = 'bibliotech_language';
     var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     if (isStandalone) document.documentElement.classList.add('pwa-standalone');
 
@@ -7,6 +8,81 @@
     var isHomePage = /(^|\/)home\.html$/.test(path);
     var isAdminPage = /(^|\/)admin\.html$/.test(path);
     var isAuthPage = /(^|\/)index\.html$/.test(path) || path === '/' || path === '';
+
+    var NAV_LABELS = {
+        ru: { home: 'Главная', map: 'Карта', stats: 'Статистика', about: 'О нас', admin: 'Админ' },
+        en: { home: 'Home', map: 'Map', stats: 'Statistics', about: 'About', admin: 'Admin' },
+        uk: { home: 'Головна', map: 'Карта', stats: 'Статистика', about: 'Про нас', admin: 'Адмін' },
+        de: { home: 'Startseite', map: 'Karte', stats: 'Statistik', about: 'Über uns', admin: 'Admin' },
+        kk: { home: 'Басты бет', map: 'Карта', stats: 'Статистика', about: 'Біз туралы', admin: 'Әкімші' },
+        es: { home: 'Inicio', map: 'Mapa', stats: 'Estadística', about: 'Sobre nosotros', admin: 'Admin' },
+        zh: { home: '首页', map: '地图', stats: '统计', about: '关于我们', admin: '管理' }
+    };
+
+    function currentLanguage() {
+        try { return localStorage.getItem(LANGUAGE_KEY) || document.documentElement.lang || 'ru'; }
+        catch (e) { return document.documentElement.lang || 'ru'; }
+    }
+
+    function navigationKey(link) {
+        var href = link.getAttribute('href') || '';
+        var pathname = '';
+        try { pathname = new URL(href, document.baseURI).pathname; }
+        catch (e) { pathname = href.split(/[?#]/)[0]; }
+        if (/(^|\/)home\.html$/.test(pathname) || pathname === '/') return 'home';
+        if (/(^|\/)map\.html$/.test(pathname)) return 'map';
+        if (/(^|\/)stats\.html$/.test(pathname)) return 'stats';
+        if (/(^|\/)about\.html$/.test(pathname)) return 'about';
+        if (/(^|\/)admin\.html$/.test(pathname)) return 'admin';
+        return '';
+    }
+
+    function currentNavigationKey() {
+        if (/(^|\/)map(?:-lite)?\.html$/.test(path)) return 'map';
+        if (/(^|\/)stats\.html$/.test(path)) return 'stats';
+        if (/(^|\/)about\.html$/.test(path)) return 'about';
+        if (/(^|\/)admin\.html$/.test(path)) return 'admin';
+        if (/(^|\/)home\.html$/.test(path)) return 'home';
+        return '';
+    }
+
+    function syncNavigation() {
+        var labels = NAV_LABELS[currentLanguage()] || NAV_LABELS.ru;
+        var activeKey = currentNavigationKey();
+        document.querySelectorAll('#navMenu, #mapNav').forEach(function (nav) {
+            nav.querySelectorAll('a[href]').forEach(function (link) {
+                var key = navigationKey(link);
+                if (!key) return;
+                if (link.textContent.trim() !== labels[key]) link.textContent = labels[key];
+                var item = link.closest('li');
+                var active = Boolean(activeKey && key === activeKey);
+                if (item) item.classList.toggle('active', active);
+                if (active) link.setAttribute('aria-current', 'page');
+                else link.removeAttribute('aria-current');
+            });
+        });
+    }
+
+    function installNavigationGuard() {
+        syncNavigation();
+        document.querySelectorAll('#navMenu, #mapNav').forEach(function (nav) {
+            if (nav.dataset.navigationGuardReady === 'true') return;
+            nav.dataset.navigationGuardReady = 'true';
+            new MutationObserver(syncNavigation).observe(nav, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+        });
+        document.querySelectorAll('.lang-option').forEach(function (button) {
+            if (button.dataset.navigationGuardReady === 'true') return;
+            button.dataset.navigationGuardReady = 'true';
+            button.addEventListener('click', function () { setTimeout(syncNavigation, 0); });
+        });
+        window.addEventListener('storage', function (event) {
+            if (event.key === LANGUAGE_KEY) syncNavigation();
+        });
+    }
 
     function assetPath(value) {
         try { return new URL(value, document.baseURI).pathname; }
@@ -115,12 +191,14 @@
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () {
             installThemeControllerBridge();
+            installNavigationGuard();
             window.BibliotechTheme?.bindControls();
             if (isAdminPage) wireAdminProfileLink();
             if (isHomePage) openPendingProfile();
         });
     } else {
         installThemeControllerBridge();
+        installNavigationGuard();
         window.BibliotechTheme?.bindControls();
         if (isAdminPage) wireAdminProfileLink();
         if (isHomePage) openPendingProfile();
