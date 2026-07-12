@@ -2,7 +2,7 @@
   "name": "bibliotech-ui-site",
   "version": "1.0.0",
   "private": true,
-  "description": "BIBLIOTECH library catalog served by one Express backend.",
+  "description": "Web application for library cataloguing, lending and storage management.",
   "scripts": {
     "start": "node backend/server.js",
     "dev": "node backend/server.js",
