@@ -162,7 +162,12 @@ async function tryRecordLoginEvent(user, req) {
 
 function signToken(user) {
     return jwt.sign(
-        { id: user.id, username: user.username, role: user.role },
+        {
+            id: user.id,
+            username: user.username,
+            role: user.role,
+            ver: Number(user.session_version || 1)
+        },
         process.env.JWT_SECRET || 'bibliotech-dev-secret-change-me',
         { expiresIn: '7d' }
     );
@@ -182,7 +187,7 @@ router.post('/register', async (req, res) => {
         const hashedPassword = hashPassword(password);
 
         const result = await pool.query(
-            'INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role',
+            'INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role, COALESCE(session_version, 1) AS session_version',
             [username, email, hashedPassword, 'user']
         );
 
@@ -219,7 +224,7 @@ router.post('/login', async (req, res) => {
     try {
         await ensureAuthSchema();
         const result = await pool.query(
-            'SELECT id, username, email, password_hash, role, banned_until, ban_reason FROM users WHERE username = $1',
+            'SELECT id, username, email, password_hash, role, banned_until, ban_reason, COALESCE(session_version, 1) AS session_version FROM users WHERE username = $1',
             [username]
         );
 
