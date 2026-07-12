@@ -163,6 +163,21 @@ async function verifyMapPages(browser) {
     await mobileRedirect.waitForSelector('#mapLiteSvg', { state: 'attached' });
     assert.equal(await mobileRedirect.locator('#mapCanvasHost').count(), 0, 'Mobile map still created a WebGL canvas host');
     assert.match(await mobileRedirect.locator('.map-lite-heading h1').textContent(), /Карта библиотеки/);
+
+    await mobileRedirect.locator('#mapLiteMenuButton').click();
+    assert.equal(
+        await mobileRedirect.locator('#mapLiteNav').evaluate(nav => nav.classList.contains('active')),
+        true,
+        '2D map mobile menu did not open'
+    );
+    assert.equal(await mobileRedirect.locator('#mapLiteNav a[href="home.html"]').isVisible(), true, '2D map catalog link is hidden');
+    assert.equal(await mobileRedirect.locator('#mapLiteNav a[href*="force3d=1"]').isVisible(), true, '2D map 3D link is hidden');
+    await mobileRedirect.keyboard.press('Escape');
+    assert.equal(
+        await mobileRedirect.locator('#mapLiteNav').evaluate(nav => nav.classList.contains('active')),
+        false,
+        '2D map mobile menu did not close on Escape'
+    );
     await mobileRedirect.close();
 
     const mapPage = await browser.newPage({ viewport: { width: 390, height: 844 } });
@@ -228,7 +243,7 @@ async function verifyMapPages(browser) {
 
     assert.deepEqual(criticalFailures, [], `Critical resource failures:\n${criticalFailures.join('\n')}`);
     assert.deepEqual(pageErrors, [], `Browser JavaScript errors:\n${pageErrors.join('\n')}`);
-    console.log('Runtime smoke check OK: login, navigation, language switching, safe mobile map, 3D opt-in and book links work.');
+    console.log('Runtime smoke check OK: login, navigation, language switching, safe mobile map, 2D menu, 3D opt-in and book links work.');
 })().catch(error => {
     console.error(error.stack || error);
     process.exit(1);
