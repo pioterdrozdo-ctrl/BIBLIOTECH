@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#f5f5f7">
+    <title>Карта библиотеки — BIBLIOTECH</title>
+    <script src="js/theme-bootstrap.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/library-3d-map.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "/vendor/three/build/three.module.js",
+            "three/addons/": "/vendor/three/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body class="library-map-page">
+<header>
+    <div class="container">
+        <div class="header-inner">
+            <a class="NAHODKI brand-logo" href="home.html"><img src="img/appicon-system-v2.png" alt="Логотип BIBLIOTECH"><span>BIBLIOTECH</span></a>
+            <button class="menu_icon" id="mapMenuButton" type="button" aria-controls="mapNav" aria-expanded="false" aria-label="Открыть меню"><span></span><span></span><span></span></button>
+            <nav id="mapNav" aria-label="Основная навигация">
+                <ul>
+                    <li><a href="home.html">Главная</a></li>
+                    <li class="active"><a href="map.html" aria-current="page">Карта</a></li>
+                    <li><a href="stats.html">Статистика</a></li>
+                    <li><a href="about.html">О нас</a></li>
+                    <li class="admin-nav-item hidden"><a href="admin.html">Админ</a></li>
+                    <li><button class="user-pill profile-pill" id="mapCurrentUser" type="button">Профиль</button></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<main class="map-main" id="mainContent">
+    <section class="map-heading container" aria-labelledby="mapTitle">
+        <div>
+            <p class="map-eyebrow">Корпус Тушино · 1 этаж</p>
+            <h1 id="mapTitle">Карта библиотеки</h1>
+            <p>Навигационная 3D-схема кабинета 125 и реальных мест хранения фонда.</p>
+        </div>
+        <a class="map-back-link" href="home.html">← Вернуться в каталог</a>
+    </section>
+
+    <section class="map-workspace container" aria-label="Навигация по библиотеке">
+        <div class="map-notice" role="note">
+            <span aria-hidden="true">◇</span>
+            <p><b>Начальная схема.</b> Внутренние размеры кабинета пока не измерены. Координаты можно уточнить в режиме администратора.</p>
+        </div>
+
+        <div class="map-toolbar">
+            <div class="map-level-switch" role="group" aria-label="Уровень карты">
+                <button class="map-level-button active" type="button" data-map-level="floor" aria-pressed="true">Первый этаж</button>
+                <button class="map-level-button" type="button" data-map-level="room" aria-pressed="false">Кабинет 125</button>
+            </div>
+            <label class="map-search">
+                <span class="sr-only">Поиск книги или места</span>
+                <input id="mapSearchInput" type="search" autocomplete="off" placeholder="Книга, автор или код места">
+                <output id="mapSearchResult" aria-live="polite"></output>
+            </label>
+            <div class="map-filters" role="group" aria-label="Фильтр книг">
+                <button class="active" type="button" data-map-filter="all" aria-pressed="true">Все</button>
+                <button type="button" data-map-filter="available" aria-pressed="false">В наличии</button>
+                <button type="button" data-map-filter="unavailable" aria-pressed="false">Выданы</button>
+            </div>
+        </div>
+
+        <section id="floorLevel" class="map-level-panel" aria-labelledby="floorTitle">
+            <div class="floor-plan-card">
+                <div class="floor-plan-copy">
+                    <p class="map-eyebrow">Уровень корпуса</p>
+                    <h2 id="floorTitle">Первый этаж корпуса «Тушино»</h2>
+                    <p>Кабинет 125 расположен справа от центрального коридора, рядом с кабинетами 124 и 126. План показан упрощённо.</p>
+                    <button id="enterRoomButton" class="map-primary-button" type="button">Войти в кабинет 125</button>
+                </div>
+                <div class="floor-plan" role="img" aria-label="Упрощённый первый этаж: центральный коридор, кабинеты 124, 125 и 126. Кабинет 125 выделен.">
+                    <span class="floor-corridor">Центральный коридор</span>
+                    <span class="floor-room floor-room-124">124</span>
+                    <button class="floor-room floor-room-125" id="floorRoom125" type="button">125<span>Физический фонд</span></button>
+                    <span class="floor-room floor-room-126">126</span>
+                    <span class="floor-room floor-room-other">Другие помещения</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="roomLevel" class="map-level-panel hidden" aria-labelledby="roomTitle">
+            <div class="room-map-grid">
+                <div class="scene-column">
+                    <div class="scene-heading">
+                        <div><p class="map-eyebrow">Навигационная схема</p><h2 id="roomTitle">Кабинет 125</h2></div>
+                        <div class="scene-actions" role="group" aria-label="Управление камерой">
+                            <button id="zoomInButton" type="button" aria-label="Приблизить">+</button>
+                            <button id="zoomOutButton" type="button" aria-label="Отдалить">−</button>
+                            <button id="topViewButton" type="button">Вид сверху</button>
+                            <button id="resetCameraButton" type="button">Сбросить вид</button>
+                        </div>
+                    </div>
+                    <div id="mapSceneShell" class="map-scene-shell">
+                        <div id="mapLoading" class="map-loading" role="status"><span></span>Загружаем схему кабинета…</div>
+                        <div id="mapError" class="map-error hidden" role="alert"></div>
+                        <div id="mapCanvasHost" class="map-canvas-host" aria-describedby="sceneDescription"></div>
+                        <div id="mapLabelLayer" class="map-label-layer" aria-hidden="true"></div>
+                        <svg id="map2dFallback" class="map-2d-fallback hidden" viewBox="0 0 800 520" role="img" aria-label="Двухмерная схема кабинета 125"></svg>
+                    </div>
+                    <p id="sceneDescription" class="scene-description">Вращайте схему одним пальцем или мышью, масштабируйте колёсиком или двумя пальцами. Все места доступны также в списке.</p>
+                    <div class="map-legend" aria-label="Легенда">
+                        <span><i class="legend-place available"></i>Есть доступные книги</span>
+                        <span><i class="legend-place unavailable"></i>Все книги выданы</span>
+                        <span><i class="legend-place selected"></i>Выбрано</span>
+                        <span><i class="legend-place target"></i>Искомая книга</span>
+                    </div>
+                </div>
+
+                <aside class="map-sidebar" aria-label="Места хранения и книги">
+                    <div class="map-sidebar-head"><p class="map-eyebrow">Физический фонд</p><h2>Места хранения</h2></div>
+                    <div id="targetBookMessage" class="target-book-message hidden" role="status"></div>
+                    <div id="mapLocationList" class="map-location-list" aria-label="Доступные места хранения"></div>
+                    <section id="mapSelectionPanel" class="map-selection-panel" aria-live="polite">
+                        <h3>Выберите место 09 или 12</h3>
+                        <p>Откроется список находящихся там книг.</p>
+                    </section>
+                    <button id="openLocationListButton" class="map-secondary-button" type="button">Открыть список мест</button>
+                </aside>
+            </div>
+        </section>
+
+        <section id="mapAdminPanel" class="map-admin-panel hidden" aria-labelledby="mapAdminTitle">
+            <div class="map-admin-heading">
+                <div><p class="map-eyebrow">Только для администратора</p><h2 id="mapAdminTitle">Редактирование расположения</h2></div>
+                <button id="toggleMapEditButton" class="map-secondary-button" type="button" aria-expanded="false">Редактировать расположение</button>
+            </div>
+            <form id="mapObjectForm" class="map-object-form hidden">
+                <div class="map-object-picker">
+                    <label for="mapAdminObjectSelect">Объект схемы</label>
+                    <select id="mapAdminObjectSelect"><option value="">Выберите объект</option></select>
+                    <p id="mapEditHint">Выберите объект на схеме, в списке или в этом поле.</p>
+                </div>
+                <div class="map-object-fields">
+                    <label>X<input type="number" step="0.1" min="-100" max="100" data-map-field="x"></label>
+                    <label>Y<input type="number" step="0.1" min="-100" max="100" data-map-field="y"></label>
+                    <label>Z<input type="number" step="0.1" min="-100" max="100" data-map-field="z"></label>
+                    <label>Ширина<input type="number" step="0.1" min="0.02" max="100" data-map-field="width"></label>
+                    <label>Высота<input type="number" step="0.1" min="0.02" max="100" data-map-field="height"></label>
+                    <label>Глубина<input type="number" step="0.1" min="0.02" max="100" data-map-field="depth"></label>
+                    <label>Поворот Y<input type="number" step="0.05" min="-6.28" max="6.28" data-map-field="rotation_y"></label>
+                </div>
+                <div class="map-admin-actions">
+                    <button class="map-primary-button" type="submit">Сохранить</button>
+                    <button id="cancelMapEditButton" class="map-secondary-button" type="button">Отменить изменения</button>
+                    <button id="resetRoomMapButton" class="map-danger-button" type="button">Сбросить начальную схему</button>
+                </div>
+                <output id="mapAdminStatus" aria-live="polite"></output>
+            </form>
+        </section>
+    </section>
+</main>
+
+<button class="floating-theme-toggle" id="floatingThemeToggle" title="Сменить тему">◐</button>
+<script>
+(function () {
+    const rawSession = localStorage.getItem('bibliotech_current_user');
+    if (!rawSession) {
+        localStorage.setItem('bibliotech_post_login_url', window.location.pathname + window.location.search);
+        window.location.href = 'index.html';
+        return;
+    }
+    try {
+        const session = JSON.parse(rawSession);
+        const pill = document.getElementById('mapCurrentUser');
+        if (pill) pill.textContent = session.guest ? 'Гостевой режим' : (session.username || 'Профиль');
+        document.querySelectorAll('.admin-nav-item').forEach(item => item.classList.toggle('hidden', session.role !== 'admin'));
+    } catch (error) {}
+})();
+</script>
+<script type="module" src="js/library-3d-map.js"></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>

@@ -22,11 +22,13 @@ const commentRoutes = require('./routes/comments');
 const statsRoutes = require('./routes/stats');
 const catalogListRoutes = require('./routes/catalogList');
 const storageLocationRoutes = require('./routes/storageLocations');
+const libraryMapRoutes = require('./routes/libraryMap');
 const rentalRoutes = require('./routes/rentals');
 const pool = require('./db/pool');
 
 const app = express();
 const frontendPath = path.join(__dirname, '..', 'frontend');
+const threePath = path.resolve(path.dirname(require.resolve('three')), '..');
 const isProduction = process.env.NODE_ENV === 'production';
 const manifestThemes = {
     light: { icon: '/img/appicon-system-v2.png', themeColor: '#f5f5f7', backgroundColor: '#f5f5f7' },
@@ -224,6 +226,12 @@ app.get('/home.html', sendFrontendPage('home.html', { home: true }));
 app.get('/stats.html', sendFrontendPage('stats.html'));
 app.get('/about.html', sendFrontendPage('about.html'));
 app.get('/admin.html', sendFrontendPage('admin.html'));
+app.get('/map.html', sendFrontendPage('map.html'));
+
+app.use('/vendor/three', express.static(threePath, {
+    maxAge: isProduction ? '30d' : 0,
+    immutable: isProduction
+}));
 
 app.use(express.static(frontendPath, {
     extensions: ['html'],
@@ -255,6 +263,7 @@ app.use('/api/books', bookRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/storage-locations', storageLocationRoutes);
+app.use('/api/library-map', libraryMapRoutes);
 app.use('/api/rentals', rentalRoutes);
 
 app.get('/api/health', (req, res) => {

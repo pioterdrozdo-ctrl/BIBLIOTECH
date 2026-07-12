@@ -538,6 +538,8 @@ function openBook(bookId) {
     const book = state.books.find(b => b.id === Number(bookId));
     if (!book) return;
     state.activeBookId = book.id;
+    const viewModal = $('#viewModal');
+    if (viewModal) viewModal.dataset.bookId = String(book.id);
     const availableText = book.available ? tr('inStock') : tr('outStock');
     const commentsCount = (book.comments || []).length;
     const location = getBookLocation(book);

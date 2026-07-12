@@ -53,6 +53,26 @@ CREATE TABLE IF NOT EXISTS books (
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
 );
 
+-- Редактируемая навигационная схема физического фонда.
+CREATE TABLE IF NOT EXISTS library_map_objects (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(80) UNIQUE NOT NULL,
+    label VARCHAR(160) NOT NULL,
+    object_type VARCHAR(30) NOT NULL,
+    room_code VARCHAR(30) NOT NULL DEFAULT '125',
+    x NUMERIC NOT NULL DEFAULT 0,
+    y NUMERIC NOT NULL DEFAULT 0,
+    z NUMERIC NOT NULL DEFAULT 0,
+    width NUMERIC NOT NULL DEFAULT 1,
+    height NUMERIC NOT NULL DEFAULT 1,
+    depth NUMERIC NOT NULL DEFAULT 1,
+    rotation_y NUMERIC NOT NULL DEFAULT 0,
+    storage_location_id INTEGER REFERENCES storage_locations(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Таблица комментариев
 CREATE TABLE IF NOT EXISTS comments (
     id SERIAL PRIMARY KEY,
@@ -136,6 +156,9 @@ CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);
 CREATE INDEX IF NOT EXISTS idx_books_available ON books(available);
 CREATE INDEX IF NOT EXISTS idx_books_qr_code ON books(qr_code);
 CREATE INDEX IF NOT EXISTS idx_books_location_id ON books(location_id);
+CREATE INDEX IF NOT EXISTS idx_library_map_objects_room_code ON library_map_objects(room_code);
+CREATE INDEX IF NOT EXISTS idx_library_map_objects_object_type ON library_map_objects(object_type);
+CREATE INDEX IF NOT EXISTS idx_library_map_objects_storage_location_id ON library_map_objects(storage_location_id);
 CREATE INDEX IF NOT EXISTS idx_books_publication_year ON books(publication_year);
 CREATE INDEX IF NOT EXISTS idx_books_publisher ON books(publisher);
 CREATE INDEX IF NOT EXISTS idx_books_genre ON books(genre);
@@ -169,6 +192,10 @@ DROP TRIGGER IF EXISTS update_books_updated_at ON books;
 CREATE TRIGGER update_books_updated_at BEFORE UPDATE ON books
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_library_map_objects_updated_at ON library_map_objects;
+CREATE TRIGGER update_library_map_objects_updated_at BEFORE UPDATE ON library_map_objects
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- Добавление администратора (пароль: GreenScreen, правильный хэш)
 INSERT INTO users (username, email, password_hash, role)
 VALUES ('admin', 'admin@bibliotech.local', '$2b$10$CwTycUXWue0Thq9StjUM0uJ.pG9sWwB6pTfZXh7eQvJZQeUzP9iFq', 'admin')
@@ -178,6 +205,42 @@ INSERT INTO storage_locations (shelf_code, place_code, note) VALUES
 ('ИКТ-ФВ 13', '09', 'Надставка'),
 ('ИКТ-ФВ 13', '12', 'Надставка')
 ON CONFLICT DO NOTHING;
+
+-- Базовая навигационная схема, а не архитектурный обмер помещения.
+INSERT INTO library_map_objects
+    (code, label, object_type, room_code, x, y, z, width, height, depth, rotation_y, storage_location_id)
+SELECT seed.*
+FROM (VALUES
+    ('ROOM_125_FLOOR', 'Пол кабинета 125', 'floor', '125', 0, -0.1, 0, 10, 0.2, 7, 0, NULL::integer),
+    ('ROOM_125_WALL_NORTH', 'Северная условная стена', 'wall', '125', 0, 1.25, -3.45, 10, 2.5, 0.12, 0, NULL::integer),
+    ('ROOM_125_WALL_SOUTH', 'Южная условная стена', 'wall', '125', 0, 1.25, 3.45, 10, 2.5, 0.12, 0, NULL::integer),
+    ('ROOM_125_WALL_EAST', 'Восточная условная стена', 'wall', '125', 4.95, 1.25, 0, 0.12, 2.5, 7, 0, NULL::integer),
+    ('ROOM_125_WALL_WEST', 'Западная условная стена', 'wall', '125', -4.95, 1.25, -1.35, 0.12, 2.5, 4.3, 0, NULL::integer),
+    ('ROOM_125_ENTRANCE', 'Вход в кабинет 125', 'entrance', '125', -4.85, 0.05, 2.1, 0.3, 0.1, 1.35, 0, NULL::integer),
+    ('ROOM_125_AISLE', 'Основной проход', 'aisle', '125', -0.3, 0.015, 0.65, 7.6, 0.03, 1.15, 0, NULL::integer)
+) AS seed(code, label, object_type, room_code, x, y, z, width, height, depth, rotation_y, storage_location_id)
+WHERE NOT EXISTS (SELECT 1 FROM library_map_objects WHERE room_code = '125')
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO library_map_objects
+    (code, label, object_type, room_code, x, y, z, width, height, depth, rotation_y, storage_location_id)
+SELECT 'STORAGE_IKT_FV_13_09', 'ИКТ-ФВ 13 · место 09 · Надставка', 'storage', '125', 1.8, 0.85, -1.65, 2.5, 1.7, 0.8, 0, location.id
+FROM storage_locations AS location
+WHERE UPPER(REGEXP_REPLACE(REPLACE(location.shelf_code, '_', ' '), '\s+', ' ', 'g')) = 'ИКТ-ФВ 13'
+  AND LPAD(TRIM(location.place_code), 2, '0') = '09'
+  AND UPPER(TRIM(COALESCE(location.note, ''))) = 'НАДСТАВКА'
+ORDER BY location.id LIMIT 1
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO library_map_objects
+    (code, label, object_type, room_code, x, y, z, width, height, depth, rotation_y, storage_location_id)
+SELECT 'STORAGE_IKT_FV_13_12', 'ИКТ-ФВ 13 · место 12 · Надставка', 'storage', '125', 1.8, 0.85, 1.8, 2.5, 1.7, 0.8, 0, location.id
+FROM storage_locations AS location
+WHERE UPPER(REGEXP_REPLACE(REPLACE(location.shelf_code, '_', ' '), '\s+', ' ', 'g')) = 'ИКТ-ФВ 13'
+  AND LPAD(TRIM(location.place_code), 2, '0') = '12'
+  AND UPPER(TRIM(COALESCE(location.note, ''))) = 'НАДСТАВКА'
+ORDER BY location.id LIMIT 1
+ON CONFLICT (code) DO NOTHING;
 
 -- Удаление старых демо-книг из ранних версий проекта.
 DELETE FROM books
