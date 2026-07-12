@@ -1,9 +1,10 @@
-const CACHE_NAME = 'bibliotech-pwa-v31-library-map';
+const CACHE_NAME = 'bibliotech-pwa-v32-navigation-fix';
 const APP_SHELL = [
     '/',
     '/index.html',
     '/home.html',
     '/map.html',
+    '/map-lite.html',
     '/stats.html',
     '/about.html',
     '/admin.html',
@@ -11,6 +12,7 @@ const APP_SHELL = [
     '/css/auth.css',
     '/css/style.css',
     '/css/library-3d-map.css',
+    '/css/library-map-lite.css',
     '/css/ui-refresh.css',
     '/css/ui-refresh-release-fix.css',
     '/css/product-polish.css',
@@ -31,6 +33,7 @@ const APP_SHELL = [
     '/js/library-3d-map.js',
     '/js/library-map-admin.js',
     '/js/library-map-launcher.js',
+    '/js/library-map-lite.js',
     '/js/catalog-fix.js',
     '/js/theme-bootstrap.js',
     '/js/pwa.js',
