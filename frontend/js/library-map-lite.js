@@ -19,7 +19,9 @@
         books: document.getElementById('mapLiteBooks'),
         svg: document.getElementById('mapLiteSvg'),
         fullMap: document.getElementById('openFullMapLink'),
-        backLink: document.querySelector('.map-lite-back')
+        backLink: document.querySelector('.map-lite-back'),
+        menuButton: document.getElementById('mapLiteMenuButton'),
+        nav: document.getElementById('mapLiteNav')
     };
 
     const state = {
@@ -27,6 +29,30 @@
         targetBook: null,
         selectedLocationId: null
     };
+
+    function setupMobileMenu() {
+        const setOpen = open => {
+            if (!elements.menuButton || !elements.nav) return;
+            elements.nav.classList.toggle('active', open);
+            elements.menuButton.classList.toggle('active', open);
+            elements.menuButton.setAttribute('aria-expanded', String(open));
+            elements.menuButton.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
+            document.body.classList.toggle('lock', open);
+        };
+
+        elements.menuButton?.addEventListener('click', () => {
+            setOpen(!elements.nav?.classList.contains('active'));
+        });
+        elements.nav?.addEventListener('click', event => {
+            if (event.target.closest('a[href]')) setOpen(false);
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && elements.nav?.classList.contains('active')) {
+                setOpen(false);
+                elements.menuButton?.focus();
+            }
+        });
+    }
 
     function svgElement(name, attributes = {}) {
         const element = document.createElementNS('http://www.w3.org/2000/svg', name);
@@ -200,6 +226,7 @@
     }
 
     async function init() {
+        setupMobileMenu();
         try {
             state.data = await loadMap();
             state.targetBook = bookId
