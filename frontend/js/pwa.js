@@ -6,8 +6,8 @@
 
     var path = window.location.pathname || '';
     var isHomePage = /(^|\/)home\.html$/.test(path);
-    var isAdminPage = /(^|\/)admin\.html$/.test(path);
     var isAuthPage = /(^|\/)index\.html$/.test(path) || path === '/' || path === '';
+    var isSecondaryPage = !isHomePage && !isAuthPage;
 
     var NAV_LABELS = {
         ru: { home: 'Главная', map: 'Карта', stats: 'Статистика', about: 'О нас', admin: 'Админ' },
@@ -144,14 +144,16 @@
 
     installThemeControllerBridge();
 
-    function wireAdminProfileLink() {
-        var pill = document.getElementById('currentUserPill');
-        if (!pill || pill.dataset.profileBridgeReady === 'true') return;
-        pill.dataset.profileBridgeReady = 'true';
-        pill.title = 'Открыть полноценный профиль';
-        pill.addEventListener('click', function () {
-            try { localStorage.setItem(PROFILE_OPEN_KEY, '1'); } catch (e) {}
-            window.location.href = 'home.html#profile';
+    function wireSecondaryProfileLinks() {
+        document.querySelectorAll('#currentUserPill, #mapCurrentUser').forEach(function (pill) {
+            if (pill.dataset.productProfileLinkReady === 'true' || pill.dataset.profileBridgeReady === 'true') return;
+            pill.dataset.profileBridgeReady = 'true';
+            pill.title = 'Открыть полноценный профиль';
+            pill.addEventListener('click', function (event) {
+                event.preventDefault();
+                try { localStorage.setItem(PROFILE_OPEN_KEY, '1'); } catch (e) {}
+                window.location.href = 'home.html#profile';
+            });
         });
     }
 
@@ -193,14 +195,14 @@
             installThemeControllerBridge();
             installNavigationGuard();
             window.BibliotechTheme?.bindControls();
-            if (isAdminPage) wireAdminProfileLink();
+            if (isSecondaryPage) wireSecondaryProfileLinks();
             if (isHomePage) openPendingProfile();
         });
     } else {
         installThemeControllerBridge();
         installNavigationGuard();
         window.BibliotechTheme?.bindControls();
-        if (isAdminPage) wireAdminProfileLink();
+        if (isSecondaryPage) wireSecondaryProfileLinks();
         if (isHomePage) openPendingProfile();
     }
 
