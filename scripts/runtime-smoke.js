@@ -112,7 +112,7 @@ async function verifyStandardPageNavigation(browser, pathname, activeHref) {
 
     const response = await page.goto(`${baseUrl}${pathname}`, { waitUntil: 'domcontentloaded' });
     assert.equal(response?.status(), 200, `${pathname}: page failed to load`);
-    await page.waitForSelector('#navMenu');
+    await page.waitForSelector('#navMenu', { state: 'attached' });
     await page.waitForFunction(() => document.querySelector('#navMenu a[href="map.html"]')?.textContent.trim() === 'Карта');
 
     const menuButton = page.locator('#menuIcon');
@@ -135,7 +135,7 @@ async function verifyLanguageSwitch(browser) {
     await setSession(page, 'admin');
     attachDiagnostics(page, 'language-switch');
     await page.goto(`${baseUrl}/stats.html`, { waitUntil: 'domcontentloaded' });
-    await page.waitForSelector('#navMenu');
+    await page.waitForSelector('#navMenu', { state: 'attached' });
 
     await page.evaluate(() => document.querySelector('.lang-option[data-lang="en"]')?.click());
     await page.waitForFunction(() => document.querySelector('#navMenu a[href="map.html"]')?.textContent.trim() === 'Map');
@@ -158,7 +158,7 @@ async function verifyMapPage(browser) {
     attachDiagnostics(page, 'map-mobile');
     const response = await page.goto(`${baseUrl}/map.html`, { waitUntil: 'domcontentloaded' });
     assert.equal(response?.status(), 200, 'Map page failed to load');
-    await page.waitForSelector('#mapNav');
+    await page.waitForSelector('#mapNav', { state: 'attached' });
     await page.waitForFunction(() => document.querySelector('#mapNav a[href="map.html"]')?.textContent.trim() === 'Карта');
     assertRussianNavigation(await readNavigation(page, '#mapNav'), 'map-mobile');
 
