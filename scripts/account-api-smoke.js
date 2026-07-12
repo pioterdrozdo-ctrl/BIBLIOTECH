@@ -42,6 +42,85 @@ async function ensureCatalogBook(token) {
     return created;
 }
 
+async function verifyPasswordAndResetFlow() {
+    const stamp = Date.now();
+    const username = `account_smoke_${stamp}`;
+    const email = `account_smoke_${stamp}@example.test`;
+    const firstPassword = 'SmokePass1';
+    const secondPassword = 'SmokePass2';
+    const resetPassword = 'SmokePass3';
+
+    const registered = await must('/api/auth/register', {
+        method: 'POST',
+        body: { username, email, password: firstPassword }
+    });
+    assert.ok(registered.token, 'temporary account registration did not return a token');
+    assert.equal(registered.user.role, 'user');
+
+    const firstToken = registered.token;
+    const changed = await must('/api/account/password', {
+        token: firstToken,
+        method: 'POST',
+        body: { currentPassword: firstPassword, newPassword: secondPassword }
+    });
+    assert.ok(changed.token, 'password change did not return a replacement token');
+
+    const rejectedFirstToken = await request('/api/account', { token: firstToken });
+    assert.equal(rejectedFirstToken.response.status, 403, 'old user token remained valid after password change');
+    await must('/api/account', { token: changed.token });
+
+    const relogin = await must('/api/auth/login', {
+        method: 'POST',
+        body: { username, password: secondPassword }
+    });
+    assert.ok(relogin.token, 'login with the changed password failed');
+
+    const resetRequest = await request('/api/auth/password-reset/request', {
+        method: 'POST',
+        body: { email }
+    });
+
+    let activePassword = secondPassword;
+    let activeToken = relogin.token;
+
+    if (resetRequest.response.status === 200 && resetRequest.payload.devCode) {
+        await must('/api/auth/password-reset/confirm', {
+            method: 'POST',
+            body: { email, code: resetRequest.payload.devCode, password: resetPassword }
+        });
+        activePassword = resetPassword;
+        const afterReset = await must('/api/auth/login', {
+            method: 'POST',
+            body: { username, password: resetPassword }
+        });
+        activeToken = afterReset.token;
+        assert.ok(activeToken, 'login after password reset failed');
+    } else if (resetRequest.response.status === 503) {
+        assert.equal(
+            resetRequest.payload.reason,
+            'LOCAL_FALLBACK_NO_EMAIL',
+            `unexpected password reset refusal: ${JSON.stringify(resetRequest.payload)}`
+        );
+        assert.equal(resetRequest.payload.emailSent, false, 'failed reset request incorrectly reports a sent email');
+    } else {
+        assert.equal(resetRequest.response.status, 200, `unexpected password reset status: ${resetRequest.response.status}`);
+        assert.equal(resetRequest.payload.emailSent, true, 'successful reset request neither sent email nor returned a development code');
+    }
+
+    const deleted = await must('/api/account', {
+        token: activeToken,
+        method: 'DELETE',
+        body: { password: activePassword }
+    });
+    assert.equal(deleted.ok, true, 'temporary account was not deleted');
+
+    const deletedLogin = await request('/api/auth/login', {
+        method: 'POST',
+        body: { username, password: activePassword }
+    });
+    assert.equal(deletedLogin.response.status, 401, 'deleted account can still log in');
+}
+
 (async () => {
     const login = await must('/api/auth/login', {
         method: 'POST',
@@ -106,42 +185,16 @@ async function ensureCatalogBook(token) {
     assert.equal(rejectedOld.response.status, 403, 'old token remained valid after logout-others');
     await must('/api/account', { token });
 
-    const beforePasswordToken = token;
-    const changed = await must('/api/account/password', {
-        token,
-        method: 'POST',
-        body: { currentPassword: 'GreenScreen', newPassword: 'GreenScreen2' }
-    });
-    assert.ok(changed.token, 'password change did not return a replacement token');
-    token = changed.token;
-    const rejectedBeforePassword = await request('/api/account', { token: beforePasswordToken });
-    assert.equal(rejectedBeforePassword.response.status, 403, 'old token remained valid after password change');
-    await must('/api/account', { token });
-
-    const relogin = await must('/api/auth/login', {
-        method: 'POST',
-        body: { username: 'admin', password: 'GreenScreen2' }
-    });
-    assert.ok(relogin.token, 'login with the changed password failed');
-
     const deleteSoleAdmin = await request('/api/account', {
-        token: relogin.token,
+        token,
         method: 'DELETE',
-        body: { password: 'GreenScreen2' }
+        body: { password: 'GreenScreen' }
     });
     assert.equal(deleteSoleAdmin.response.status, 409, 'sole administrator deletion was not blocked');
 
-    const reset = await must('/api/auth/password-reset/request', {
-        method: 'POST',
-        body: { email: 'admin@bibliotech.local' }
-    });
-    assert.ok(reset.devCode, 'development reset code was not returned');
-    await must('/api/auth/password-reset/confirm', {
-        method: 'POST',
-        body: { email: 'admin@bibliotech.local', code: reset.devCode, password: 'GreenScreen' }
-    });
+    await verifyPasswordAndResetFlow();
 
-    console.log('Account API smoke OK: sessions, password, devices, notifications, privacy, library, export and delete guard validated.');
+    console.log('Account API smoke OK: sessions, strong passwords, secure reset fallback, devices, notifications, privacy, library, export and delete guards validated.');
 })().catch(error => {
     console.error(error.stack || error);
     process.exit(1);

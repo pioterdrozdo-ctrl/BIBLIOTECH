@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v32-navigation-fix';
+const CACHE_NAME = 'bibliotech-pwa-v33-navigation-audit';
 const APP_SHELL = [
     '/',
     '/index.html',
