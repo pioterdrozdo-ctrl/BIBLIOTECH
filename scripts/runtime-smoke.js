@@ -16,8 +16,10 @@ function attachDiagnostics(page, label) {
     page.on('pageerror', error => pageErrors.push(`${label}: ${error.stack || error.message}`));
     page.on('requestfailed', request => {
         if (!sameOrigin(request.url())) return;
+        const errorText = request.failure()?.errorText || 'unknown';
+        if (errorText.includes('ERR_ABORTED')) return;
         if (['document', 'script', 'stylesheet'].includes(request.resourceType())) {
-            criticalFailures.push(`${label}: failed ${request.resourceType()} ${request.url()} (${request.failure()?.errorText || 'unknown'})`);
+            criticalFailures.push(`${label}: failed ${request.resourceType()} ${request.url()} (${errorText})`);
         }
     });
     page.on('response', response => {
@@ -152,23 +154,57 @@ async function verifyLanguageSwitch(browser) {
     await page.close();
 }
 
-async function verifyMapPage(browser) {
-    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-    await setSession(page, 'admin');
-    attachDiagnostics(page, 'map-mobile');
-    const response = await page.goto(`${baseUrl}/map.html`, { waitUntil: 'domcontentloaded' });
-    assert.equal(response?.status(), 200, 'Map page failed to load');
-    await page.waitForSelector('#mapNav', { state: 'attached' });
-    await page.waitForFunction(() => document.querySelector('#mapNav a[href="map.html"]')?.textContent.trim() === 'Карта');
-    assertRussianNavigation(await readNavigation(page, '#mapNav'), 'map-mobile');
+async function verifyMapPages(browser) {
+    const mobileRedirect = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await setSession(mobileRedirect, 'admin');
+    attachDiagnostics(mobileRedirect, 'map-mobile-redirect');
+    await mobileRedirect.goto(`${baseUrl}/map.html`, { waitUntil: 'domcontentloaded' });
+    await mobileRedirect.waitForURL(/\/map-lite\.html(?:\?|$)/);
+    await mobileRedirect.waitForSelector('#mapLiteSvg', { state: 'attached' });
+    assert.equal(await mobileRedirect.locator('#mapCanvasHost').count(), 0, 'Mobile map still created a WebGL canvas host');
+    assert.match(await mobileRedirect.locator('.map-lite-heading h1').textContent(), /Карта библиотеки/);
+    await mobileRedirect.close();
 
-    await page.locator('#mapMenuButton').click();
-    assert.equal(await page.locator('#mapNav').evaluate(nav => nav.classList.contains('active')), true, 'Map mobile menu did not open');
+    const mapPage = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await setSession(mapPage, 'admin');
+    attachDiagnostics(mapPage, 'map-mobile-forced-3d');
+    const response = await mapPage.goto(`${baseUrl}/map.html?force3d=1`, { waitUntil: 'domcontentloaded' });
+    assert.equal(response?.status(), 200, 'Forced 3D map page failed to load');
+    await mapPage.waitForSelector('#mapNav', { state: 'attached' });
+    await mapPage.waitForFunction(() => document.querySelector('#mapNav a[href="map.html"]')?.textContent.trim() === 'Карта');
+    assertRussianNavigation(await readNavigation(mapPage, '#mapNav'), 'map-mobile-forced-3d');
+    assert.match(await mapPage.locator('.map-heading .map-eyebrow').textContent(), /Бета-функция/);
 
-    await page.waitForFunction(() => document.getElementById('mapCurrentUser')?.title === 'Открыть полноценный профиль');
-    await page.locator('#mapCurrentUser').click();
-    await page.waitForURL(/\/home\.html#profile$/);
-    await page.close();
+    await mapPage.locator('#mapMenuButton').click();
+    assert.equal(await mapPage.locator('#mapNav').evaluate(nav => nav.classList.contains('active')), true, 'Map mobile menu did not open');
+    await mapPage.waitForFunction(() => document.getElementById('mapCurrentUser')?.title === 'Открыть полноценный профиль');
+    await mapPage.locator('#mapCurrentUser').click();
+    await mapPage.waitForURL(/\/home\.html#profile$/);
+    await mapPage.close();
+
+    const mapDataResponse = await fetch(`${baseUrl}/api/library-map/room/125`);
+    assert.equal(mapDataResponse.status, 200, 'Map data endpoint failed');
+    const mapData = await mapDataResponse.json();
+    const targetBook = Array.isArray(mapData.books) ? mapData.books[0] : null;
+    assert.ok(targetBook?.id, 'Map has no book for deep-link verification');
+
+    const bookMapPage = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await setSession(bookMapPage, 'admin');
+    attachDiagnostics(bookMapPage, 'map-book-deep-link');
+    await bookMapPage.goto(`${baseUrl}/map-lite.html?book=${encodeURIComponent(targetBook.id)}`, { waitUntil: 'domcontentloaded' });
+    await bookMapPage.waitForSelector('#mapLiteContent:not(.hidden)');
+    assert.match(await bookMapPage.locator('.map-lite-heading h1').textContent(), /Место книги на карте/);
+    assert.equal(
+        await bookMapPage.locator('.map-lite-back').getAttribute('href'),
+        `home.html?book=${targetBook.id}`,
+        'Map back link lost the selected book'
+    );
+    assert.match(
+        await bookMapPage.locator('#openFullMapLink').getAttribute('href'),
+        /force3d=1/,
+        'Full map link does not explicitly enable 3D mode'
+    );
+    await bookMapPage.close();
 }
 
 (async () => {
@@ -185,14 +221,14 @@ async function verifyMapPage(browser) {
         await verifyStandardPageNavigation(browser, '/about.html', 'about.html');
         await verifyStandardPageNavigation(browser, '/admin.html', 'admin.html');
         await verifyLanguageSwitch(browser);
-        await verifyMapPage(browser);
+        await verifyMapPages(browser);
     } finally {
         await browser.close();
     }
 
     assert.deepEqual(criticalFailures, [], `Critical resource failures:\n${criticalFailures.join('\n')}`);
     assert.deepEqual(pageErrors, [], `Browser JavaScript errors:\n${pageErrors.join('\n')}`);
-    console.log('Runtime smoke check OK: login, mobile navigation, language switching, map and profile links work.');
+    console.log('Runtime smoke check OK: login, navigation, language switching, safe mobile map, 3D opt-in and book links work.');
 })().catch(error => {
     console.error(error.stack || error);
     process.exit(1);
