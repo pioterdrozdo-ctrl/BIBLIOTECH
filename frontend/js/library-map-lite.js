@@ -10,6 +10,8 @@
         status: document.getElementById('mapLiteStatus'),
         error: document.getElementById('mapLiteError'),
         content: document.getElementById('mapLiteContent'),
+        pageTitle: document.querySelector('.map-lite-heading h1'),
+        bookKicker: document.querySelector('.map-lite-card-head .map-lite-eyebrow'),
         title: document.getElementById('mapLiteBookTitle'),
         meta: document.getElementById('mapLiteBookMeta'),
         locationTitle: document.getElementById('mapLiteLocationTitle'),
@@ -52,40 +54,52 @@
     }
 
     function renderBookHeader() {
-        if (elements.backLink) {
-            elements.backLink.href = bookId ? `home.html?book=${encodeURIComponent(bookId)}` : 'home.html';
-        }
         if (!bookId) {
-            elements.title.textContent = 'Книга не выбрана';
-            elements.meta.textContent = 'Вернитесь в каталог и нажмите «Показать на карте» в карточке нужной книги.';
-            elements.fullMap.href = 'map.html';
+            if (elements.pageTitle) elements.pageTitle.textContent = 'Карта библиотеки';
+            if (elements.bookKicker) elements.bookKicker.textContent = 'Физический фонд';
+            if (elements.backLink) {
+                elements.backLink.href = 'home.html';
+                elements.backLink.textContent = '← Вернуться в каталог';
+            }
+            elements.title.textContent = 'Кабинет 125';
+            elements.meta.textContent = 'Выберите место на схеме, чтобы посмотреть находящиеся там книги.';
+            elements.fullMap.href = 'map.html?force3d=1';
             return;
         }
+
+        if (elements.pageTitle) elements.pageTitle.textContent = 'Место книги на карте';
+        if (elements.bookKicker) elements.bookKicker.textContent = 'Искомая книга';
+        if (elements.backLink) {
+            elements.backLink.href = `home.html?book=${encodeURIComponent(bookId)}`;
+            elements.backLink.textContent = '← Вернуться к книге';
+        }
+
         if (!state.targetBook) {
             elements.title.textContent = 'Книга не найдена';
             elements.meta.textContent = `В каталоге нет книги с идентификатором ${bookId}.`;
-            elements.fullMap.href = `map.html?book=${encodeURIComponent(bookId)}`;
+            elements.fullMap.href = `map.html?book=${encodeURIComponent(bookId)}&force3d=1`;
             return;
         }
+
         elements.title.textContent = state.targetBook.title;
         elements.meta.textContent = [
             state.targetBook.author || 'Автор не указан',
             state.targetBook.available && Number(state.targetBook.copies || 0) > 0 ? 'В наличии' : 'Сейчас недоступна'
         ].join(' · ');
-        elements.fullMap.href = `map.html?book=${encodeURIComponent(state.targetBook.id)}`;
+        elements.fullMap.href = `map.html?book=${encodeURIComponent(state.targetBook.id)}&force3d=1`;
     }
 
     function renderLocationPanel() {
         const location = locationById(state.selectedLocationId);
         elements.books.replaceChildren();
         if (!location) {
-            elements.locationTitle.textContent = 'Место не указано';
+            elements.locationTitle.textContent = 'Место не выбрано';
             elements.locationNote.textContent = state.targetBook
                 ? 'Для этой книги ещё не назначено физическое место хранения.'
-                : 'Выберите место на схеме.';
+                : 'Нажмите на место хранения на схеме.';
             const empty = document.createElement('p');
             empty.className = 'map-lite-empty';
-            empty.textContent = 'Список книг недоступен.';
+            empty.textContent = state.targetBook ? 'Список книг недоступен.' : 'Выберите место на схеме.';
             elements.books.appendChild(empty);
             return;
         }
