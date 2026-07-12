@@ -10,7 +10,7 @@
         button.addEventListener('click', () => {
             const bookId = Number(document.getElementById('viewModal')?.dataset.bookId);
             if (!Number.isSafeInteger(bookId) || bookId <= 0) return;
-            window.location.href = `map.html?book=${encodeURIComponent(bookId)}`;
+            window.location.assign(`map-lite.html?book=${encodeURIComponent(bookId)}`);
         });
         placementCard.appendChild(button);
     }
