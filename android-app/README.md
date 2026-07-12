@@ -1,44 +1,42 @@
-# BIBLIOTECH для Google Play
+# Android-версия BIBLIOTECH
 
-Это Android-приложение открывает рабочий сайт `https://bibliotech-rjfu.onrender.com` как Trusted Web Activity. Оно использует тот же сервер и PostgreSQL, поэтому аккаунты, книги, комментарии, аренда, бронирования и статистика синхронизируются с сайтом автоматически.
+Папка содержит оболочку Trusted Web Activity для публикации сайта BIBLIOTECH в Google Play. Приложение открывает рабочий сайт `https://bibliotech-rjfu.onrender.com` и использует тот же сервер и базу PostgreSQL. Аккаунты, книги, выдачи, бронирования, комментарии и статистика остаются общими для сайта и Android-приложения.
 
-## Параметры приложения
+## Параметры
 
-- Название: `BIBLIOTECH`
-- Package name: `com.bibliotech.app`
-- Версия: `1.0.0` (`versionCode 1`)
-- `minSdk`: 23
-- `targetSdk`: 35
-- Формат для Google Play: Android App Bundle (`.aab`)
+- название: `BIBLIOTECH`;
+- идентификатор пакета: `com.bibliotech.app`;
+- версия: `1.0.0` (`versionCode 1`);
+- минимальная версия Android: API 23;
+- целевая версия Android: API 35;
+- формат публикации: Android App Bundle (`.aab`).
 
 ## Открытие проекта
 
-Откройте папку `android-app` в Android Studio. Установите Android SDK Platform 36, если Android Studio предложит это сделать.
+Откройте папку `android-app` в Android Studio. Для сборки требуется Android SDK Platform 36 и Java 17.
 
-Для проверки из терминала:
-
-### Windows
+Проверка из терминала на Windows:
 
 ```bat
 gradlew.bat :app:bundleDebug
 ```
 
-### macOS / Linux
+На macOS или Linux:
 
 ```bash
 chmod +x gradlew
 ./gradlew :app:bundleDebug
 ```
 
-Debug bundle появится в:
+Отладочная сборка будет сохранена в:
 
 ```text
 app/build/outputs/bundle/debug/app-debug.aab
 ```
 
-## Создание ключа загрузки
+## Ключ загрузки
 
-Ключ создаётся один раз. Не удаляйте его и не добавляйте в GitHub.
+Ключ создаётся один раз и используется для последующих обновлений приложения. Его нельзя добавлять в репозиторий или удалять после первой публикации.
 
 ```bash
 keytool -genkeypair -v \
@@ -49,7 +47,7 @@ keytool -genkeypair -v \
   -validity 10000
 ```
 
-Скопируйте `keystore.properties.example` в `keystore.properties` и укажите путь и пароли:
+Скопируйте `keystore.properties.example` в `keystore.properties` и заполните параметры:
 
 ```properties
 storeFile=/absolute/path/to/bibliotech-upload.jks
@@ -58,13 +56,17 @@ keyAlias=bibliotech
 keyPassword=ВАШ_ПАРОЛЬ
 ```
 
-## Сборка файла для Google Play
+Файл `keystore.properties` и сам ключ исключены из Git и должны храниться отдельно.
+
+## Релизная сборка
+
+macOS или Linux:
 
 ```bash
 ./gradlew :app:bundleRelease
 ```
 
-На Windows:
+Windows:
 
 ```bat
 gradlew.bat :app:bundleRelease
@@ -76,31 +78,31 @@ gradlew.bat :app:bundleRelease
 app/build/outputs/bundle/release/app-release.aab
 ```
 
-## Загрузка в Play Console
+## Публикация в Google Play
 
 1. Создайте приложение с названием `BIBLIOTECH`.
-2. Укажите package name `com.bibliotech.app`.
+2. Укажите идентификатор пакета `com.bibliotech.app`.
 3. Включите Play App Signing.
 4. Создайте внутренний тест и загрузите `app-release.aab`.
 5. Заполните карточку приложения, политику конфиденциальности, раздел безопасности данных и возрастной рейтинг.
-6. Сначала проверьте приложение через внутреннее тестирование, затем отправляйте в production.
+6. Проверьте сборку во внутреннем тестировании и только после этого переводите её в публикацию.
 
-## Полноэкранный режим без строки браузера
+## Полноэкранный режим
 
-Trusted Web Activity требует Digital Asset Links. После первой загрузки в Play Console откройте:
+Для работы без панели браузера требуется Digital Asset Links. После загрузки первой сборки откройте в Play Console:
 
 `Настройка → Целостность приложения → Сертификат ключа подписи приложения`
 
-Скопируйте SHA-256 fingerprint. Его нужно разместить на сайте по адресу:
+Скопируйте SHA-256 отпечаток сертификата и добавьте его в файл:
 
 ```text
 https://bibliotech-rjfu.onrender.com/.well-known/assetlinks.json
 ```
 
-Шаблон находится в `frontend/.well-known/assetlinks.template.json`. Замените `PLAY_APP_SIGNING_SHA256` на fingerprint из Play Console и переименуйте файл в `assetlinks.json` либо настройте серверный endpoint.
+Шаблон находится в `frontend/.well-known/assetlinks.template.json`. Замените `PLAY_APP_SIGNING_SHA256` на отпечаток из Play Console и сохраните результат как `assetlinks.json`.
 
-До подтверждения Digital Asset Links приложение всё равно откроет сайт, но браузер может показать верхнюю панель. После подтверждения сайт будет открываться как полноценное приложение.
+До подтверждения Digital Asset Links сайт продолжит открываться, но браузер может показывать верхнюю панель.
 
 ## Обновления
 
-Изменения сайта появляются в приложении автоматически после деплоя Render. Чтобы обновить нативную оболочку в Google Play, увеличьте `versionCode` в `app/build.gradle`, соберите новый `.aab` и загрузите его в Play Console.
+Изменения сайта становятся доступны после очередного развёртывания на Render. Для обновления Android-оболочки увеличьте `versionCode` в `app/build.gradle`, соберите новый `.aab` и загрузите его в Play Console.
