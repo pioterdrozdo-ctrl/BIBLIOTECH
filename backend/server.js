@@ -142,9 +142,9 @@ function injectCriticalUiAssets(html, { home = false } = {}) {
     if (scriptTags) {
         const pwaPattern = /<script src="(?:\/)?js\/pwa\.js(?:\?[^\"]*)?"><\/script>/;
         if (pwaPattern.test(html)) {
-            html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260713-critical-ui-12"></script>`);
+            html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260713-critical-ui-13"></script>`);
         } else {
-            html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260713-critical-ui-12"></script>\n</body>`);
+            html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260713-critical-ui-13"></script>\n</body>`);
         }
     }
 

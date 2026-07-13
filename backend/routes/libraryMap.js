@@ -224,7 +224,12 @@ async function findPostgresObject(id) {
     return result.rows[0] ? mapObject(result.rows[0]) : null;
 }
 
-router.get('/', async (req, res) => {
+router.get('/access', authMiddleware, isAdmin, (req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({ allowed: true, role: 'admin' });
+});
+
+router.get('/', authMiddleware, isAdmin, async (req, res) => {
     try {
         res.json(await readMap(ROOM_CODE));
     } catch (error) {
@@ -232,7 +237,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/room/:roomCode', async (req, res) => {
+router.get('/room/:roomCode', authMiddleware, isAdmin, async (req, res) => {
     const roomCode = String(req.params.roomCode || '').trim();
     if (roomCode !== ROOM_CODE) return res.status(404).json({ error: 'Помещение не найдено' });
     try {
@@ -242,7 +247,7 @@ router.get('/room/:roomCode', async (req, res) => {
     }
 });
 
-router.get('/location/:locationId', async (req, res) => {
+router.get('/location/:locationId', authMiddleware, isAdmin, async (req, res) => {
     try {
         const locationId = parsePositiveId(req.params.locationId, 'locationId');
         const map = await readMap(ROOM_CODE);

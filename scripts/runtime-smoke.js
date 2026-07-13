@@ -6,6 +6,18 @@ const { chromium } = require('playwright');
 const baseUrl = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:4173';
 const pageErrors = [];
 const criticalFailures = [];
+let adminToken = '';
+
+async function authenticateSmokeAdmin() {
+    const response = await fetch(`${baseUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: 'admin', password: 'GreenScreen' })
+    });
+    assert.equal(response.status, 200, 'Runtime admin login failed');
+    adminToken = (await response.json()).token;
+    assert.ok(adminToken, 'Runtime admin token is missing');
+}
 
 function sameOrigin(url) {
     try { return new URL(url).origin === new URL(baseUrl).origin; }
@@ -32,7 +44,7 @@ function attachDiagnostics(page, label) {
 }
 
 async function setSession(page, role = 'admin') {
-    await page.addInitScript(({ role }) => {
+    await page.addInitScript(({ role, token }) => {
         localStorage.setItem('bibliotech_language', 'ru');
         localStorage.setItem('bibliotech_current_user', JSON.stringify({
             id: role === 'admin' ? 1 : 2,
@@ -42,7 +54,8 @@ async function setSession(page, role = 'admin') {
         }));
         localStorage.setItem('bibliotech_product_welcome_v1_smoke admin', '1');
         localStorage.setItem('bibliotech_product_welcome_v1_smoke user', '1');
-    }, { role });
+        if (token) localStorage.setItem('token', token);
+    }, { role, token: adminToken });
 }
 
 async function verifyHttpPages() {
@@ -182,7 +195,9 @@ async function verifyMapPages(browser) {
     await mapPage.waitForURL(/\/home\.html#profile$/);
     await mapPage.close();
 
-    const mapDataResponse = await fetch(`${baseUrl}/api/library-map/room/125`);
+    const mapDataResponse = await fetch(`${baseUrl}/api/library-map/room/125`, {
+        headers: { Authorization: `Bearer ${adminToken}` }
+    });
     assert.equal(mapDataResponse.status, 200, 'Map data endpoint failed');
     const mapData = await mapDataResponse.json();
     const targetBook = Array.isArray(mapData.books) ? mapData.books[0] : null;
@@ -215,6 +230,7 @@ async function verifyMapPages(browser) {
 
 (async () => {
     await verifyHttpPages();
+    await authenticateSmokeAdmin();
     const browser = await chromium.launch({
         headless: true,
         ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH } : {})

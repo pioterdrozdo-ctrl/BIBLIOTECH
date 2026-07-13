@@ -1,6 +1,7 @@
 (function () {
     var PROFILE_OPEN_KEY = 'bibliotech_open_profile';
     var LANGUAGE_KEY = 'bibliotech_language';
+    var SESSION_KEY = 'bibliotech_current_user';
     var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     if (isStandalone) document.documentElement.classList.add('pwa-standalone');
 
@@ -64,8 +65,30 @@
         });
     }
 
+    function hasAdminMapAccess() {
+        try {
+            var session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+            return Boolean(session && !session.guest && session.role === 'admin');
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function syncAdminMapLinks() {
+        var allowed = hasAdminMapAccess();
+        document.querySelectorAll('header nav a[href]').forEach(function (link) {
+            if (navigationKey(link) !== 'map') return;
+            var item = link.closest('li');
+            if (item) {
+                item.classList.add('admin-map-nav-item');
+                item.classList.toggle('hidden', !allowed);
+            }
+        });
+    }
+
     function installNavigationGuard() {
         syncNavigation();
+        syncAdminMapLinks();
         document.querySelectorAll('#navMenu, #mapNav').forEach(function (nav) {
             if (nav.dataset.navigationGuardReady === 'true') return;
             nav.dataset.navigationGuardReady = 'true';
@@ -82,6 +105,7 @@
         });
         window.addEventListener('storage', function (event) {
             if (event.key === LANGUAGE_KEY) syncNavigation();
+            if (event.key === SESSION_KEY) syncAdminMapLinks();
         });
     }
 

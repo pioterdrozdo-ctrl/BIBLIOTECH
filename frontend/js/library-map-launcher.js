@@ -1,5 +1,18 @@
 (function () {
+    function hasAdminMapAccess() {
+        try {
+            const session = JSON.parse(localStorage.getItem('bibliotech_current_user') || 'null');
+            return Boolean(session && !session.guest && session.role === 'admin' && localStorage.getItem('token'));
+        } catch (error) {
+            return false;
+        }
+    }
+
     function ensureMapButton() {
+        if (!hasAdminMapAccess()) {
+            document.getElementById('showBookOnMapButton')?.remove();
+            return;
+        }
         const placementCard = document.querySelector('.book-placement-card');
         if (!placementCard || document.getElementById('showBookOnMapButton')) return;
 

@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-admin-map-access="pending">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#f5f5f7">
     <title>Карта первого этажа — BIBLIOTECH</title>
+    <style>html[data-admin-map-access="pending"] body { visibility: hidden; }</style>
+    <script src="js/admin-map-access.js?v=20260713-admin-map-1"></script>
     <script src="js/theme-bootstrap.js"></script>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/library-3d-map.css?v=20260713-map-polish-2">
@@ -18,7 +20,7 @@
             <nav id="navMenu" aria-label="Основная навигация">
                 <ul>
                     <li><a href="home.html#top">Главная</a></li>
-                    <li class="active"><a href="map.html" aria-current="page">Карта</a></li>
+                    <li class="admin-map-nav-item active hidden"><a href="map.html" aria-current="page">Карта</a></li>
                     <li><a href="stats.html">Статистика</a></li>
                     <li><a href="about.html">О нас</a></li>
                     <li class="admin-nav-item hidden"><a href="admin.html">Админ</a></li>

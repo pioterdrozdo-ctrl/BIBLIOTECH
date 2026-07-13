@@ -95,7 +95,13 @@ function showError(message) {
 }
 
 async function fetchMapData() {
-    const response = await fetch(`/api/library-map/room/${ROOM_CODE}`, { headers: { Accept: 'application/json' } });
+    const token = localStorage.getItem('token') || '';
+    const response = await fetch(`/api/library-map/room/${ROOM_CODE}`, {
+        headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`
+        }
+    });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload.error || 'Не удалось загрузить карту библиотеки');
     return payload;

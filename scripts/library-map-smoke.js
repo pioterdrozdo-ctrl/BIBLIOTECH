@@ -134,7 +134,7 @@ async function checkBookDeepLink(browser, errors) {
 async function checkMobile(browser, errors) {
     const page = await browser.newPage({ viewport: { width: 360, height: 800 }, isMobile: true, hasTouch: true });
     collectErrors(page, 'mobile', errors);
-    await setSession(page, 'user');
+    await setSession(page, 'admin');
     await page.goto(`${baseUrl}/map.html`, { waitUntil: 'domcontentloaded' });
     await waitForMap(page);
     const metrics = await page.evaluate(() => ({
@@ -152,6 +152,30 @@ async function checkMobile(browser, errors) {
     assert.equal(metrics.semanticMaps, 1, 'Semantic map is missing on mobile');
     assert.ok(metrics.semanticRooms >= 70, 'Semantic rooms are missing on mobile');
     await page.close();
+}
+
+async function checkRestrictedAccess(browser, errors) {
+    const page = await browser.newPage({ viewport: { width: 1100, height: 760 } });
+    collectErrors(page, 'restricted-user', errors);
+    await setSession(page, 'user');
+    await page.goto(`${baseUrl}/home.html`, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('.book-card');
+    assert.equal(await page.locator('header nav a[href="map.html"]').isVisible(), false, 'regular user can see the map navigation link');
+    assert.equal(await page.locator('#showBookOnMapButton').count(), 0, 'regular user received the book map launcher');
+    await page.goto(`${baseUrl}/map.html`, { waitUntil: 'domcontentloaded' });
+    await page.waitForURL(url => url.pathname.endsWith('/home.html'));
+    assert.equal(await page.locator('#semanticFloorSvg').count(), 0, 'regular user opened the map directly');
+    await page.goto(`${baseUrl}/map-lite.html`, { waitUntil: 'domcontentloaded' });
+    await page.waitForURL(url => url.pathname.endsWith('/home.html'));
+    assert.equal(await page.locator('#mapLiteSvg').count(), 0, 'regular user opened the storage map directly');
+    await page.close();
+
+    const noTokenResponse = await fetch(`${baseUrl}/api/library-map/room/125`);
+    assert.equal(noTokenResponse.status, 401, 'map API is public without a token');
+    const adminResponse = await fetch(`${baseUrl}/api/library-map/room/125`, {
+        headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert.equal(adminResponse.status, 200, 'admin lost access to the map API');
 }
 
 async function checkCatalogIntegration(browser, errors) {
@@ -185,8 +209,9 @@ async function checkCatalogIntegration(browser, errors) {
         await checkBookDeepLink(browser, errors);
         await checkMobile(browser, errors);
         await checkCatalogIntegration(browser, errors);
+        await checkRestrictedAccess(browser, errors);
         assert.deepEqual(errors, [], `Browser errors:\n${errors.join('\n')}`);
-        console.log('Library map smoke OK: semantic SVG reconstruction, theme adaptation, room 125, zoom, deep link, mobile and catalog integration work.');
+        console.log('Library map smoke OK: admin-only access, semantic SVG reconstruction, theme adaptation, room 125, zoom, deep link, mobile and catalog integration work.');
     } finally {
         await browser.close();
     }

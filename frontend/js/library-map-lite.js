@@ -213,8 +213,12 @@
     }
 
     async function loadMap() {
+        const token = localStorage.getItem('token') || '';
         const response = await fetch(`/api/library-map/room/${ROOM_CODE}`, {
-            headers: { Accept: 'application/json' },
+            headers: {
+                Accept: 'application/json',
+                Authorization: `Bearer ${token}`
+            },
             cache: 'no-store'
         });
         const payload = await response.json().catch(() => null);
@@ -226,6 +230,8 @@
     }
 
     async function init() {
+        const allowed = await (window.BibliotechAdminMapAccess || Promise.resolve(false));
+        if (!allowed) return;
         setupMobileMenu();
         try {
             state.data = await loadMap();
