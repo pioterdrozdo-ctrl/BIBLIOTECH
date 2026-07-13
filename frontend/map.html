@@ -4,32 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#f5f5f7">
-    <title>Карта библиотеки — BIBLIOTECH</title>
+    <title>Карта первого этажа — BIBLIOTECH</title>
     <script src="js/theme-bootstrap.js"></script>
-    <script>
-    (function () {
-        const params = new URLSearchParams(window.location.search);
-        const mobileDevice = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 760;
-        const force3d = params.get('force3d') === '1';
-        window.__bibliotechSkip3dMap = mobileDevice && !force3d;
-        if (!window.__bibliotechSkip3dMap) return;
-
-        const target = new URL('map-lite.html', window.location.href);
-        const bookId = params.get('book');
-        if (bookId) target.searchParams.set('book', bookId);
-        window.location.replace(target.href);
-    })();
-    </script>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/library-3d-map.css">
-    <script type="importmap">
-    {
-        "imports": {
-            "three": "/vendor/three/build/three.module.js",
-            "three/addons/": "/vendor/three/examples/jsm/"
-        }
-    }
-    </script>
 </head>
 <body class="library-map-page">
 <header>
@@ -54,123 +32,146 @@
 <main class="map-main" id="mainContent">
     <section class="map-heading container" aria-labelledby="mapTitle">
         <div>
-            <p class="map-eyebrow">Бета-функция · Корпус Тушино · 1 этаж</p>
-            <h1 id="mapTitle">Карта библиотеки</h1>
-            <p>Навигационная 3D-схема кабинета 125 и реальных мест хранения фонда.</p>
+            <p class="map-eyebrow">Корпус Тушино · 1 этаж</p>
+            <h1 id="mapTitle">Карта первого этажа</h1>
+            <p>На плане отмечен кабинет 125, в котором находится физический фонд библиотеки.</p>
         </div>
         <a class="map-back-link" href="home.html">← Вернуться в каталог</a>
     </section>
 
-    <section class="map-workspace container" aria-label="Навигация по библиотеке">
-        <div class="map-notice" role="note">
-            <span aria-hidden="true">◇</span>
-            <p><b>Начальная схема.</b> Внутренние размеры кабинета пока не измерены. Координаты можно уточнить в режиме администратора.</p>
+    <section class="floor-map-card container" aria-labelledby="floorPlanTitle">
+        <div class="floor-map-top">
+            <div>
+                <p class="map-eyebrow">Тушинский комплекс</p>
+                <h2 id="floorPlanTitle">Схема первого этажа</h2>
+            </div>
+            <div class="room-125-badge"><span aria-hidden="true"></span>Кабинет 125</div>
         </div>
 
-        <div class="map-toolbar">
-            <div class="map-level-switch" role="group" aria-label="Уровень карты">
-                <button class="map-level-button active" type="button" data-map-level="floor" aria-pressed="true">Первый этаж</button>
-                <button class="map-level-button" type="button" data-map-level="room" aria-pressed="false">Кабинет 125</button>
-            </div>
-            <label class="map-search">
-                <span class="sr-only">Поиск книги или места</span>
-                <input id="mapSearchInput" type="search" autocomplete="off" placeholder="Книга, автор или код места">
-                <output id="mapSearchResult" aria-live="polite"></output>
-            </label>
-            <div class="map-filters" role="group" aria-label="Фильтр книг">
-                <button class="active" type="button" data-map-filter="all" aria-pressed="true">Все</button>
-                <button type="button" data-map-filter="available" aria-pressed="false">В наличии</button>
-                <button type="button" data-map-filter="unavailable" aria-pressed="false">Выданы</button>
-            </div>
+        <div class="floor-plan-scroll" tabindex="0" aria-label="План первого этажа. При необходимости прокрутите схему по горизонтали.">
+            <svg class="tushino-floor-plan" viewBox="0 0 800 980" role="img" aria-labelledby="floorSvgTitle floorSvgDesc">
+                <title id="floorSvgTitle">Первый этаж Тушинского комплекса</title>
+                <desc id="floorSvgDesc">Двухмерный план первого этажа. Кабинет 125 выделен синим цветом в правом крыле здания.</desc>
+
+                <rect class="plan-background" x="8" y="8" width="784" height="964" rx="28"/>
+
+                <g aria-label="Верхнее левое крыло">
+                    <path class="building-shell" d="M34 42H438V318H350V276H281V318H206V276H132V318H34Z"/>
+                    <rect class="corridor" x="82" y="90" width="306" height="142" rx="8"/>
+                    <rect class="room" x="42" y="50" width="66" height="38"/><text class="room-label" x="75" y="74">119</text>
+                    <rect class="room" x="112" y="50" width="66" height="38"/><text class="room-label" x="145" y="74">118</text>
+                    <rect class="room" x="182" y="50" width="94" height="38"/><text class="room-label" x="229" y="74">2</text>
+                    <rect class="room" x="280" y="50" width="98" height="38"/><text class="room-label" x="329" y="74">3</text>
+                    <rect class="room" x="382" y="50" width="48" height="38"/><text class="room-label" x="406" y="74">104</text>
+                    <rect class="room" x="42" y="94" width="36" height="30"/><text class="room-label small" x="60" y="113">116</text>
+                    <rect class="room" x="42" y="128" width="36" height="30"/><text class="room-label small" x="60" y="147">115</text>
+                    <rect class="room" x="42" y="162" width="36" height="30"/><text class="room-label small" x="60" y="181">114</text>
+                    <rect class="room" x="42" y="196" width="36" height="30"/><text class="room-label small" x="60" y="215">113</text>
+                    <rect class="room" x="42" y="230" width="36" height="38"/><text class="room-label small" x="60" y="253">112</text>
+                    <rect class="room" x="86" y="96" width="80" height="76"/><text class="room-label" x="126" y="139">157</text>
+                    <rect class="room" x="86" y="176" width="80" height="50"/><text class="room-label" x="126" y="206">158</text>
+                    <rect class="room" x="176" y="96" width="96" height="86"/><text class="room-label" x="224" y="143">2</text>
+                    <rect class="room" x="176" y="186" width="96" height="40"/><text class="room-label" x="224" y="211">5</text>
+                    <rect class="room" x="286" y="96" width="92" height="86"/><text class="room-label" x="332" y="143">3</text>
+                    <rect class="room" x="286" y="186" width="92" height="40"/><text class="room-label" x="332" y="211">6</text>
+                    <rect class="room" x="176" y="236" width="96" height="70"/><text class="room-label" x="224" y="275">1</text>
+                    <rect class="room" x="286" y="236" width="92" height="70"/><text class="room-label" x="332" y="275">4</text>
+                    <rect class="stair" x="246" y="116" width="34" height="38"/><path class="stair-line" d="M251 122h24m-24 7h24m-24 7h24m-24 7h24"/>
+                </g>
+
+                <g aria-label="Верхний центральный блок">
+                    <path class="building-shell" d="M460 42H584V318H460Z"/>
+                    <rect class="corridor" x="494" y="50" width="54" height="260"/>
+                    <rect class="room" x="466" y="50" width="24" height="36"/><text class="room-label tiny" x="478" y="72">104</text>
+                    <rect class="room" x="466" y="90" width="24" height="36"/><text class="room-label tiny" x="478" y="112">103</text>
+                    <rect class="room" x="466" y="130" width="24" height="36"/><text class="room-label tiny" x="478" y="152">102</text>
+                    <rect class="room" x="466" y="170" width="24" height="36"/><text class="room-label tiny" x="478" y="192">101</text>
+                    <rect class="room" x="466" y="210" width="24" height="36"/><text class="room-label tiny" x="478" y="232">100б</text>
+                    <rect class="room" x="552" y="50" width="24" height="36"/><text class="room-label tiny" x="564" y="72">109</text>
+                    <rect class="room" x="552" y="90" width="24" height="36"/><text class="room-label tiny" x="564" y="112">108</text>
+                    <rect class="room" x="552" y="130" width="24" height="36"/><text class="room-label tiny" x="564" y="152">107</text>
+                    <rect class="room" x="552" y="170" width="24" height="36"/><text class="room-label tiny" x="564" y="192">106</text>
+                    <rect class="room" x="552" y="210" width="24" height="36"/><text class="room-label tiny" x="564" y="232">105</text>
+                    <rect class="stair" x="500" y="258" width="42" height="48"/><path class="stair-line" d="M506 264h30m-30 8h30m-30 8h30m-30 8h30m-30 8h30"/>
+                </g>
+
+                <g aria-label="Внутренний двор">
+                    <ellipse class="courtyard" cx="330" cy="455" rx="210" ry="155"/>
+                    <path class="courtyard-path" d="M175 395c62-55 245-76 332 22 42 47 41 109-2 157"/>
+                    <g class="bench" transform="translate(326 448)"><rect x="-12" y="-5" width="24" height="10" rx="2"/><path d="M-9 5v7m18-7v7M-7-9h14"/></g>
+                </g>
+
+                <g aria-label="Правое крыло">
+                    <path class="building-shell" d="M632 154H766V642H734V694H680V642H632Z"/>
+                    <rect class="corridor" x="678" y="162" width="36" height="470"/>
+                    <rect class="room" x="640" y="162" width="34" height="36"/><text class="room-label tiny" x="657" y="184">192</text>
+                    <rect class="room" x="718" y="162" width="40" height="36"/><text class="room-label tiny" x="738" y="184">148</text>
+                    <rect class="room" x="640" y="202" width="34" height="36"/><text class="room-label tiny" x="657" y="224">116</text>
+                    <rect class="room" x="718" y="202" width="40" height="36"/><text class="room-label tiny" x="738" y="224">1</text>
+                    <rect class="room" x="640" y="242" width="34" height="44"/><text class="room-label tiny" x="657" y="268">115</text>
+                    <rect class="room" x="718" y="242" width="40" height="88"/><text class="room-label" x="738" y="290">117</text>
+                    <rect class="room" x="640" y="290" width="34" height="44"/><text class="room-label tiny" x="657" y="316">114</text>
+                    <rect class="room" x="640" y="338" width="34" height="56"/><text class="room-label tiny" x="657" y="370">113</text>
+                    <rect class="room" x="718" y="334" width="40" height="82"/><text class="room-label" x="738" y="379">118</text>
+                    <rect class="room" x="640" y="398" width="34" height="56"/><text class="room-label tiny" x="657" y="430">112</text>
+                    <rect class="room" x="718" y="420" width="40" height="44"/><text class="room-label tiny" x="738" y="446">119</text>
+                    <rect class="room" x="640" y="458" width="34" height="46"/><text class="room-label tiny" x="657" y="486">111</text>
+                    <rect class="room" x="718" y="468" width="40" height="44"/><text class="room-label tiny" x="738" y="494">120</text>
+                    <rect class="room" x="640" y="508" width="34" height="30"/><text class="room-label tiny" x="657" y="527">110</text>
+                    <rect class="room" x="718" y="516" width="40" height="36"/><text class="room-label tiny" x="738" y="538">121</text>
+                    <rect class="room" x="640" y="542" width="34" height="28"/><text class="room-label tiny" x="657" y="560">109</text>
+                    <rect class="room" x="718" y="556" width="40" height="34"/><text class="room-label tiny" x="738" y="577">122</text>
+                    <rect class="room" x="640" y="574" width="34" height="28"/><text class="room-label tiny" x="657" y="592">108</text>
+                    <rect class="room" x="718" y="594" width="40" height="38"/><text class="room-label tiny" x="738" y="617">123</text>
+                    <rect class="room" x="640" y="606" width="34" height="30"/><text class="room-label tiny" x="657" y="625">107</text>
+                    <rect class="room room-125" x="684" y="642" width="74" height="48" rx="7"/>
+                    <text class="room-125-label" x="721" y="663">125</text>
+                    <text class="room-125-sub" x="721" y="680">БИБЛИОТЕКА</text>
+                    <path class="callout-line" d="M758 666H780V728H700"/>
+                    <g class="map-pin" transform="translate(688 728)"><path d="M0-17c-12 0-21 9-21 21 0 16 21 38 21 38S21 20 21 4C21-8 12-17 0-17Z"/><circle cx="0" cy="4" r="7"/></g>
+                    <g class="callout" transform="translate(518 704)"><rect width="166" height="58" rx="16"/><text x="83" y="25">КАБИНЕТ 125</text><text class="callout-small" x="83" y="43">физический фонд</text></g>
+                </g>
+
+                <g aria-label="Центральный вход и вестибюль">
+                    <path class="building-shell" d="M455 606H628L650 632V742H604L575 704H455Z"/>
+                    <path class="lobby" d="M520 624h83l25 24v71h-78l-30-36Z"/>
+                    <circle class="rotunda" cx="690" cy="758" r="64"/>
+                    <path class="entrance" d="M663 815h54"/>
+                    <text class="zone-label" x="565" y="670">ВЕСТИБЮЛЬ</text>
+                    <text class="zone-label" x="690" y="763">ХОЛЛ</text>
+                </g>
+
+                <g aria-label="Нижнее крыло">
+                    <path class="building-shell" d="M34 686H456V928H34Z M456 720H548L594 766V928H456Z" fill-rule="evenodd"/>
+                    <rect class="corridor" x="112" y="792" width="418" height="42" rx="8"/>
+                    <rect class="room" x="42" y="694" width="82" height="70"/><text class="room-label" x="83" y="734">138</text>
+                    <rect class="room" x="42" y="768" width="82" height="58"/><text class="room-label" x="83" y="802">129</text>
+                    <rect class="room" x="42" y="836" width="120" height="50"/><text class="room-label" x="102" y="866">128</text>
+                    <rect class="room" x="130" y="694" width="42" height="36"/><text class="room-label tiny" x="151" y="716">145</text>
+                    <rect class="room" x="176" y="694" width="42" height="36"/><text class="room-label tiny" x="197" y="716">146</text>
+                    <rect class="room" x="222" y="694" width="42" height="36"/><text class="room-label tiny" x="243" y="716">147</text>
+                    <rect class="room" x="268" y="694" width="48" height="36"/><text class="room-label tiny" x="292" y="716">147а</text>
+                    <rect class="room" x="172" y="734" width="144" height="54"/><text class="room-label" x="244" y="766">155</text>
+                    <rect class="room" x="322" y="694" width="76" height="94"/><text class="room-label" x="360" y="744">137</text>
+                    <rect class="room" x="402" y="694" width="76" height="94"/><text class="room-label" x="440" y="744">138</text>
+                    <rect class="room" x="482" y="724" width="52" height="64"/><text class="room-label" x="508" y="759">154</text>
+                    <rect class="room" x="166" y="838" width="52" height="64"/><text class="room-label" x="192" y="874">135</text>
+                    <rect class="room" x="222" y="838" width="52" height="64"/><text class="room-label" x="248" y="874">130</text>
+                    <rect class="room" x="278" y="838" width="52" height="64"/><text class="room-label" x="304" y="874">131</text>
+                    <rect class="room" x="334" y="838" width="52" height="64"/><text class="room-label" x="360" y="874">132</text>
+                    <rect class="room" x="390" y="838" width="52" height="64"/><text class="room-label" x="416" y="874">133</text>
+                    <rect class="room" x="446" y="838" width="52" height="64"/><text class="room-label" x="472" y="874">134</text>
+                    <rect class="room" x="502" y="838" width="52" height="64"/><text class="room-label" x="528" y="874">150</text>
+                    <rect class="room" x="558" y="806" width="28" height="96"/><text class="room-label tiny vertical-label" x="572" y="854">151</text>
+                </g>
+
+                <text class="complex-label" x="52" y="956">ТУШИНСКИЙ КОМПЛЕКС · ПЕРВЫЙ ЭТАЖ</text>
+            </svg>
         </div>
 
-        <section id="floorLevel" class="map-level-panel" aria-labelledby="floorTitle">
-            <div class="floor-plan-card">
-                <div class="floor-plan-copy">
-                    <p class="map-eyebrow">Уровень корпуса</p>
-                    <h2 id="floorTitle">Первый этаж корпуса «Тушино»</h2>
-                    <p>Кабинет 125 расположен справа от центрального коридора, рядом с кабинетами 124 и 126. План показан упрощённо.</p>
-                    <button id="enterRoomButton" class="map-primary-button" type="button">Войти в кабинет 125</button>
-                </div>
-                <div class="floor-plan" role="img" aria-label="Упрощённый первый этаж: центральный коридор, кабинеты 124, 125 и 126. Кабинет 125 выделен.">
-                    <span class="floor-corridor">Центральный коридор</span>
-                    <span class="floor-room floor-room-124">124</span>
-                    <button class="floor-room floor-room-125" id="floorRoom125" type="button">125<span>Физический фонд</span></button>
-                    <span class="floor-room floor-room-126">126</span>
-                    <span class="floor-room floor-room-other">Другие помещения</span>
-                </div>
-            </div>
-        </section>
-
-        <section id="roomLevel" class="map-level-panel hidden" aria-labelledby="roomTitle">
-            <div class="room-map-grid">
-                <div class="scene-column">
-                    <div class="scene-heading">
-                        <div><p class="map-eyebrow">Навигационная схема</p><h2 id="roomTitle">Кабинет 125</h2></div>
-                        <div class="scene-actions" role="group" aria-label="Управление камерой">
-                            <button id="zoomInButton" type="button" aria-label="Приблизить">+</button>
-                            <button id="zoomOutButton" type="button" aria-label="Отдалить">−</button>
-                            <button id="topViewButton" type="button">Вид сверху</button>
-                            <button id="resetCameraButton" type="button">Сбросить вид</button>
-                        </div>
-                    </div>
-                    <div id="mapSceneShell" class="map-scene-shell">
-                        <div id="mapLoading" class="map-loading" role="status"><span></span>Загружаем схему кабинета…</div>
-                        <div id="mapError" class="map-error hidden" role="alert"></div>
-                        <div id="mapCanvasHost" class="map-canvas-host" aria-describedby="sceneDescription"></div>
-                        <div id="mapLabelLayer" class="map-label-layer" aria-hidden="true"></div>
-                        <svg id="map2dFallback" class="map-2d-fallback hidden" viewBox="0 0 800 520" role="img" aria-label="Двухмерная схема кабинета 125"></svg>
-                    </div>
-                    <p id="sceneDescription" class="scene-description">Вращайте схему одним пальцем или мышью, масштабируйте колёсиком или двумя пальцами. Все места доступны также в списке.</p>
-                    <div class="map-legend" aria-label="Легенда">
-                        <span><i class="legend-place available"></i>Есть доступные книги</span>
-                        <span><i class="legend-place unavailable"></i>Все книги выданы</span>
-                        <span><i class="legend-place selected"></i>Выбрано</span>
-                        <span><i class="legend-place target"></i>Искомая книга</span>
-                    </div>
-                </div>
-
-                <aside class="map-sidebar" aria-label="Места хранения и книги">
-                    <div class="map-sidebar-head"><p class="map-eyebrow">Физический фонд</p><h2>Места хранения</h2></div>
-                    <div id="targetBookMessage" class="target-book-message hidden" role="status"></div>
-                    <div id="mapLocationList" class="map-location-list" aria-label="Доступные места хранения"></div>
-                    <section id="mapSelectionPanel" class="map-selection-panel" aria-live="polite">
-                        <h3>Выберите место 09 или 12</h3>
-                        <p>Откроется список находящихся там книг.</p>
-                    </section>
-                    <button id="openLocationListButton" class="map-secondary-button" type="button">Открыть список мест</button>
-                </aside>
-            </div>
-        </section>
-
-        <section id="mapAdminPanel" class="map-admin-panel hidden" aria-labelledby="mapAdminTitle">
-            <div class="map-admin-heading">
-                <div><p class="map-eyebrow">Только для администратора</p><h2 id="mapAdminTitle">Редактирование расположения</h2></div>
-                <button id="toggleMapEditButton" class="map-secondary-button" type="button" aria-expanded="false">Редактировать расположение</button>
-            </div>
-            <form id="mapObjectForm" class="map-object-form hidden">
-                <div class="map-object-picker">
-                    <label for="mapAdminObjectSelect">Объект схемы</label>
-                    <select id="mapAdminObjectSelect"><option value="">Выберите объект</option></select>
-                    <p id="mapEditHint">Выберите объект на схеме, в списке или в этом поле.</p>
-                </div>
-                <div class="map-object-fields">
-                    <label>X<input type="number" step="0.1" min="-100" max="100" data-map-field="x"></label>
-                    <label>Y<input type="number" step="0.1" min="-100" max="100" data-map-field="y"></label>
-                    <label>Z<input type="number" step="0.1" min="-100" max="100" data-map-field="z"></label>
-                    <label>Ширина<input type="number" step="0.1" min="0.02" max="100" data-map-field="width"></label>
-                    <label>Высота<input type="number" step="0.1" min="0.02" max="100" data-map-field="height"></label>
-                    <label>Глубина<input type="number" step="0.1" min="0.02" max="100" data-map-field="depth"></label>
-                    <label>Поворот Y<input type="number" step="0.05" min="-6.28" max="6.28" data-map-field="rotation_y"></label>
-                </div>
-                <div class="map-admin-actions">
-                    <button class="map-primary-button" type="submit">Сохранить</button>
-                    <button id="cancelMapEditButton" class="map-secondary-button" type="button">Отменить изменения</button>
-                    <button id="resetRoomMapButton" class="map-danger-button" type="button">Сбросить начальную схему</button>
-                </div>
-                <output id="mapAdminStatus" aria-live="polite"></output>
-            </form>
-        </section>
+        <div class="floor-map-footer">
+            <p><strong>Кабинет 125</strong> расположен в нижней части правого крыла, рядом с центральным холлом.</p>
+        </div>
     </section>
 </main>
 
@@ -179,20 +180,37 @@
 (function () {
     const rawSession = localStorage.getItem('bibliotech_current_user');
     if (!rawSession) {
-        localStorage.setItem('bibliotech_post_login_url', window.location.pathname + window.location.search);
+        localStorage.setItem('bibliotech_post_login_url', window.location.pathname);
         window.location.href = 'index.html';
         return;
     }
+
     try {
         const session = JSON.parse(rawSession);
         const pill = document.getElementById('mapCurrentUser');
         if (pill) pill.textContent = session.guest ? 'Гостевой режим' : (session.username || 'Профиль');
         document.querySelectorAll('.admin-nav-item').forEach(item => item.classList.toggle('hidden', session.role !== 'admin'));
     } catch (error) {}
+
+    const menuButton = document.getElementById('mapMenuButton');
+    const nav = document.getElementById('mapNav');
+    const setMenuOpen = open => {
+        if (!menuButton || !nav) return;
+        nav.classList.toggle('active', open);
+        menuButton.classList.toggle('active', open);
+        menuButton.setAttribute('aria-expanded', String(open));
+        menuButton.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
+        document.body.classList.toggle('lock', open);
+    };
+
+    menuButton?.addEventListener('click', () => setMenuOpen(!nav?.classList.contains('active')));
+    nav?.addEventListener('click', event => {
+        if (event.target.closest('a[href]')) setMenuOpen(false);
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') setMenuOpen(false);
+    });
 })();
-</script>
-<script type="module">
-if (!window.__bibliotechSkip3dMap) import('./js/library-3d-map.js');
 </script>
 <script src="js/pwa.js"></script>
 </body>
