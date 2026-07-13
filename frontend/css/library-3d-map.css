@@ -20,7 +20,7 @@
 .exact-floor-controls .exact-floor-primary { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
 .exact-floor-controls button:focus-visible,
 .exact-floor-viewport:focus-visible,
-.room-125-exact-marker:focus-visible { outline: none; box-shadow: var(--focus); }
+.semantic-room--target:focus-visible { outline: none; }
 
 .exact-floor-view-switcher { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0 0 12px; padding: 5px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface-muted); }
 .exact-floor-view-switcher button { min-height: 42px; padding: 8px 10px; border: 1px solid transparent; border-radius: 11px; background: transparent; color: var(--muted); cursor: pointer; font: inherit; font-size: 12px; font-weight: 850; }
@@ -32,6 +32,8 @@
 .exact-floor-viewport.is-dragging { cursor: grabbing; }
 .exact-floor-source-chip { position: sticky; top: 12px; left: 12px; z-index: 4; display: inline-flex; width: max-content; max-width: calc(100% - 24px); margin: 12px 0 -46px 12px; padding: 7px 10px; border: 1px solid rgba(255,255,255,.72); border-radius: 999px; background: rgba(22, 93, 156, .9); color: #fff; box-shadow: 0 8px 20px rgba(25, 70, 110, .18); font-size: 10px; font-weight: 900; letter-spacing: .04em; pointer-events: none; }
 .exact-floor-canvas { position: relative; width: 1400px; height: 980px; margin: auto; overflow: hidden; background: var(--bg-soft); }
+.exact-floor-canvas.is-map-compact .semantic-room-number { display: none; }
+.exact-floor-canvas.is-map-mini .semantic-building-label { display: none; }
 .semantic-floor-svg { --map-ground: color-mix(in srgb, var(--bg-soft) 86%, var(--surface)); --map-road: color-mix(in srgb, var(--surface) 72%, var(--border)); --map-room: color-mix(in srgb, var(--accent) 7%, var(--surface)); --map-corridor: color-mix(in srgb, var(--accent) 15%, var(--surface)); --map-line: color-mix(in srgb, var(--accent-strong, var(--accent)) 82%, var(--text)); position: absolute; inset: 0; display: block; width: 100%; height: 100%; background: var(--map-ground); color: var(--text); }
 .semantic-map-ground { fill: var(--map-ground); }
 .semantic-map-road { fill: none; stroke: var(--map-road); stroke-linecap: round; stroke-linejoin: round; }
@@ -42,8 +44,12 @@
 .semantic-corridor { fill: var(--map-corridor); stroke: color-mix(in srgb, var(--map-line) 58%, transparent); stroke-width: 2; }
 .semantic-room-shape { fill: var(--map-room); stroke: var(--map-line); stroke-width: 2; transition: fill .18s ease, stroke .18s ease; }
 .semantic-room-number { fill: var(--muted); font: 750 12px/1 Inter, system-ui, sans-serif; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
-.semantic-room--target .semantic-room-shape { fill: color-mix(in srgb, var(--danger) 18%, var(--surface)); stroke: var(--danger); stroke-width: 5; }
-.semantic-room--target .semantic-room-number { fill: var(--danger); font-size: 18px; font-weight: 950; }
+.semantic-room--target { cursor: pointer; }
+.semantic-room--target .semantic-room-shape { fill: color-mix(in srgb, var(--danger) 12%, var(--surface)); stroke: var(--danger); stroke-width: 3; transition: fill .18s ease, stroke-width .18s ease, filter .18s ease; }
+.semantic-room--target .semantic-room-number { fill: var(--danger); font-size: 14px; font-weight: 950; }
+.semantic-room--target:hover .semantic-room-shape,
+.semantic-room--target:focus-visible .semantic-room-shape { fill: color-mix(in srgb, var(--danger) 19%, var(--surface)); stroke-width: 4; filter: drop-shadow(0 0 5px color-mix(in srgb, var(--danger) 42%, transparent)); }
+.semantic-room--target.is-active .semantic-room-shape { animation: semanticRoom125Pulse .9s ease; }
 .semantic-map-label { fill: var(--muted); font: 800 16px/1 Inter, system-ui, sans-serif; letter-spacing: .04em; text-anchor: middle; }
 .semantic-building-label { fill: var(--map-line); font: 900 14px/1 Inter, system-ui, sans-serif; letter-spacing: .08em; text-anchor: middle; }
 .semantic-stair line { stroke: var(--map-line); stroke-width: 2; }
@@ -51,13 +57,10 @@
 .semantic-bus { fill: var(--surface); stroke: var(--map-line); stroke-width: 3; }
 .semantic-bus-detail { fill: var(--map-line); }
 
-.room-125-exact-marker { position: absolute; left: 82.6%; top: 64.9%; width: 11%; height: 7.2%; padding: 0; border: 3px solid var(--danger); border-radius: 5px; background: color-mix(in srgb, var(--danger) 13%, transparent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 13%, transparent); cursor: pointer; }
-.exact-floor-canvas:not([data-active-view="room125"]) .room-125-exact-marker { display: none; }
-.room-125-exact-marker::before { content: ''; position: absolute; right: 100%; top: 50%; width: 40%; height: 3px; transform: translateY(-50%); background: var(--danger); }
-.room-125-exact-marker::after { content: 'КАБИНЕТ 125'; position: absolute; right: calc(100% + 34%); top: 50%; padding: 6px 8px; transform: translateY(-50%); border: 2px solid var(--surface); border-radius: 9px; background: var(--danger); color: var(--surface); box-shadow: 0 6px 16px color-mix(in srgb, var(--danger) 30%, transparent); font: 900 10px/1.1 Inter, system-ui, sans-serif; letter-spacing: .04em; white-space: nowrap; }
-.room-125-exact-marker span { position: absolute; inset: 0; display: grid; place-items: center; color: var(--danger); font-size: 13px; font-weight: 950; }
-.room-125-exact-marker.is-active { animation: room125Pulse .8s ease; }
-@keyframes room125Pulse { 0%, 100% { box-shadow: 0 0 0 4px rgba(223, 36, 53, .13); } 50% { box-shadow: 0 0 0 16px rgba(223, 36, 53, .28); } }
+@keyframes semanticRoom125Pulse {
+    0%, 100% { filter: none; stroke-width: 3; }
+    50% { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--danger) 58%, transparent)); stroke-width: 5; }
+}
 
 .exact-floor-view-caption { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 13px; align-items: start; margin-top: 12px; padding: 13px 15px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface-muted); }
 .exact-floor-view-caption > span { display: inline-flex; min-height: 30px; align-items: center; padding: 5px 9px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 12%, var(--surface)); color: var(--accent-strong, var(--accent)); font-size: 10px; font-weight: 900; white-space: nowrap; }
@@ -95,9 +98,9 @@
     .room-125-card { align-items: start; padding: 13px; }
     .room-125-card-number { width: 52px; height: 52px; border-radius: 14px; }
 
-    #mapNav.active { display: block !important; visibility: visible !important; opacity: 1 !important; transform: none !important; pointer-events: auto !important; z-index: 1000; }
-    #mapNav.active ul { display: grid !important; }
-    #mapNav.active li, #mapNav.active a, #mapNav.active button { visibility: visible !important; opacity: 1 !important; }
+    #navMenu.active { display: block !important; visibility: visible !important; opacity: 1 !important; transform: none !important; pointer-events: auto !important; z-index: 1000; }
+    #navMenu.active ul { display: grid !important; }
+    #navMenu.active li, #navMenu.active a, #navMenu.active button { visibility: visible !important; opacity: 1 !important; }
 }
 
 @media (max-width: 420px) {
@@ -109,5 +112,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .room-125-exact-marker.is-active { animation: none; }
+    .semantic-room--target.is-active .semantic-room-shape { animation: none; }
 }

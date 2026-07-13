@@ -7,22 +7,41 @@
     <title>Карта первого этажа — BIBLIOTECH</title>
     <script src="js/theme-bootstrap.js"></script>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/library-3d-map.css?v=20260713-semantic-floor-1">
+    <link rel="stylesheet" href="css/library-3d-map.css?v=20260713-map-polish-2">
 </head>
 <body class="library-map-page">
 <header>
     <div class="container">
         <div class="header-inner">
-            <a class="NAHODKI brand-logo" href="home.html"><img src="img/appicon-system-v2.png" alt="Логотип BIBLIOTECH"><span>BIBLIOTECH</span></a>
-            <button class="menu_icon" id="mapMenuButton" type="button" aria-controls="mapNav" aria-expanded="false" aria-label="Открыть меню"><span></span><span></span><span></span></button>
-            <nav id="mapNav" aria-label="Основная навигация">
+            <div class="NAHODKI brand-logo"><img src="img/appicon-system-v2.png" alt="BIBLIOTECH logo"><span>BIBLIOTECH</span></div>
+            <button class="menu_icon" id="menuIcon" type="button" aria-controls="navMenu" aria-expanded="false" aria-label="Открыть меню"><span></span><span></span><span></span></button>
+            <nav id="navMenu" aria-label="Основная навигация">
                 <ul>
-                    <li><a href="home.html">Главная</a></li>
+                    <li><a href="home.html#top">Главная</a></li>
                     <li class="active"><a href="map.html" aria-current="page">Карта</a></li>
                     <li><a href="stats.html">Статистика</a></li>
                     <li><a href="about.html">О нас</a></li>
                     <li class="admin-nav-item hidden"><a href="admin.html">Админ</a></li>
-                    <li><button class="user-pill profile-pill" id="mapCurrentUser" type="button">Профиль</button></li>
+                    <li class="nav-language-item">
+                        <div class="language-switcher" id="languageSwitcher">
+                            <button class="language-current" id="langToggleBtn" type="button" aria-label="Выбрать язык" aria-expanded="false">
+                                <span class="lang-globe">🌐</span>
+                                <span class="lang-current-code" id="langCurrentCode">RU</span>
+                                <span class="lang-arrow">⌄</span>
+                            </button>
+                            <div id="langMenu" class="lang-menu">
+                                <button class="lang-option active" type="button" data-lang="ru"><span>🇷🇺</span><b>Русский</b><small>RU</small></button>
+                                <button class="lang-option" type="button" data-lang="en"><span>🇬🇧</span><b>English</b><small>EN</small></button>
+                                <button class="lang-option" type="button" data-lang="uk"><span>🇺🇦</span><b>Українська</b><small>UK</small></button>
+                                <button class="lang-option" type="button" data-lang="de"><span>🇩🇪</span><b>Deutsch</b><small>DE</small></button>
+                                <button class="lang-option" type="button" data-lang="kk"><span>🇰🇿</span><b>Қазақша</b><small>KK</small></button>
+                                <button class="lang-option" type="button" data-lang="es"><span>🇪🇸</span><b>Español</b><small>ES</small></button>
+                                <button class="lang-option" type="button" data-lang="zh"><span>🇨🇳</span><b>中文</b><small>ZH</small></button>
+                            </div>
+                        </div>
+                    </li>
+                    <li><button class="user-pill profile-pill" id="currentUserPill" type="button">Профиль</button></li>
+                    <li class="btn"><a href="#" id="logoutBtn">Выйти</a></li>
                 </ul>
             </nav>
         </div>
@@ -65,7 +84,6 @@
             <span class="exact-floor-source-chip">Тушино · этаж 1 · семантическая SVG-схема</span>
             <div id="exactFloorPlan" class="exact-floor-canvas" data-active-view="overview">
                 <svg id="semanticFloorSvg" class="semantic-floor-svg" viewBox="0 0 1400 980" role="img" aria-labelledby="semanticFloorTitle semanticFloorDescription"></svg>
-                <button id="room125ExactMarker" class="room-125-exact-marker" type="button" aria-label="Кабинет 125. В этом кабинете находится физический фонд BIBLIOTECH"><span>125</span></button>
             </div>
         </div>
 
@@ -103,13 +121,13 @@
 
     try {
         const session = JSON.parse(rawSession);
-        const pill = document.getElementById('mapCurrentUser');
+        const pill = document.getElementById('currentUserPill');
         if (pill) pill.textContent = session.guest ? 'Гостевой режим' : (session.username || 'Профиль');
         document.querySelectorAll('.admin-nav-item').forEach(item => item.classList.toggle('hidden', session.role !== 'admin'));
     } catch (error) {}
 
-    const menuButton = document.getElementById('mapMenuButton');
-    const nav = document.getElementById('mapNav');
+    const menuButton = document.getElementById('menuIcon');
+    const nav = document.getElementById('navMenu');
     const setOpen = open => {
         if (!menuButton || !nav) return;
         nav.classList.toggle('active', open);
@@ -125,12 +143,45 @@
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape') setOpen(false);
     });
-    document.getElementById('mapCurrentUser')?.addEventListener('click', () => {
-        window.location.href = 'home.html#profile';
+    const languageSwitcher = document.getElementById('languageSwitcher');
+    const languageMenu = document.getElementById('langMenu');
+    const languageButton = document.getElementById('langToggleBtn');
+    const setLanguageOpen = open => {
+        languageSwitcher?.classList.toggle('open', open);
+        languageMenu?.classList.toggle('active', open);
+        languageButton?.setAttribute('aria-expanded', String(open));
+    };
+    const currentLanguage = localStorage.getItem('bibliotech_language') || 'ru';
+    document.documentElement.lang = currentLanguage;
+    const languageCode = document.getElementById('langCurrentCode');
+    if (languageCode) languageCode.textContent = currentLanguage.toUpperCase();
+    document.querySelectorAll('.lang-option').forEach(option => {
+        option.classList.toggle('active', option.dataset.lang === currentLanguage);
+        option.addEventListener('click', () => {
+            const language = option.dataset.lang || 'ru';
+            localStorage.setItem('bibliotech_language', language);
+            document.documentElement.lang = language;
+            if (languageCode) languageCode.textContent = language.toUpperCase();
+            document.querySelectorAll('.lang-option').forEach(item => item.classList.toggle('active', item === option));
+            setLanguageOpen(false);
+        });
+    });
+    languageButton?.addEventListener('click', event => {
+        event.stopPropagation();
+        setLanguageOpen(!languageMenu?.classList.contains('active'));
+    });
+    document.addEventListener('click', event => {
+        if (!event.target.closest('#languageSwitcher')) setLanguageOpen(false);
+    });
+    document.getElementById('logoutBtn')?.addEventListener('click', event => {
+        event.preventDefault();
+        localStorage.removeItem('bibliotech_current_user');
+        localStorage.removeItem('token');
+        window.location.href = 'index.html';
     });
 })();
 </script>
-<script src="js/exact-floor-map.js?v=20260713-semantic-floor-1" defer></script>
+<script src="js/exact-floor-map.js?v=20260713-map-polish-2" defer></script>
 <script src="js/pwa.js"></script>
 </body>
 </html>

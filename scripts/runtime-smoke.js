@@ -87,7 +87,9 @@ async function readNavigation(page, navSelector) {
     return page.locator(navSelector).evaluate(nav => {
         const result = {};
         nav.querySelectorAll('a[href]').forEach(link => {
-            const href = new URL(link.getAttribute('href'), document.baseURI).pathname;
+            const rawHref = link.getAttribute('href') || '';
+            if (!rawHref || rawHref.startsWith('#')) return;
+            const href = new URL(rawHref, document.baseURI).pathname;
             if (href.endsWith('/home.html')) result.home = link.textContent.trim();
             if (href.endsWith('/map.html')) result.map = link.textContent.trim();
             if (href.endsWith('/stats.html')) result.stats = link.textContent.trim();
@@ -167,16 +169,16 @@ async function verifyMapPages(browser) {
     assert.equal(await mapPage.locator('#semanticFloorSvg image').count(), 0, 'Semantic map embeds a screenshot');
     assert.equal(await mapPage.locator('#mapCanvasHost').count(), 0, 'Legacy WebGL canvas returned');
     assert.equal(await mapPage.locator('.exact-floor-view-switcher [role="tab"]').count(), 4, 'Semantic map region switcher is incomplete');
-    assertRussianNavigation(await readNavigation(mapPage, '#mapNav'), 'map-mobile-vector');
+    assertRussianNavigation(await readNavigation(mapPage, '#navMenu'), 'map-mobile-vector');
 
-    await mapPage.locator('#mapMenuButton').click();
-    assert.equal(await mapPage.locator('#mapNav').evaluate(nav => nav.classList.contains('active')), true, 'Map mobile menu did not open');
+    await mapPage.locator('#menuIcon').click();
+    assert.equal(await mapPage.locator('#navMenu').evaluate(nav => nav.classList.contains('active')), true, 'Map mobile menu did not open');
     await mapPage.keyboard.press('Escape');
-    assert.equal(await mapPage.locator('#mapNav').evaluate(nav => nav.classList.contains('active')), false, 'Map mobile menu did not close on Escape');
+    assert.equal(await mapPage.locator('#navMenu').evaluate(nav => nav.classList.contains('active')), false, 'Map mobile menu did not close on Escape');
     await mapPage.locator('[data-floor-view="room125"]').click();
     assert.equal(await mapPage.locator('[data-floor-view="room125"]').getAttribute('aria-selected'), 'true', 'Room 125 view did not open');
-    await mapPage.locator('#mapMenuButton').click();
-    await mapPage.locator('#mapCurrentUser').click();
+    await mapPage.locator('#menuIcon').click();
+    await mapPage.locator('#currentUserPill').click();
     await mapPage.waitForURL(/\/home\.html#profile$/);
     await mapPage.close();
 

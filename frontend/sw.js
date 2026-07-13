@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v40-semantic-floor-map';
+const CACHE_NAME = 'bibliotech-pwa-v41-map-polish';
 const APP_SHELL = [
     '/',
     '/index.html',

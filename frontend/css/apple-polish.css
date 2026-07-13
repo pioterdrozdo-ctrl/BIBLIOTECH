@@ -170,6 +170,17 @@ header nav ul {
     gap: 3px !important;
 }
 
+@media (min-width: 821px) {
+    header nav {
+        padding: 4px !important;
+        border: 1px solid var(--apple-hairline) !important;
+        border-top-color: var(--apple-highlight) !important;
+        border-radius: 16px !important;
+        background: color-mix(in srgb, var(--surface-muted) 54%, transparent) !important;
+        box-shadow: inset 0 1px 0 var(--apple-highlight) !important;
+    }
+}
+
 header nav a,
 .profile-pill,
 .language-current {

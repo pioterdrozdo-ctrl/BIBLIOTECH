@@ -55,7 +55,7 @@ const criticalUiScripts = [
 
 const finalUiStyles = [
     '/css/commercial-polish.css?v=20260710-commercial-polish-1',
-    '/css/apple-polish.css?v=20260713-apple-polish-5'
+    '/css/apple-polish.css?v=20260713-apple-polish-6'
 ];
 
 const homeCriticalStyles = [

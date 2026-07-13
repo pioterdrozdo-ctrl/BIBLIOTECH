@@ -4,6 +4,8 @@
     const SVG_NS = 'http://www.w3.org/2000/svg';
     const MAP_WIDTH = 1400;
     const MAP_HEIGHT = 980;
+    const MIN_SCALE = 0.1;
+    const MAX_SCALE = 3.2;
     const VIEWS = {
         overview: {
             title: 'Общий вид первого этажа',
@@ -87,7 +89,7 @@
         append(parent, 'polygon', { points, class: 'semantic-entrance' });
     }
 
-    function drawVerticalWing(parent, { id, label, x, y, width, height, leftLabels, rightLabels }) {
+    function drawVerticalWing(parent, { id, label, x, y, width, height, leftLabels, rightLabels, showLabel = true }) {
         const group = append(parent, 'g', { id, 'data-building': label });
         append(group, 'rect', { x, y, width, height, rx: 4, class: 'semantic-building-shell' });
         const corridorWidth = Math.max(28, width * 0.2);
@@ -120,11 +122,13 @@
             label: roomLabel
         }));
         drawEntrance(group, x + width / 2, y + height + 2);
-        append(group, 'text', {
-            x: x + width / 2,
-            y: y - 14,
-            class: 'semantic-building-label'
-        }, label);
+        if (showLabel) {
+            append(group, 'text', {
+                x: x + width / 2,
+                y: y - 14,
+                class: 'semantic-building-label'
+            }, label);
+        }
         return group;
     }
 
@@ -174,7 +178,8 @@
             width: 150,
             height: 175,
             leftLabels: ['129', '130', '131', '132'],
-            rightLabels: ['142', '143', '144', '145']
+            rightLabels: ['142', '143', '144', '145'],
+            showLabel: false
         });
         drawVerticalWing(buildings, {
             id: 'west-wing-lower',
@@ -184,7 +189,8 @@
             width: 150,
             height: 175,
             leftLabels: ['128', '127', '126', '124'],
-            rightLabels: ['146', '147', '150', '151']
+            rightLabels: ['146', '147', '150', '151'],
+            showLabel: false
         });
         append(buildings, 'rect', { x: 110, y: 430, width: 38, height: 25, class: 'semantic-corridor' });
         append(buildings, 'rect', { x: 110, y: 630, width: 38, height: 25, class: 'semantic-corridor' });
@@ -227,25 +233,31 @@
 
         const south = append(buildings, 'g', { id: 'south-wing', 'data-building': 'Южное крыло' });
         append(south, 'path', {
-            d: 'M170 725 H770 L860 655 H1020 L1085 710 H1170 Q1270 710 1310 785 Q1345 850 1270 905 L1160 950 H790 L710 915 H170 Z',
-            class: 'semantic-building-shell'
+            d: 'M220 725 H770 L860 655 H1010 V780 L925 860 L820 940 H220 Z',
+            class: 'semantic-building-shell',
+            'data-shell': 'south-main'
         });
-        append(south, 'path', { d: 'M205 790 H790 L880 720 H1020 L1090 775 H1190 Q1240 775 1260 815 Q1270 845 1230 865 L1140 900 H800 L710 865 H205 Z', class: 'semantic-corridor' });
+        append(south, 'path', { d: 'M240 790 H790 L880 720 H990 V765 L905 830 L800 890 H240 Z', class: 'semantic-corridor' });
         const topSouthLabels = ['146', '147', '147а', '1', '2', '3', '11', '4', '5', '6', '154'];
-        topSouthLabels.forEach((label, index) => drawRoom(south, { x: 205 + index * 52, y: 735, width: 52, height: 55, label }));
+        topSouthLabels.forEach((label, index) => drawRoom(south, { x: 240 + index * 52, y: 735, width: 52, height: 55, label }));
         const bottomSouthLabels = ['129', '128', '155', '130', '151', '132', '133', '134', '149', '150', '151'];
-        bottomSouthLabels.forEach((label, index) => drawRoom(south, { x: 205 + index * 54, y: 860, width: 54, height: 48, label }));
-        drawRoom(south, { x: 205, y: 795, width: 110, height: 62, label: '158' });
-        drawRoom(south, { x: 315, y: 795, width: 100, height: 62, label: '157' });
-        drawRoom(south, { x: 415, y: 795, width: 100, height: 62, label: '138' });
-        drawRoom(south, { x: 515, y: 795, width: 90, height: 62, label: '144' });
-        drawStair(south, 165, 782, 40, 70);
-        drawEntrance(south, 1010, 712, 'right');
+        bottomSouthLabels.forEach((label, index) => drawRoom(south, { x: 240 + index * 54, y: 860, width: 54, height: 48, label }));
+        drawRoom(south, { x: 240, y: 795, width: 110, height: 62, label: '158' });
+        drawRoom(south, { x: 350, y: 795, width: 100, height: 62, label: '157' });
+        drawRoom(south, { x: 450, y: 795, width: 100, height: 62, label: '138' });
+        drawRoom(south, { x: 550, y: 795, width: 90, height: 62, label: '144' });
+        drawStair(south, 220, 790, 20, 67);
+        append(south, 'rect', { x: 1010, y: 744, width: 15, height: 32, class: 'semantic-corridor', 'aria-label': 'Переход в восточное крыло' });
+        drawEntrance(south, 1010, 760, 'right');
         append(south, 'text', { x: 520, y: 705, class: 'semantic-building-label' }, 'ЮЖНОЕ КРЫЛО');
 
         const east = append(buildings, 'g', { id: 'room-125-wing', 'data-building': 'Восточное крыло' });
         const eastTop = 145;
-        append(east, 'rect', { x: 1025, y: eastTop, width: 275, height: 755, rx: 5, class: 'semantic-building-shell' });
+        append(east, 'path', {
+            d: `M1025 ${eastTop} H1320 V705 Q1390 705 1390 790 Q1390 865 1320 900 H1025 Z`,
+            class: 'semantic-building-shell',
+            'data-shell': 'east'
+        });
         append(east, 'rect', { x: 1115, y: eastTop + 10, width: 42, height: 735, class: 'semantic-corridor' });
         const leftRooms = [
             ['192', 34], ['145', 30], ['116', 30], ['115', 45], ['114', 35], ['113', 62], ['112', 58], ['111', 48], ['Л', 28], ['110', 30], ['109', 30], ['108', 30], ['107', 30], ['106', 36], ['105', 34], ['104', 34], ['101', 36]
@@ -269,15 +281,26 @@
         append(east, 'text', { x: 1162, y: eastTop - 20, class: 'semantic-building-label' }, 'ВОСТОЧНОЕ КРЫЛО');
 
         const targetRoom = svg.querySelector('.semantic-room--target[data-room="125"]');
-        targetRoom?.setAttribute('aria-label', 'Кабинет 125 — физический фонд BIBLIOTECH');
+        if (targetRoom) {
+            targetRoom.id = 'semanticRoom125';
+            targetRoom.setAttribute('aria-label', 'Кабинет 125 — физический фонд BIBLIOTECH');
+            targetRoom.setAttribute('role', 'button');
+            targetRoom.setAttribute('tabindex', '0');
+        }
     }
 
-    const clamp = value => Math.min(3.2, Math.max(0.24, value));
+    const clamp = value => Math.min(MAX_SCALE, Math.max(MIN_SCALE, value));
 
     function updatePlanSize() {
         plan.style.width = `${Math.round(MAP_WIDTH * scale)}px`;
         plan.style.height = `${Math.round(MAP_HEIGHT * scale)}px`;
+        plan.classList.toggle('is-map-compact', scale < 0.24);
+        plan.classList.toggle('is-map-mini', scale < 0.17);
         if (zoomValue) zoomValue.textContent = `${Math.round(scale * 100)}%`;
+        const zoomOut = document.getElementById('exactFloorZoomOut');
+        const zoomIn = document.getElementById('exactFloorZoomIn');
+        if (zoomOut) zoomOut.disabled = scale <= MIN_SCALE + 0.001;
+        if (zoomIn) zoomIn.disabled = scale >= MAX_SCALE - 0.001;
     }
 
     function setScale(nextScale, centerX, centerY) {
@@ -328,9 +351,9 @@
 
     function focusRoom125() {
         selectView('room125', { moveFocus: false });
-        const marker = document.getElementById('room125ExactMarker');
-        marker?.classList.remove('is-active');
-        requestAnimationFrame(() => marker?.classList.add('is-active'));
+        const room = document.getElementById('semanticRoom125');
+        room?.classList.remove('is-active');
+        requestAnimationFrame(() => room?.classList.add('is-active'));
     }
 
     renderSemanticMap();
@@ -338,7 +361,12 @@
     document.getElementById('exactFloorZoomOut')?.addEventListener('click', () => setScale(scale / 1.25));
     document.getElementById('exactFloorFit')?.addEventListener('click', () => selectView('overview'));
     document.getElementById('exactFloorRoom125')?.addEventListener('click', focusRoom125);
-    document.getElementById('room125ExactMarker')?.addEventListener('click', focusRoom125);
+    document.getElementById('semanticRoom125')?.addEventListener('click', focusRoom125);
+    document.getElementById('semanticRoom125')?.addEventListener('keydown', event => {
+        if (!['Enter', ' '].includes(event.key)) return;
+        event.preventDefault();
+        focusRoom125();
+    });
     viewButtons.forEach((button, index) => {
         button.addEventListener('click', () => selectView(button.dataset.floorView));
         button.addEventListener('keydown', event => {

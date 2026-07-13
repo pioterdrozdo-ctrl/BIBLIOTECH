@@ -26,6 +26,7 @@
 
     function navigationKey(link) {
         var href = link.getAttribute('href') || '';
+        if (!href || href.charAt(0) === '#') return '';
         var pathname = '';
         try { pathname = new URL(href, document.baseURI).pathname; }
         catch (e) { pathname = href.split(/[?#]/)[0]; }
@@ -257,7 +258,7 @@
     loadStylesheet('css/theme-mode-preview.css?v=20260710-theme-mode-preview-1', '__bibliotechThemeModePreviewCss');
     loadStylesheet('css/liquid-theme-toggle.css?v=20260710-liquid-theme-2', '__bibliotechLiquidThemeToggleCss');
     loadStylesheet('css/commercial-polish.css?v=20260710-commercial-polish-1', '__bibliotechCommercialPolishCss');
-    loadStylesheet('css/apple-polish.css?v=20260713-apple-polish-5', '__bibliotechApplePolishCss');
+    loadStylesheet('css/apple-polish.css?v=20260713-apple-polish-6', '__bibliotechApplePolishCss');
     loadStylesheet('css/stats-spacing-fix.css?v=20260711-stats-spacing-1', '__bibliotechStatsSpacingFixCss');
 
     if (!('serviceWorker' in navigator)) return;
