@@ -29,6 +29,22 @@ function decodeHtmlEntities(value = '') {
         .replace(/&amp;/g, '&');
 }
 
+function classifyProviderError(payload, status) {
+    const reason = String(payload?.error?.errors?.[0]?.reason || '').toLowerCase();
+    const message = String(payload?.error?.message || '').toLowerCase();
+    const details = `${reason} ${message}`;
+    if (details.includes('api key not valid') || details.includes('invalid key')) return 'TRANSLATION_API_KEY_INVALID';
+    if (details.includes('accessnotconfigured') || details.includes('service_disabled') || details.includes('has not been used') || details.includes('is disabled')) {
+        return 'TRANSLATION_API_NOT_ENABLED';
+    }
+    if (details.includes('billing') || details.includes('billing_not_active')) return 'TRANSLATION_BILLING_NOT_ENABLED';
+    if (details.includes('iprefererblocked') || details.includes('referer') || details.includes('not allowed') || details.includes('forbidden')) {
+        return 'TRANSLATION_API_KEY_RESTRICTED';
+    }
+    if (status === 429 || reason.includes('ratelimit') || reason.includes('quota')) return 'TRANSLATION_QUOTA_EXCEEDED';
+    return 'TRANSLATION_UPSTREAM_ERROR';
+}
+
 function cacheKey(text, target, source) {
     return `${source || 'auto'}\u0000${target}\u0000${text}`;
 }
@@ -100,7 +116,7 @@ async function translateTexts(texts, options = {}) {
         const payload = await response.json().catch(() => ({}));
         const translations = payload?.data?.translations;
         if (!response.ok || !Array.isArray(translations) || translations.length !== misses.length) {
-            throw new TranslationError('Translation provider rejected the request', 'TRANSLATION_UPSTREAM_ERROR', 502);
+            throw new TranslationError('Translation provider rejected the request', classifyProviderError(payload, response.status), 502);
         }
 
         translations.forEach((translation, offset) => {
@@ -122,4 +138,4 @@ function clearTranslationCache() {
     cache.clear();
 }
 
-module.exports = { TranslationError, configured, translateTexts, clearTranslationCache };
+module.exports = { TranslationError, configured, translateTexts, clearTranslationCache, classifyProviderError };

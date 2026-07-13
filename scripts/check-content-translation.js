@@ -56,6 +56,10 @@ async function main() {
     try { await service.translateTexts(['Текст'], { target: 'en', apiKey: '' }); }
     catch (error) { missingKeyCode = error.code; }
     assert.equal(missingKeyCode, 'TRANSLATION_NOT_CONFIGURED');
+    assert.equal(service.classifyProviderError({ error: { message: 'Cloud Translation API has not been used in project before or it is disabled.' } }, 403), 'TRANSLATION_API_NOT_ENABLED');
+    assert.equal(service.classifyProviderError({ error: { message: 'This API method requires billing to be enabled.' } }, 403), 'TRANSLATION_BILLING_NOT_ENABLED');
+    assert.equal(service.classifyProviderError({ error: { errors: [{ reason: 'ipRefererBlocked' }] } }, 403), 'TRANSLATION_API_KEY_RESTRICTED');
+    assert.equal(service.classifyProviderError({ error: { message: 'API key not valid. Please pass a valid API key.' } }, 400), 'TRANSLATION_API_KEY_INVALID');
 
     console.log('content-translation: ok');
 }
