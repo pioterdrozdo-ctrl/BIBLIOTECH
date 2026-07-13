@@ -94,6 +94,8 @@ async function fetchBookDetail(bookId, userId = null) {
 
 // Получить все книги с фильтрацией
 router.get('/', optionalAuthMiddleware, async (req, res) => {
+    if (!pool.isConfigured) return res.json(localStore.getBooks(req.query, req.user));
+
     const { filter, sort, search, minCopies } = req.query;
 
     let query = `

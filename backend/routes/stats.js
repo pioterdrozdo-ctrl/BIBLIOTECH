@@ -4,6 +4,8 @@ const localStore = require('../services/localStore');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
+    if (!pool.isConfigured) return res.json(localStore.getStats());
+
     try {
         const stats = {};
 

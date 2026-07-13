@@ -2,9 +2,12 @@ const jwt = require('jsonwebtoken');
 const pool = require('../db/pool');
 const localAccountStore = require('../services/localAccountStore');
 
+let missingJwtWarningShown = false;
+
 function getJwtSecret() {
     const secret = process.env.JWT_SECRET;
-    if (!secret && process.env.NODE_ENV === 'production') {
+    if (!secret && process.env.NODE_ENV === 'production' && !missingJwtWarningShown) {
+        missingJwtWarningShown = true;
         console.warn('[AUTH] JWT_SECRET is not set. Using fallback secret temporarily; set JWT_SECRET in Render as soon as possible.');
     }
     return secret || 'bibliotech-dev-secret-change-me';
@@ -23,6 +26,8 @@ function sessionMatches(decoded, account = {}) {
 }
 
 async function readAccountAccess(userId) {
+    if (!pool.isConfigured) return localAccountStore.getAuthState(userId);
+
     const query = 'SELECT id, role, banned_until, ban_reason, COALESCE(session_version, 1) AS session_version FROM users WHERE id = $1';
     try {
         const result = await pool.query(query, [userId]);

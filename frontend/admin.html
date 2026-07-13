@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/book-import.css">
     <link rel="stylesheet" href="css/library-operations.css?v=20260713-operations-1">
+    <link rel="stylesheet" href="css/admin-workspace.css?v=20260713-admin-1">
 </head>
 <body class="admin-page">
 <div class="wrapper">
@@ -48,27 +49,144 @@
             </div>
         </section>
 
-        <section class="container admin-import-launcher" aria-labelledby="bookImportLauncherTitle">
-            <div class="admin-import-launcher-copy">
-                <span class="admin-import-icon" aria-hidden="true">⇧</span>
-                <div>
-                    <span class="admin-import-kicker">Каталог</span>
-                    <h2 id="bookImportLauncherTitle">Массовый импорт книг</h2>
-                    <p>Загрузите CSV или Excel-файл, проверьте строки и только потом подтвердите добавление. Ошибки и дубликаты будут показаны заранее.</p>
-                </div>
+        <nav class="container admin-section-nav" aria-label="Разделы администрирования">
+            <button class="is-active" type="button" role="tab" aria-selected="true" data-admin-section-target="overview">Обзор</button>
+            <button type="button" role="tab" aria-selected="false" data-admin-section-target="users">Пользователи</button>
+            <button type="button" role="tab" aria-selected="false" data-admin-section-target="storage">Хранение</button>
+            <button type="button" role="tab" aria-selected="false" data-admin-section-target="rentals">Аренда</button>
+        </nav>
+
+        <section class="container admin-overview" id="adminOverviewSection" data-admin-section="overview">
+            <div class="admin-section-heading">
+                <div><span class="admin-import-kicker">Быстрый доступ</span><h2>Рабочие инструменты</h2></div>
+                <p>Выберите задачу — сложные формы откроются отдельно и не будут перегружать страницу.</p>
             </div>
-            <div class="admin-import-launcher-actions">
-                <button class="admin-import-template-btn" id="downloadBookImportTemplateBtn" type="button">Скачать шаблон</button>
-                <button class="admin-import-open-btn" id="openBookImportBtn" type="button">Импортировать книги</button>
+            <div class="admin-command-grid">
+                <article class="admin-command-card admin-command-card--accent">
+                    <span class="admin-command-icon" aria-hidden="true">⇧</span><div><small>Каталог</small><h3>Импорт книг</h3><p>Проверка CSV и Excel перед добавлением в каталог.</p></div>
+                    <div class="admin-command-actions"><button class="admin-command-secondary" id="downloadBookImportTemplateBtn" type="button">Шаблон</button><button id="openBookImportBtn" type="button">Открыть</button></div>
+                </article>
+                <article class="admin-command-card">
+                    <span class="admin-command-icon" aria-hidden="true">✓</span><div><small>Контроль фонда</small><h3>Инвентаризация</h3><p>Сканирование QR, пропуски и книги не на своём месте.</p></div>
+                    <button type="button" data-admin-open-modal="inventoryWorkspaceModal">Начать работу</button>
+                </article>
+                <article class="admin-command-card">
+                    <span class="admin-command-icon" aria-hidden="true">▤</span><div><small>Печать и учёт</small><h3>PDF-документы</h3><p>QR-этикетки со ссылкой и проекты учётных актов.</p></div>
+                    <button type="button" data-admin-open-modal="documentsWorkspaceModal">Сформировать</button>
+                </article>
+                <article class="admin-command-card">
+                    <span class="admin-command-icon" aria-hidden="true">◎</span><div><small>Доступ</small><h3>Пользователи</h3><p>Роли, статусы, входы и активность читателей.</p></div>
+                    <button type="button" data-admin-section-target="users">Перейти к разделу</button>
+                </article>
+                <article class="admin-command-card">
+                    <span class="admin-command-icon" aria-hidden="true">⌂</span><div><small>Фонд</small><h3>Места хранения</h3><p>Полки, зоны и точные места размещения книг.</p></div>
+                    <button type="button" data-admin-section-target="storage">Перейти к разделу</button>
+                </article>
+                <article class="admin-command-card">
+                    <span class="admin-command-icon" aria-hidden="true">↔</span><div><small>Выдача</small><h3>Аренда книг</h3><p>Текущие выдачи, возвраты и PDF-акты.</p></div>
+                    <button type="button" data-admin-section-target="rentals">Перейти к разделу</button>
+                </article>
             </div>
         </section>
 
-        <section class="container library-operations-grid" aria-label="Операции с фондом">
+        <section class="container admin-users-panel" data-admin-section="users" hidden>
+            <div class="admin-users-head">
+                <div>
+                    <h2>Таблица пользователей</h2>
+                    <p id="adminUsersSummary">Загрузка...</p>
+                </div>
+                <button type="button" id="refreshUsersBtn">Обновить</button>
+            </div>
+            <div class="admin-table-shell">
+                <table class="admin-users-table">
+                    <caption>Пользователи BIBLIOTECH</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Логин</th>
+                            <th scope="col">Почта</th>
+                            <th scope="col">Роль</th>
+                            <th scope="col">Статус</th>
+                            <th scope="col">Последний вход</th>
+                            <th scope="col">IP / устройство</th>
+                            <th scope="col">Создан</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminUsersTableBody">
+                        <tr><td colspan="8">Загрузка...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="container admin-users-panel admin-storage-panel" data-admin-section="storage" hidden>
+            <div class="admin-users-head">
+                <div>
+                    <h2>Места хранения</h2>
+                    <p id="adminLocationsSummary">Загрузка...</p>
+                </div>
+            </div>
+            <form class="admin-location-form" id="storageLocationForm">
+                <label>
+                    <span>Полка / зона</span>
+                    <input id="storageShelfInput" type="text" placeholder="ИКТ-ФВ 13" required>
+                </label>
+                <label>
+                    <span>Место</span>
+                    <input id="storagePlaceInput" type="text" placeholder="09" required>
+                </label>
+                <label>
+                    <span>Заметка</span>
+                    <input id="storageNoteInput" type="text" placeholder="Надставка">
+                </label>
+                <button type="submit">Добавить место</button>
+            </form>
+            <div class="admin-location-grid" id="adminLocationsGrid"></div>
+        </section>
+
+        <section class="container admin-users-panel admin-rentals-panel" data-admin-section="rentals" hidden>
+            <div class="admin-users-head">
+                <div>
+                    <h2>Аренда книг</h2>
+                    <p id="adminRentalsSummary">Загрузка...</p>
+                </div>
+                <button type="button" id="refreshRentalsBtn">Обновить</button>
+            </div>
+            <div class="admin-table-shell">
+                <table class="admin-users-table admin-rentals-table">
+                    <caption>Журнал аренды книг</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Книга</th>
+                            <th scope="col">Пользователь</th>
+                            <th scope="col">Взята</th>
+                            <th scope="col">Статус</th>
+                            <th scope="col">Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminRentalsTableBody">
+                        <tr><td colspan="6">Загрузка...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>© 2026 BIBLIOTECH. Все права защищены.</footer>
+</div>
+
+<div class="admin-workspace-modal" id="inventoryWorkspaceModal" aria-hidden="true">
+    <section class="admin-workspace-dialog admin-workspace-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="inventoryPanelTitle">
+        <header class="admin-workspace-modal-head">
+            <div><span class="admin-import-kicker">Контроль фонда</span><h2>Инвентаризация</h2></div>
+            <button type="button" data-admin-close-modal aria-label="Закрыть инвентаризацию">×</button>
+        </header>
+        <div class="admin-workspace-modal-body">
             <article class="library-operation-panel inventory-panel" aria-labelledby="inventoryPanelTitle">
                 <div class="library-operation-head">
                     <div>
-                        <span class="admin-import-kicker">Контроль фонда</span>
-                        <h2 id="inventoryPanelTitle">Инвентаризация</h2>
+                        <h2 id="inventoryPanelTitle">Проверка фонда</h2>
                         <p>Сканируйте существующие QR без их изменения. Система найдёт пропуски, повторы и книги не на своём месте.</p>
                     </div>
                     <span class="operation-status-pill" id="inventoryStatusPill">Нет активной проверки</span>
@@ -116,13 +234,22 @@
                     <div class="inventory-history-list" id="inventoryHistoryList"><span>Загрузка...</span></div>
                 </div>
             </article>
+        </div>
+    </section>
+</div>
 
+<div class="admin-workspace-modal" id="documentsWorkspaceModal" aria-hidden="true">
+    <section class="admin-workspace-dialog" role="dialog" aria-modal="true" aria-labelledby="documentsPanelTitle">
+        <header class="admin-workspace-modal-head">
+            <div><span class="admin-import-kicker">Печать и учёт</span><h2>PDF-документы</h2></div>
+            <button type="button" data-admin-close-modal aria-label="Закрыть PDF-документы">×</button>
+        </header>
+        <div class="admin-workspace-modal-body">
             <article class="library-operation-panel documents-panel" aria-labelledby="documentsPanelTitle">
                 <div class="library-operation-head">
                     <div>
-                        <span class="admin-import-kicker">Печать и учёт</span>
-                        <h2 id="documentsPanelTitle">PDF-документы</h2>
-                        <p>Этикетки с текущими QR и проекты актов. Формирование документа не изменяет каталог.</p>
+                        <h2 id="documentsPanelTitle">Создание документа</h2>
+                        <p>QR на новых этикетках открывается обычной камерой телефона. Текстовый код книги и данные каталога не изменяются.</p>
                     </div>
                     <span class="operation-status-pill">A4 / PDF</span>
                 </div>
@@ -150,97 +277,12 @@
                 </form>
                 <div class="document-builder-note">
                     <b>Акты выдачи</b>
-                    <span>Кнопка PDF находится в строке каждой выдачи в журнале аренды ниже.</span>
+                    <span>Кнопка PDF находится в строке каждой выдачи в разделе «Аренда».</span>
                 </div>
                 <div class="inventory-feedback" id="documentBuilderMessage" role="status" aria-live="polite"></div>
             </article>
-        </section>
-
-        <section class="container admin-users-panel">
-            <div class="admin-users-head">
-                <div>
-                    <h2>Таблица пользователей</h2>
-                    <p id="adminUsersSummary">Загрузка...</p>
-                </div>
-                <button type="button" id="refreshUsersBtn">Обновить</button>
-            </div>
-            <div class="admin-table-shell">
-                <table class="admin-users-table">
-                    <caption>Пользователи BIBLIOTECH</caption>
-                    <thead>
-                        <tr>
-                            <th scope="col">ID</th>
-                            <th scope="col">Логин</th>
-                            <th scope="col">Почта</th>
-                            <th scope="col">Роль</th>
-                            <th scope="col">Статус</th>
-                            <th scope="col">Последний вход</th>
-                            <th scope="col">IP / устройство</th>
-                            <th scope="col">Создан</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminUsersTableBody">
-                        <tr><td colspan="8">Загрузка...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="container admin-users-panel admin-storage-panel">
-            <div class="admin-users-head">
-                <div>
-                    <h2>Места хранения</h2>
-                    <p id="adminLocationsSummary">Загрузка...</p>
-                </div>
-            </div>
-            <form class="admin-location-form" id="storageLocationForm">
-                <label>
-                    <span>Полка / зона</span>
-                    <input id="storageShelfInput" type="text" placeholder="ИКТ-ФВ 13" required>
-                </label>
-                <label>
-                    <span>Место</span>
-                    <input id="storagePlaceInput" type="text" placeholder="09" required>
-                </label>
-                <label>
-                    <span>Заметка</span>
-                    <input id="storageNoteInput" type="text" placeholder="Надставка">
-                </label>
-                <button type="submit">Добавить место</button>
-            </form>
-            <div class="admin-location-grid" id="adminLocationsGrid"></div>
-        </section>
-
-        <section class="container admin-users-panel admin-rentals-panel">
-            <div class="admin-users-head">
-                <div>
-                    <h2>Аренда книг</h2>
-                    <p id="adminRentalsSummary">Загрузка...</p>
-                </div>
-                <button type="button" id="refreshRentalsBtn">Обновить</button>
-            </div>
-            <div class="admin-table-shell">
-                <table class="admin-users-table admin-rentals-table">
-                    <caption>Журнал аренды книг</caption>
-                    <thead>
-                        <tr>
-                            <th scope="col">ID</th>
-                            <th scope="col">Книга</th>
-                            <th scope="col">Пользователь</th>
-                            <th scope="col">Взята</th>
-                            <th scope="col">Статус</th>
-                            <th scope="col">Действие</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminRentalsTableBody">
-                        <tr><td colspan="6">Загрузка...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
-
-    <footer>© 2026 BIBLIOTECH. Все права защищены.</footer>
+        </div>
+    </section>
 </div>
 
 <div class="inventory-camera-modal" id="inventoryCameraModal" aria-hidden="true">
@@ -346,6 +388,7 @@
 
 <script src="js/admin.js"></script>
 <script src="js/book-import.js"></script>
+<script src="js/admin-workspace.js?v=20260713-admin-1"></script>
 <script src="vendor/jsQR.js"></script>
 <script src="js/library-operations.js?v=20260713-operations-1"></script>
 <script src="js/pwa.js"></script>

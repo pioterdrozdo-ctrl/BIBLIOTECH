@@ -1,0 +1,267 @@
+.admin-section-nav {
+    position: sticky;
+    top: 82px;
+    z-index: 20;
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+    padding: 6px;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(18px);
+    scrollbar-width: none;
+}
+
+.admin-section-nav::-webkit-scrollbar { display: none; }
+
+.admin-section-nav button {
+    flex: 1 0 auto;
+    min-height: 42px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+    transition: color .18s ease, background .18s ease, transform .18s ease;
+}
+
+.admin-section-nav button:hover { color: var(--text); }
+
+.admin-section-nav button.is-active {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+}
+
+.admin-section-nav button:focus-visible,
+.admin-command-card button:focus-visible,
+.admin-workspace-modal-head button:focus-visible {
+    outline: none;
+    box-shadow: var(--focus);
+}
+
+.admin-overview,
+.admin-users-panel[data-admin-section] {
+    margin-bottom: 18px;
+}
+
+.admin-overview[hidden],
+.admin-users-panel[data-admin-section][hidden] {
+    display: none !important;
+}
+
+.admin-section-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 16px;
+}
+
+.admin-section-heading h2 {
+    margin: 3px 0 0;
+    font-size: clamp(25px, 3vw, 36px);
+    line-height: 1.08;
+}
+
+.admin-section-heading p {
+    max-width: 520px;
+    margin: 0;
+    color: var(--muted);
+}
+
+.admin-command-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.admin-command-card {
+    min-width: 0;
+    min-height: 248px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 22px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 26px;
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    box-shadow: var(--shadow-soft);
+}
+
+.admin-command-card--accent {
+    background: linear-gradient(145deg, color-mix(in srgb, var(--accent-soft) 68%, var(--surface)), var(--surface));
+}
+
+.admin-command-icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 16px;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.admin-command-card small {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.admin-command-card h3 {
+    margin: 0;
+    color: var(--text);
+    font-size: 21px;
+    line-height: 1.15;
+}
+
+.admin-command-card p {
+    margin: 7px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.admin-command-card > button,
+.admin-command-actions button {
+    min-height: 44px;
+    margin-top: auto;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font: inherit;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.admin-command-actions {
+    display: grid;
+    grid-template-columns: .7fr 1fr;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.admin-command-actions .admin-command-secondary {
+    background: var(--surface-muted);
+    color: var(--text);
+}
+
+body.admin-workspace-locked { overflow: hidden; }
+
+.admin-workspace-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2600;
+    display: none;
+    place-items: center;
+    padding: 24px;
+    background: color-mix(in srgb, var(--text) 32%, transparent);
+    backdrop-filter: blur(12px);
+}
+
+.admin-workspace-modal.is-open { display: grid; }
+
+.admin-workspace-dialog {
+    width: min(720px, 100%);
+    max-height: min(900px, calc(100dvh - 48px));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow);
+}
+
+.admin-workspace-dialog--wide { width: min(1120px, 100%); }
+
+.admin-workspace-modal-head {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 22px;
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface-muted) 72%, var(--surface));
+}
+
+.admin-workspace-modal-head h2 { margin: 2px 0 0; font-size: 24px; }
+
+.admin-workspace-modal-head button {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.admin-workspace-modal-body {
+    min-height: 0;
+    padding: 18px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.admin-workspace-modal [hidden] { display: none !important; }
+
+.admin-workspace-modal .library-operation-panel {
+    padding: 4px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+@media (max-width: 960px) {
+    .admin-command-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .admin-section-nav { top: 72px; }
+}
+
+@media (max-width: 640px) {
+    .admin-section-nav {
+        top: 66px;
+        margin-inline: 14px;
+        width: auto;
+        border-radius: 22px;
+    }
+    .admin-section-nav button { padding: 0 15px; }
+    .admin-section-heading { display: grid; gap: 8px; }
+    .admin-command-grid { grid-template-columns: 1fr; }
+    .admin-command-card { min-height: 0; padding: 18px; border-radius: 22px; }
+    .admin-workspace-modal { padding: 0; place-items: end center; }
+    .admin-workspace-dialog,
+    .admin-workspace-dialog--wide {
+        width: 100%;
+        max-height: 94dvh;
+        border-radius: 26px 26px 0 0;
+        border-bottom: 0;
+    }
+    .admin-workspace-modal-head { padding: 16px; }
+    .admin-workspace-modal-body { padding: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-section-nav button { transition: none; }
+}

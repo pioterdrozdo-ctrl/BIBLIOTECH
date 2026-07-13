@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const os = require('os');
 const pool = require('../db/pool');
 const { authMiddleware, isAdmin } = require('../middleware/auth');
 const localStore = require('../services/localStore');
@@ -52,6 +53,51 @@ function mapBook(row = {}) {
     };
 }
 
+function normalizeHttpOrigin(value) {
+    try {
+        const url = new URL(String(value || '').trim());
+        if (!['http:', 'https:'].includes(url.protocol)) return null;
+        return url.origin;
+    } catch {
+        return null;
+    }
+}
+
+function findLanIpv4() {
+    const addresses = Object.values(os.networkInterfaces())
+        .flat()
+        .filter(address => address && address.family === 'IPv4' && !address.internal)
+        .map(address => address.address);
+    return addresses.find(address => address.startsWith('192.168.'))
+        || addresses.find(address => address.startsWith('10.'))
+        || addresses.find(address => /^172\.(1[6-9]|2\d|3[01])\./.test(address))
+        || addresses[0]
+        || null;
+}
+
+function publicAppOrigin(req) {
+    const configuredOrigin = normalizeHttpOrigin(process.env.PUBLIC_APP_URL || process.env.RENDER_EXTERNAL_URL);
+    if (configuredOrigin) return configuredOrigin;
+
+    const requestOrigin = normalizeHttpOrigin(`${req.protocol}://${req.get('host')}`);
+    if (!requestOrigin) return null;
+
+    const url = new URL(requestOrigin);
+    if (['localhost', '127.0.0.1', '::1'].includes(url.hostname)) {
+        const lanAddress = findLanIpv4();
+        if (lanAddress) return `${url.protocol}//${lanAddress}${url.port ? `:${url.port}` : ''}`;
+    }
+    return url.origin;
+}
+
+function buildBookLink(req, bookId) {
+    const origin = publicAppOrigin(req);
+    if (!origin || !Number.isFinite(Number(bookId))) return null;
+    const url = new URL('/home.html', `${origin}/`);
+    url.searchParams.set('book', String(bookId));
+    return url.toString();
+}
+
 async function readBooks() {
     try {
         const result = await pool.query(`
@@ -97,7 +143,11 @@ router.post('/labels', async (req, res) => {
     try {
         const books = await selectBooks(req.body);
         if (!books.length) return res.status(404).json({ error: 'Не найдены книги для этикеток' });
-        sendPdf(res, await createLabelsPdf(books), `bibliotech-labels-${Date.now()}.pdf`);
+        const printableBooks = books.map(book => ({
+            ...book,
+            qrLink: buildBookLink(req, book.id)
+        }));
+        sendPdf(res, await createLabelsPdf(printableBooks), `bibliotech-labels-${Date.now()}.pdf`);
     } catch (error) {
         console.error('[PDF] labels:', error);
         res.status(500).json({ error: 'Не удалось сформировать этикетки' });

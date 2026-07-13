@@ -188,8 +188,9 @@ async function createLabelsPdf(books = []) {
         const gap = 7;
         const columns = 3;
         const rows = 7;
+        const footerReserve = 66;
         const cellWidth = (pdf.page.width - marginX * 2 - gap * (columns - 1)) / columns;
-        const cellHeight = (pdf.page.height - marginY * 2 - gap * (rows - 1) - 18) / rows;
+        const cellHeight = (pdf.page.height - marginY - footerReserve - gap * (rows - 1)) / rows;
         for (let index = 0; index < books.length; index += 1) {
             if (index > 0 && index % (columns * rows) === 0) pdf.addPage();
             const pageIndex = index % (columns * rows);
@@ -203,9 +204,10 @@ async function createLabelsPdf(books = []) {
             pdf.fillColor(colors.paper).font('BibliotechBold').fontSize(6.6).text('BIBLIOTECH', x + 10, y + 12, {
                 width: 48, characterSpacing: 0.15, lineBreak: false
             });
-            const qrValue = text(book.qr_code || book.qrCode, '');
-            if (qrValue) {
-                const png = await QRCode.toBuffer(qrValue, { type: 'png', errorCorrectionLevel: 'M', margin: 1, width: 180 });
+            const storedQrCode = text(book.qr_code || book.qrCode, '');
+            const qrTarget = text(book.qrLink || book.qr_link || storedQrCode, '');
+            if (qrTarget) {
+                const png = await QRCode.toBuffer(qrTarget, { type: 'png', errorCorrectionLevel: 'M', margin: 1, width: 180 });
                 pdf.image(png, x + 8, y + 31, { width: 57, height: 57 });
             } else {
                 pdf.roundedRect(x + 8, y + 31, 57, 57, 5).fill(colors.accentSoft);
@@ -219,7 +221,7 @@ async function createLabelsPdf(books = []) {
             pdf.fillColor(colors.muted).font('Bibliotech').fontSize(7.3).text(text(book.author), textX, y + 40, {
                 width: textWidth, height: 20, ellipsis: true
             });
-            pdf.fillColor(colors.ink).font('BibliotechBold').fontSize(7.5).text(qrValue || 'Без QR', textX, y + 65, {
+            pdf.fillColor(colors.ink).font('BibliotechBold').fontSize(7.5).text(storedQrCode || 'Без QR', textX, y + 65, {
                 width: textWidth, ellipsis: true
             });
             pdf.fillColor(colors.muted).font('Bibliotech').fontSize(6.8).text(locationLabel(book), textX, y + 78, {
