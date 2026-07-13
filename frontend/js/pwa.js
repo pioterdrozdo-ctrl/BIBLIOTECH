@@ -223,7 +223,7 @@
     }
 
     if (isHomePage) {
-        loadScript('js/book-metadata.js?v=20260713-book-metadata-3', '__bibliotechBookMetadataLoading');
+        loadScript('js/book-metadata.js?v=20260713-book-metadata-4', '__bibliotechBookMetadataLoading');
         loadScript('js/reservation-queue.js?v=20260710-reservation-queue-1', '__bibliotechReservationQueueLoading');
         loadScript('js/rentals-request-guard.js?v=20260710-rentals-guard-1', '__bibliotechRentalsRequestGuardLoading');
         loadScript('js/profile-rentals.js?v=20260709-profile-rentals-1', '__bibliotechProfileRentalsLoading');
@@ -257,7 +257,7 @@
     loadStylesheet('css/theme-mode-preview.css?v=20260710-theme-mode-preview-1', '__bibliotechThemeModePreviewCss');
     loadStylesheet('css/liquid-theme-toggle.css?v=20260710-liquid-theme-2', '__bibliotechLiquidThemeToggleCss');
     loadStylesheet('css/commercial-polish.css?v=20260710-commercial-polish-1', '__bibliotechCommercialPolishCss');
-    loadStylesheet('css/apple-polish.css?v=20260711-apple-polish-4', '__bibliotechApplePolishCss');
+    loadStylesheet('css/apple-polish.css?v=20260713-apple-polish-5', '__bibliotechApplePolishCss');
     loadStylesheet('css/stats-spacing-fix.css?v=20260711-stats-spacing-1', '__bibliotechStatsSpacingFixCss');
 
     if (!('serviceWorker' in navigator)) return;

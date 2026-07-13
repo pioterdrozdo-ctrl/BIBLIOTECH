@@ -7,7 +7,7 @@
     <title>Карта первого этажа — BIBLIOTECH</title>
     <script src="js/theme-bootstrap.js"></script>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/library-3d-map.css">
+    <link rel="stylesheet" href="css/library-3d-map.css?v=20260713-semantic-floor-1">
 </head>
 <body class="library-map-page">
 <header>
@@ -34,7 +34,7 @@
         <div>
             <p class="map-eyebrow">Тушинский комплекс · 1 этаж</p>
             <h1 id="mapTitle">Карта первого этажа</h1>
-            <p>Исходный план перенесён без изменения расположения помещений. Отмечен только кабинет 125.</p>
+            <p>План реконструирован по предоставленным изображениям как нативная SVG-карта. Помещения, корпуса и дороги подстраиваются под выбранную тему BIBLIOTECH.</p>
         </div>
         <a class="map-back-link" href="home.html">← Вернуться в каталог</a>
     </section>
@@ -42,7 +42,7 @@
     <section class="exact-floor-card container" aria-labelledby="floorPlanTitle">
         <div class="exact-floor-head">
             <div>
-                <p class="map-eyebrow">Точный план</p>
+                <p class="map-eyebrow">Интерактивная SVG-карта BIBLIOTECH</p>
                 <h2 id="floorPlanTitle">Первый этаж Тушинского комплекса</h2>
             </div>
             <div class="exact-floor-controls" role="group" aria-label="Управление масштабом карты">
@@ -54,13 +54,26 @@
             </div>
         </div>
 
-        <div id="exactFloorViewport" class="exact-floor-viewport" tabindex="0" aria-label="План первого этажа. Карту можно прокручивать, приближать и отдалять.">
-            <div id="exactFloorPlan" class="exact-floor-canvas">
-                <img src="img/tushino-floor-1.svg" alt="Верхняя часть плана первого этажа" draggable="false">
-                <img src="img/tushino-floor-2.svg" alt="Средняя верхняя часть плана первого этажа" draggable="false">
-                <img src="img/tushino-floor-3.svg" alt="Средняя нижняя часть плана первого этажа" draggable="false">
-                <img src="img/tushino-floor-4.svg" alt="Нижняя часть плана первого этажа" draggable="false">
+        <div class="exact-floor-view-switcher" role="tablist" aria-label="Области реконструированного плана первого этажа">
+            <button type="button" role="tab" data-floor-view="overview" aria-selected="true">Общий вид</button>
+            <button type="button" role="tab" data-floor-view="north" aria-selected="false">Северное крыло</button>
+            <button type="button" role="tab" data-floor-view="south" aria-selected="false">Южное крыло</button>
+            <button type="button" role="tab" data-floor-view="room125" aria-selected="false">Кабинет 125</button>
+        </div>
+
+        <div id="exactFloorViewport" class="exact-floor-viewport" tabindex="0" aria-label="Реконструированный план первого этажа. Карту можно прокручивать, приближать и отдалять." aria-describedby="exactFloorViewDescription">
+            <span class="exact-floor-source-chip">Тушино · этаж 1 · семантическая SVG-схема</span>
+            <div id="exactFloorPlan" class="exact-floor-canvas" data-active-view="overview">
+                <svg id="semanticFloorSvg" class="semantic-floor-svg" viewBox="0 0 1400 980" role="img" aria-labelledby="semanticFloorTitle semanticFloorDescription"></svg>
                 <button id="room125ExactMarker" class="room-125-exact-marker" type="button" aria-label="Кабинет 125. В этом кабинете находится физический фонд BIBLIOTECH"><span>125</span></button>
+            </div>
+        </div>
+
+        <div class="exact-floor-view-caption" aria-live="polite">
+            <span id="exactFloorViewCounter">Вид 1 из 4</span>
+            <div>
+                <h3 id="exactFloorViewTitle">Общий вид первого этажа</h3>
+                <p id="exactFloorViewDescription">Реконструированная схема показывает взаимное расположение корпусов, переходов и прилегающих дорог.</p>
             </div>
         </div>
 
@@ -70,9 +83,11 @@
                 <p class="map-eyebrow">Отмеченный кабинет</p>
                 <h3>Кабинет 125</h3>
                 <p>В этом кабинете находится физический фонд BIBLIOTECH.</p>
+                <p id="targetBookMessage" class="target-book-map-message" hidden></p>
+                <a id="room125StorageLink" class="room-125-storage-link" href="map-lite.html">Открыть схему мест хранения →</a>
             </div>
         </div>
-        <p class="map-gesture-hint">Кнопка «Показать весь этаж» полностью отдаляет план. Для перемещения прокручивайте карту пальцем или мышью.</p>
+        <p class="map-gesture-hint">Переключайте области над картой. Для перемещения тяните схему пальцем или мышью; масштаб меняется кнопками и сочетанием Ctrl/⌘ + колесо.</p>
     </section>
 </main>
 
@@ -110,9 +125,12 @@
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape') setOpen(false);
     });
+    document.getElementById('mapCurrentUser')?.addEventListener('click', () => {
+        window.location.href = 'home.html#profile';
+    });
 })();
 </script>
-<script src="js/exact-floor-map.js" defer></script>
+<script src="js/exact-floor-map.js?v=20260713-semantic-floor-1" defer></script>
 <script src="js/pwa.js"></script>
 </body>
 </html>

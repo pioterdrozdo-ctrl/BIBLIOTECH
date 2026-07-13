@@ -381,80 +381,6 @@ async function lookupGoogleBooksMetadata(isbn, fetchImpl, signal, apiKey = '') {
     return hasUsefulMetadata(metadata) ? metadata : null;
 }
 
-function firstStructuredValue(...values) {
-    for (const value of values) {
-        const candidate = Array.isArray(value) ? value[0] : value;
-        if (candidate && typeof candidate === 'object') {
-            const nested = firstStructuredValue(candidate.name, candidate.title, candidate.value);
-            if (nested) return nested;
-        } else {
-            const text = cleanText(candidate, 2000);
-            if (text) return text;
-        }
-    }
-    return '';
-}
-
-function cleanSearchResultTitle(value) {
-    const title = cleanText(value, 255);
-    return cleanText(title.split(/\s(?:\||—)\s/)[0], 255);
-}
-
-function mapGoogleCustomSearchMetadata(isbn, item = {}) {
-    const pageMap = item.pagemap || {};
-    const book = asArray(pageMap.book)[0] || {};
-    const product = asArray(pageMap.product)[0] || {};
-    const meta = asArray(pageMap.metatags)[0] || {};
-    const image = asArray(pageMap.cse_image)[0] || {};
-    const title = cleanSearchResultTitle(firstStructuredValue(
-        book.name,
-        book.title,
-        product.name,
-        meta['og:title'],
-        item.title
-    ));
-    if (!title) return null;
-    const author = firstStructuredValue(book.author, meta['book:author'], meta['og:book:author'], meta.author);
-    const description = firstStructuredValue(
-        book.description,
-        product.description,
-        meta['og:description'],
-        meta.description,
-        item.snippet
-    );
-    return {
-        isbn,
-        title,
-        author: cleanText(author, 255),
-        description: stripMarkup(description),
-        publisher: cleanText(firstStructuredValue(book.publisher, product.brand, meta.publisher), 255),
-        publicationYear: normalizePublicationYear(firstStructuredValue(book.datepublished, product.releasedate, meta['article:published_time'])),
-        genre: cleanText(firstStructuredValue(book.genre, product.category), 160),
-        language: normalizeLanguage(firstStructuredValue(book.inlanguage, meta['og:locale'], meta.language)),
-        coverDataURL: normalizeCoverUrl(firstStructuredValue(image.src, book.image, product.image, meta['og:image'])),
-        source: 'googlecustomsearch',
-        sourceUrl: normalizeHttpUrl(item.link) || null
-    };
-}
-
-async function lookupGoogleCustomSearchMetadata(isbn, fetchImpl, signal, apiKey, cx) {
-    if (!apiKey || !cx) return null;
-    const variants = isbnVariants(isbn);
-    const params = new URLSearchParams({
-        key: apiKey,
-        cx,
-        q: `${variants.map(value => `"${value}"`).join(' OR ')} книга ISBN`,
-        num: '5',
-        safe: 'active'
-    });
-    const payload = await fetchJson(`https://www.googleapis.com/customsearch/v1?${params}`, fetchImpl, signal);
-    for (const item of asArray(payload?.items)) {
-        const metadata = mapGoogleCustomSearchMetadata(isbn, item);
-        if (metadata) return metadata;
-    }
-    return null;
-}
-
 async function runProviderLookup(task) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), LOOKUP_TIMEOUT_MS);
@@ -470,9 +396,7 @@ async function runProviderLookup(task) {
 async function lookupIsbnMetadata(value, {
     fetchImpl = global.fetch,
     useCache = true,
-    googleBooksApiKey = process.env.GOOGLE_BOOKS_API_KEY || process.env.GOOGLE_API_KEY || '',
-    googleCustomSearchApiKey = process.env.GOOGLE_CUSTOM_SEARCH_API_KEY || process.env.GOOGLE_API_KEY || '',
-    googleCustomSearchCx = process.env.GOOGLE_CUSTOM_SEARCH_CX || ''
+    googleBooksApiKey = process.env.GOOGLE_BOOKS_API_KEY || process.env.GOOGLE_API_KEY || ''
 } = {}) {
     const isbn = normalizeIsbn(value);
     if (!validateIsbn(isbn)) {
@@ -493,15 +417,6 @@ async function lookupIsbnMetadata(value, {
         signal => lookupOpenLibraryMetadata(isbn, fetchImpl, signal),
         signal => lookupGoogleBooksMetadata(isbn, fetchImpl, signal, googleBooksApiKey)
     ];
-    if (googleCustomSearchApiKey && googleCustomSearchCx) {
-        providers.push(signal => lookupGoogleCustomSearchMetadata(
-            isbn,
-            fetchImpl,
-            signal,
-            googleCustomSearchApiKey,
-            googleCustomSearchCx
-        ));
-    }
 
     const providerErrors = [];
     for (const provider of providers) {
@@ -520,10 +435,7 @@ async function lookupIsbnMetadata(value, {
         error.code = 'METADATA_TIMEOUT';
         throw error;
     }
-    const customSearchConfigured = Boolean(googleCustomSearchApiKey && googleCustomSearchCx);
-    const error = new Error(customSearchConfigured
-        ? 'ISBN корректен, но сведения не найдены в Open Library, Google Books и Google Search. Заполните данные вручную.'
-        : 'ISBN корректен, но сведения не найдены в Open Library и Google Books. Google Search не настроен на сервере; заполните данные вручную.');
+    const error = new Error('ISBN корректен, но сведения не найдены в Open Library и Google Books. Заполните данные вручную.');
     error.code = 'ISBN_NOT_FOUND';
     throw error;
 }
@@ -537,6 +449,5 @@ module.exports = {
     normalizeBookMetadataInput,
     mapOpenLibraryMetadata,
     mapGoogleBooksMetadata,
-    mapGoogleCustomSearchMetadata,
     lookupIsbnMetadata
 };

@@ -55,7 +55,7 @@ const criticalUiScripts = [
 
 const finalUiStyles = [
     '/css/commercial-polish.css?v=20260710-commercial-polish-1',
-    '/css/apple-polish.css?v=20260711-apple-polish-4'
+    '/css/apple-polish.css?v=20260713-apple-polish-5'
 ];
 
 const homeCriticalStyles = [
@@ -69,7 +69,7 @@ const homeCriticalStyles = [
 ];
 
 const homeCriticalScripts = [
-    '/js/book-metadata.js?v=20260713-book-metadata-3',
+    '/js/book-metadata.js?v=20260713-book-metadata-4',
     '/js/reservation-queue.js?v=20260710-reservation-queue-1',
     '/js/rentals-request-guard.js?v=20260710-rentals-guard-1',
     '/js/profile-rentals.js?v=20260709-profile-rentals-1',

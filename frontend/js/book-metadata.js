@@ -113,7 +113,7 @@
                     <b>ISBN и данные издания</b>
                     <span>Введите ISBN-10 или ISBN-13. ISBN-10 автоматически преобразуется в ISBN-13.</span>
                 </div>
-                <span class="isbn-provider">Open Library → Google Books → Google Search</span>
+                <span class="isbn-provider">Open Library → Google Books</span>
             </div>
             <div class="isbn-lookup-row">
                 <label class="isbn-input-field">
@@ -180,8 +180,7 @@
     function metadataProviderLabel(source) {
         return {
             openlibrary: 'Open Library',
-            googlebooks: 'Google Books',
-            googlecustomsearch: 'Google Search'
+            googlebooks: 'Google Books'
         }[String(source || '').toLowerCase()] || 'внешний источник';
     }
 

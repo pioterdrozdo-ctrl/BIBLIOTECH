@@ -12,7 +12,6 @@ const {
     normalizeBookMetadataInput,
     mapOpenLibraryMetadata,
     mapGoogleBooksMetadata,
-    mapGoogleCustomSearchMetadata,
     lookupIsbnMetadata
 } = require('../backend/services/isbnMetadata');
 
@@ -54,10 +53,9 @@ function validateArchitecture() {
     assert.ok(service.includes('Promise.allSettled'), 'ISBN lookup does not tolerate a partial provider failure');
     assert.ok(service.includes('/search.json?isbn='), 'preferred Open Library Search API is not used');
     assert.ok(service.includes('books/v1/volumes?'), 'Google Books fallback is missing');
-    assert.ok(service.includes('customsearch/v1?'), 'Google Custom Search fallback is missing');
     assert.ok(service.indexOf('lookupOpenLibraryMetadata(isbn') < service.indexOf('lookupGoogleBooksMetadata(isbn'), 'provider cascade does not start with Open Library');
-    assert.ok(service.indexOf('lookupGoogleBooksMetadata(isbn') < service.indexOf('lookupGoogleCustomSearchMetadata('), 'Google Custom Search must run after Google Books');
-    assert.ok(service.includes('GOOGLE_CUSTOM_SEARCH_CX'), 'server-side Custom Search configuration is missing');
+    assert.equal(service.includes('customsearch/v1?'), false, 'removed Google Custom Search API is still wired');
+    assert.equal(service.includes('GOOGLE_CUSTOM_SEARCH'), false, 'removed Google Custom Search configuration is still present');
     assert.ok(service.includes('PROVIDER_RETRY_ATTEMPTS'), 'transient provider retry is missing');
     assert.ok(service.includes('isbn10To13'), 'ISBN-10 to ISBN-13 conversion is missing');
     assert.ok(server.includes("app.use('/api/book-metadata', bookMetadataRoutes)"), 'metadata routes are not mounted');
@@ -73,8 +71,8 @@ function validateArchitecture() {
 
     assert.ok(ui.includes('id="bookIsbn"'), 'ISBN input is missing');
     assert.ok(ui.includes('lookupIsbn'), 'ISBN lookup UI is missing');
-    assert.ok(ui.includes('Open Library → Google Books → Google Search'), 'ISBN provider cascade is not explained in the form');
-    assert.equal(ui.includes('GOOGLE_CUSTOM_SEARCH_API_KEY'), false, 'Google API keys are exposed to the browser');
+    assert.ok(ui.includes('Open Library → Google Books'), 'ISBN provider cascade is not explained in the form');
+    assert.equal(ui.includes('Google Search'), false, 'removed Google Search provider is still shown in the form');
     assert.ok(ui.includes('Применить данные'), 'metadata review step is missing');
     assert.ok(ui.includes("form.addEventListener('submit', saveBookWithMetadata, true)"), 'safe metadata form interception is missing');
     assert.ok(ui.includes('/book-metadata/books'), 'metadata save endpoint is not used');
@@ -88,7 +86,7 @@ function validateArchitecture() {
     assert.ok(ui.includes('lookupRequestId'), 'stale ISBN responses are not guarded');
     assert.ok(ui.includes('ISBN-10 автоматически преобразуется в ISBN-13'), 'ISBN conversion is not explained in the form');
     assert.ok(ui.includes("event.key !== 'Enter'"), 'ISBN search cannot be started safely with Enter');
-    assert.ok(pwa.includes('book-metadata.js?v=20260713-book-metadata-3'), 'PWA does not load current metadata JavaScript');
+    assert.ok(pwa.includes('book-metadata.js?v=20260713-book-metadata-4'), 'PWA does not load current metadata JavaScript');
     assert.ok(pwa.includes('book-metadata.css?v=20260713-book-metadata-3'), 'PWA does not load current metadata CSS');
     assert.match(sw, /const CACHE_NAME = 'bibliotech-pwa-v\d[^']*'/, 'PWA cache has no versioned name');
     assert.ok(sw.includes("'/js/book-metadata.js'"), 'metadata JavaScript is not cached');
@@ -164,19 +162,6 @@ function response(status, payload) {
     assert.equal(googleMapped.source, 'googlebooks');
     assert.equal(googleMapped.description, 'A clever fox.');
     assert.equal(googleMapped.coverDataURL, 'https://books.google.com/cover.jpg');
-
-    const customMapped = mapGoogleCustomSearchMetadata('9780140328721', {
-        title: 'Fantastic Mr. Fox | Book shop',
-        link: 'https://example.test/fantastic-mr-fox',
-        snippet: 'A clever fox protects his family.',
-        pagemap: {
-            book: [{ name: 'Fantastic Mr. Fox', author: 'Roald Dahl', datepublished: '1988', publisher: 'Puffin' }],
-            cse_image: [{ src: 'https://example.test/cover.jpg' }]
-        }
-    });
-    assert.equal(customMapped.source, 'googlecustomsearch');
-    assert.equal(customMapped.author, 'Roald Dahl');
-    assert.equal(customMapped.publicationYear, 1988);
 
     let fetchCalls = 0;
     const fakeFetch = async url => {
@@ -276,45 +261,6 @@ function response(status, payload) {
     assert.equal(googleFallback.source, 'googlebooks');
     assert.equal(googleFallback.title, 'Google fallback title');
     assert.ok(googleCalls.findIndex(url => url.includes('openlibrary.org')) < googleCalls.findIndex(url => url.includes('/books/v1/volumes?')), 'Google Books ran before Open Library finished');
-    assert.equal(googleCalls.some(url => url.includes('/customsearch/v1?')), false, 'Custom Search ran after Google Books already found the book');
-
-    const customCalls = [];
-    const customFallback = await lookupIsbnMetadata('5898151710', {
-        useCache: false,
-        googleBooksApiKey: 'server-only-books-key',
-        googleCustomSearchApiKey: 'server-only-custom-key',
-        googleCustomSearchCx: 'search-engine-id',
-        fetchImpl: async url => {
-            customCalls.push(String(url));
-            if (String(url).includes('/search.json?')) return response(200, { docs: [] });
-            if (String(url).includes('/isbn/')) return response(404, {});
-            if (String(url).includes('/books/v1/volumes?')) return response(200, { totalItems: 0, items: [] });
-            if (String(url).includes('/customsearch/v1?')) {
-                return response(200, {
-                    items: [{
-                        title: 'Грамматика: сборник упражнений | Книжный магазин',
-                        link: 'https://example.test/grammar',
-                        snippet: 'Ю. Б. Голицынский. Издательство КАРО.',
-                        pagemap: {
-                            book: [{
-                                name: 'Грамматика: сборник упражнений',
-                                author: 'Ю. Б. Голицынский',
-                                publisher: 'КАРО'
-                            }]
-                        }
-                    }]
-                });
-            }
-            return response(404, {});
-        }
-    });
-    assert.equal(customFallback.source, 'googlecustomsearch');
-    assert.equal(customFallback.isbn, '9785898151713');
-    assert.equal(customFallback.author, 'Ю. Б. Голицынский');
-    const booksCallIndex = customCalls.findIndex(url => url.includes('/books/v1/volumes?'));
-    const customCallIndex = customCalls.findIndex(url => url.includes('/customsearch/v1?'));
-    assert.ok(booksCallIndex >= 0 && customCallIndex > booksCallIndex, 'Custom Search did not run strictly after Google Books');
-    assert.match(customCalls[customCallIndex], /cx=search-engine-id/);
 
     await assert.rejects(
         () => lookupIsbnMetadata('5898151710', {

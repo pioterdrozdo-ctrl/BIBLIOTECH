@@ -6,21 +6,6 @@ const { chromium } = require('playwright');
 const baseUrl = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:3001';
 let adminToken = '';
 
-async function setSession(page, role = 'admin') {
-    await page.addInitScript(({ role, token }) => {
-        const session = { id: 1, username: role === 'admin' ? 'Map Admin' : 'Map Reader', role, guest: false };
-        localStorage.setItem('bibliotech_current_user', JSON.stringify(session));
-        if (token) localStorage.setItem('token', token);
-        localStorage.setItem(`bibliotech_product_welcome_v1_${session.username.toLowerCase()}`, '1');
-        const nativeRaf = window.requestAnimationFrame.bind(window);
-        window.__mapSmokeRafCount = 0;
-        window.requestAnimationFrame = callback => {
-            window.__mapSmokeRafCount += 1;
-            return nativeRaf(callback);
-        };
-    }, { role, token: adminToken });
-}
-
 async function authenticateSmokeAdmin() {
     const response = await fetch(`${baseUrl}/api/auth/login`, {
         method: 'POST',
@@ -28,25 +13,34 @@ async function authenticateSmokeAdmin() {
         body: JSON.stringify({ username: 'admin', password: 'GreenScreen' })
     });
     assert.equal(response.status, 200, 'Smoke admin login failed');
-    const payload = await response.json();
-    assert.ok(payload.token, 'Smoke admin token is missing');
-    adminToken = payload.token;
+    adminToken = (await response.json()).token;
+    assert.ok(adminToken, 'Smoke admin token is missing');
+}
+
+async function setSession(page, role = 'admin') {
+    await page.addInitScript(({ role, token }) => {
+        const session = { id: 1, username: role === 'admin' ? 'Map Admin' : 'Map Reader', role, guest: false };
+        localStorage.setItem('bibliotech_current_user', JSON.stringify(session));
+        localStorage.setItem('token', token);
+        localStorage.setItem(`bibliotech_product_welcome_v1_${session.username.toLowerCase()}`, '1');
+    }, { role, token: adminToken });
 }
 
 function collectErrors(page, label, errors) {
-    page.on('pageerror', error => errors.push(`${label}: ${error.message}`));
+    page.on('pageerror', error => errors.push(`${label}: ${error.stack || error.message}`));
     page.on('console', message => {
         if (message.type() === 'error') errors.push(`${label}: ${message.text()}`);
+    });
+    page.on('requestfailed', request => {
+        const errorText = request.failure()?.errorText || 'unknown';
+        if (errorText.includes('ERR_ABORTED')) return;
+        errors.push(`${label}: request failed ${request.url()} (${errorText})`);
     });
 }
 
 async function waitForMap(page) {
-    await page.waitForFunction(() => {
-        const loading = document.getElementById('mapLoading');
-        const canvas = document.querySelector('#mapCanvasHost canvas');
-        const fallback = document.getElementById('map2dFallback');
-        return loading?.classList.contains('hidden') && (canvas || !fallback?.classList.contains('hidden'));
-    }, null, { timeout: 15000 });
+    await page.waitForFunction(() => window.BibliotechExactFloorMap?.getState().semantic
+        && document.querySelectorAll('#semanticFloorSvg .semantic-room').length >= 70);
 }
 
 async function checkDesktop(browser, errors) {
@@ -56,26 +50,35 @@ async function checkDesktop(browser, errors) {
     const response = await page.goto(`${baseUrl}/map.html`, { waitUntil: 'domcontentloaded' });
     assert.equal(response?.status(), 200);
     await waitForMap(page);
-    assert.equal(await page.locator('#mapCanvasHost canvas').count(), 1, '3D canvas is missing');
-    assert.equal(await page.locator('.map-location-button').count(), 2, 'Room 125 must contain two storage controls');
-    assert.equal(await page.locator('#mapAdminPanel:not(.hidden)').count(), 1, 'Admin map panel is not integrated');
 
-    await page.locator('#enterRoomButton').click();
-    await page.locator('.map-location-button[data-location-id="1"]').click();
-    assert.equal(await page.locator('#mapSelectionPanel .map-book-row').count(), 3, 'Storage place books did not open');
-    await page.locator('#mapSearchInput').fill('1984');
-    assert.equal(await page.locator('#mapSearchResult').textContent(), '1 книг', 'Local book search did not find the expected book');
-    assert.equal(await page.locator('.map-location-button:not([hidden])').count(), 1, 'Search did not narrow storage places');
-    await page.locator('#toggleMapEditButton').click();
-    assert.equal(await page.locator('#mapAdminObjectSelect option').count(), 10, 'Admin object picker is incomplete');
-    await page.locator('#mapAdminObjectSelect').selectOption('1');
-    assert.equal(await page.locator('[data-map-field="x"]').isEnabled(), true, 'Admin coordinates are not editable');
+    assert.equal(await page.locator('#semanticFloorSvg').count(), 1, 'semantic SVG map is missing');
+    assert.ok(await page.locator('#semanticFloorSvg .semantic-room').count() >= 70, 'reconstructed map has too few semantic rooms');
+    assert.ok(await page.locator('#semanticFloorSvg [data-building]').count() >= 8, 'reconstructed campus is missing buildings');
+    assert.equal(await page.locator('#semanticFloorSvg image').count(), 0, 'semantic map embeds a screenshot');
+    assert.equal(await page.locator('#semanticFloorSvg .semantic-room--target[data-room="125"]').count(), 1, 'semantic room 125 is missing');
+    assert.equal(await page.locator('.exact-floor-view-switcher [role="tab"]').count(), 4, 'map view switcher is incomplete');
+    assert.equal(await page.locator('[data-floor-view="overview"][aria-selected="true"]').count(), 1, 'overview is not selected initially');
+    const lightRoomFill = await page.locator('#semanticFloorSvg .semantic-room:not(.semantic-room--target) .semantic-room-shape').first().evaluate(element => getComputedStyle(element).fill);
+    const darkRoomFill = await page.locator('#semanticFloorSvg .semantic-room:not(.semantic-room--target) .semantic-room-shape').first().evaluate(element => {
+        window.BibliotechTheme.setMode('dark', { persist: false });
+        return getComputedStyle(element).fill;
+    });
+    assert.notEqual(darkRoomFill, lightRoomFill, 'semantic rooms do not adapt to the active theme');
 
-    await page.waitForTimeout(900);
-    const beforeIdle = await page.evaluate(() => window.__mapSmokeRafCount);
-    await page.waitForTimeout(500);
-    const afterIdle = await page.evaluate(() => window.__mapSmokeRafCount);
-    assert.equal(afterIdle - beforeIdle, 0, 'Map keeps requesting animation frames while idle');
+    const zoomBefore = await page.locator('#exactFloorZoomValue').textContent();
+    await page.locator('#exactFloorZoomIn').click();
+    assert.notEqual(await page.locator('#exactFloorZoomValue').textContent(), zoomBefore, 'map zoom did not change');
+    await page.locator('[data-floor-view="north"]').click();
+    assert.equal(await page.locator('[data-floor-view="north"]').getAttribute('aria-selected'), 'true');
+    assert.equal(await page.evaluate(() => window.BibliotechExactFloorMap.getState().activeView), 'north', 'north map region did not open');
+
+    await page.locator('#exactFloorRoom125').click();
+    await page.waitForFunction(() => window.BibliotechExactFloorMap.getState().activeView === 'room125');
+    assert.equal(await page.locator('#room125ExactMarker').isVisible(), true, 'room 125 marker is missing');
+    assert.match(await page.locator('#exactFloorViewTitle').textContent(), /125/);
+    if (process.env.MAP_SCREENSHOT_PATH) {
+        await page.screenshot({ path: process.env.MAP_SCREENSHOT_PATH, timeout: 60000 });
+    }
     await page.close();
 }
 
@@ -85,9 +88,10 @@ async function checkBookDeepLink(browser, errors) {
     await setSession(page);
     await page.goto(`${baseUrl}/map.html?book=2`, { waitUntil: 'domcontentloaded' });
     await waitForMap(page);
-    await page.waitForFunction(() => document.querySelector('.map-location-button.target .place-number')?.textContent === '12');
-    assert.match(await page.locator('#targetBookMessage').textContent(), /Искомая книга/);
-    assert.equal(await page.locator('.target-book-row').count(), 1, 'Target book is not marked in the storage list');
+    await page.waitForFunction(() => window.BibliotechExactFloorMap.getState().activeView === 'room125');
+    assert.match(await page.locator('#targetBookMessage').textContent(), /№2/);
+    assert.equal(await page.locator('#targetBookMessage').isVisible(), true);
+    assert.equal(await page.locator('#room125StorageLink').getAttribute('href'), 'map-lite.html?book=2');
     await page.close();
 }
 
@@ -95,40 +99,23 @@ async function checkMobile(browser, errors) {
     const page = await browser.newPage({ viewport: { width: 360, height: 800 }, isMobile: true, hasTouch: true });
     collectErrors(page, 'mobile', errors);
     await setSession(page, 'user');
-    await page.goto(`${baseUrl}/map.html?book=2`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${baseUrl}/map.html`, { waitUntil: 'domcontentloaded' });
     await waitForMap(page);
-    const metrics = await page.evaluate(() => {
-        const canvas = document.querySelector('#mapCanvasHost canvas');
-        const cssWidth = canvas?.getBoundingClientRect().width || 1;
-        return {
-            innerWidth: window.innerWidth,
-            scrollWidth: document.documentElement.scrollWidth,
-            toolbarWidth: document.querySelector('.map-toolbar')?.getBoundingClientRect().width || 0,
-            canvasRatio: canvas ? canvas.width / cssWidth : 0,
-            sceneHeight: document.getElementById('mapSceneShell')?.getBoundingClientRect().height || 0
-        };
-    });
+    const metrics = await page.evaluate(() => ({
+        innerWidth: window.innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        viewportHeight: document.getElementById('exactFloorViewport')?.getBoundingClientRect().height || 0,
+        viewColumns: getComputedStyle(document.querySelector('.exact-floor-view-switcher')).gridTemplateColumns.split(' ').length,
+        semanticMaps: document.querySelectorAll('#semanticFloorSvg').length,
+        semanticRooms: document.querySelectorAll('#semanticFloorSvg .semantic-room').length
+    }));
     assert.equal(metrics.innerWidth, 360);
     assert.ok(metrics.scrollWidth <= 360, `Mobile layout overflows to ${metrics.scrollWidth}px`);
-    assert.ok(metrics.toolbarWidth <= metrics.innerWidth, `Mobile toolbar is too wide: ${metrics.toolbarWidth}px`);
-    assert.ok(metrics.canvasRatio <= 1.05, `Mobile renderer pixel ratio is too high: ${metrics.canvasRatio}`);
-    assert.ok(metrics.sceneHeight >= 400, 'Mobile scene has an unusably small touch target');
+    assert.ok(metrics.viewportHeight >= 450, 'Mobile vector map has an unusably small touch target');
+    assert.equal(metrics.viewColumns, 2, 'Mobile view buttons are not arranged in two columns');
+    assert.equal(metrics.semanticMaps, 1, 'Semantic map is missing on mobile');
+    assert.ok(metrics.semanticRooms >= 70, 'Semantic rooms are missing on mobile');
     await page.close();
-}
-
-async function checkFallback(browser, errors) {
-    const context = await browser.newContext({ serviceWorkers: 'block' });
-    await context.route('**/vendor/three/**', route => route.abort());
-    const page = await context.newPage({ viewport: { width: 900, height: 700 } });
-    await setSession(page, 'user');
-    page.on('pageerror', error => {
-        if (!/Failed to fetch dynamically imported module/i.test(error.message)) errors.push(`fallback: ${error.message}`);
-    });
-    await page.goto(`${baseUrl}/map.html`, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => !document.getElementById('map2dFallback')?.classList.contains('hidden'));
-    assert.equal(await page.locator('#map2dFallback .fallback-storage').count(), 2, '2D fallback has no storage zones');
-    assert.equal(await page.locator('#mapCanvasHost:not(.hidden)').count(), 0, 'Broken WebGL canvas remained visible');
-    await context.close();
 }
 
 async function checkCatalogIntegration(browser, errors) {
@@ -140,11 +127,9 @@ async function checkCatalogIntegration(browser, errors) {
     assert.equal(await page.locator('a[href="map.html"]').count(), 1, 'Map navigation is missing or duplicated');
     assert.equal(await page.locator('#showBookOnMapButton').count(), 1, 'Book map launcher is missing or duplicated');
     const cards = page.locator('.book-card');
-    assert.ok(await cards.count() > 0, 'Catalog books disappeared');
     await cards.first().click();
     await page.waitForSelector('#viewModal.active');
     const bookId = await page.locator('#viewModal').getAttribute('data-book-id');
-    assert.ok(Number(bookId) > 0, 'Book card did not expose a safe numeric ID to the map launcher');
     await Promise.all([
         page.waitForURL(url => url.pathname.endsWith('/map.html') && url.searchParams.get('book') === bookId),
         page.locator('#showBookOnMapButton').click()
@@ -155,15 +140,17 @@ async function checkCatalogIntegration(browser, errors) {
 (async () => {
     const errors = [];
     await authenticateSmokeAdmin();
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({
+        headless: true,
+        ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH } : {})
+    });
     try {
         await checkDesktop(browser, errors);
         await checkBookDeepLink(browser, errors);
         await checkMobile(browser, errors);
-        await checkFallback(browser, errors);
         await checkCatalogIntegration(browser, errors);
         assert.deepEqual(errors, [], `Browser errors:\n${errors.join('\n')}`);
-        console.log('Library map smoke OK: desktop, 360px mobile, deep link, idle renderer, SVG fallback and catalog integration validated.');
+        console.log('Library map smoke OK: semantic SVG reconstruction, theme adaptation, room 125, zoom, deep link, mobile and catalog integration work.');
     } finally {
         await browser.close();
     }

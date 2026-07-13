@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v36-isbn-provider-cascade';
+const CACHE_NAME = 'bibliotech-pwa-v40-semantic-floor-map';
 const APP_SHELL = [
     '/',
     '/index.html',
@@ -34,6 +34,7 @@ const APP_SHELL = [
     '/js/library-map-admin.js',
     '/js/library-map-launcher.js',
     '/js/library-map-lite.js',
+    '/js/exact-floor-map.js',
     '/js/catalog-fix.js',
     '/js/theme-bootstrap.js',
     '/js/pwa.js',

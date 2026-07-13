@@ -9,7 +9,9 @@
         button.className = 'rent-book-btn show-book-map-button';
         button.textContent = '⌖ Показать кабинет на карте';
         button.addEventListener('click', () => {
-            window.location.assign('map.html');
+            const bookId = document.getElementById('viewModal')?.dataset.bookId || '';
+            const target = /^\d+$/.test(bookId) ? `map.html?book=${encodeURIComponent(bookId)}` : 'map.html';
+            window.location.assign(target);
         });
         placementCard.appendChild(button);
     }

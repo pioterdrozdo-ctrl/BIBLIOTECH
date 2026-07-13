@@ -89,7 +89,7 @@
             }
             elements.title.textContent = 'Кабинет 125';
             elements.meta.textContent = 'Выберите место на схеме, чтобы посмотреть находящиеся там книги.';
-            elements.fullMap.href = 'map.html?force3d=1';
+            elements.fullMap.href = 'map.html';
             return;
         }
 
@@ -103,7 +103,7 @@
         if (!state.targetBook) {
             elements.title.textContent = 'Книга не найдена';
             elements.meta.textContent = `В каталоге нет книги с идентификатором ${bookId}.`;
-            elements.fullMap.href = `map.html?book=${encodeURIComponent(bookId)}&force3d=1`;
+            elements.fullMap.href = `map.html?book=${encodeURIComponent(bookId)}`;
             return;
         }
 
@@ -112,7 +112,7 @@
             state.targetBook.author || 'Автор не указан',
             state.targetBook.available && Number(state.targetBook.copies || 0) > 0 ? 'В наличии' : 'Сейчас недоступна'
         ].join(' · ');
-        elements.fullMap.href = `map.html?book=${encodeURIComponent(state.targetBook.id)}&force3d=1`;
+        elements.fullMap.href = `map.html?book=${encodeURIComponent(state.targetBook.id)}`;
     }
 
     function renderLocationPanel() {

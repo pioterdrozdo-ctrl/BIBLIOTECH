@@ -4,75 +4,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#f5f5f7">
-    <title>Карта первого этажа — BIBLIOTECH</title>
+    <title>Карта фонда — BIBLIOTECH</title>
     <script src="js/theme-bootstrap.js"></script>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/library-3d-map.css">
+    <link rel="stylesheet" href="css/library-map-lite.css?v=20260713-storage-map-1">
 </head>
-<body class="library-map-page">
+<body class="map-lite-page">
 <header>
     <div class="container">
         <div class="header-inner">
             <a class="NAHODKI brand-logo" href="home.html"><img src="img/appicon-system-v2.png" alt="Логотип BIBLIOTECH"><span>BIBLIOTECH</span></a>
-            <nav aria-label="Навигация карты">
+            <button class="menu_icon" id="mapLiteMenuButton" type="button" aria-controls="mapLiteNav" aria-expanded="false" aria-label="Открыть меню"><span></span><span></span><span></span></button>
+            <nav id="mapLiteNav" aria-label="Навигация карты фонда">
                 <ul>
                     <li><a href="home.html">Каталог</a></li>
-                    <li class="active"><a href="map-lite.html" aria-current="page">Карта</a></li>
+                    <li><a href="map.html">Векторная карта этажа</a></li>
                 </ul>
             </nav>
         </div>
     </div>
 </header>
 
-<main class="map-main">
-    <section class="map-heading container" aria-labelledby="mapTitle">
+<main class="container map-lite-main">
+    <section class="map-lite-heading">
         <div>
-            <p class="map-eyebrow">Тушинский комплекс · 1 этаж</p>
-            <h1 id="mapTitle">Карта первого этажа</h1>
-            <p>Исходный план перенесён без изменения расположения помещений. Отмечен только кабинет 125.</p>
+            <p class="map-lite-eyebrow">Физический фонд · Тушинский комплекс · кабинет 125</p>
+            <h1>Карта библиотеки</h1>
+            <p>Интерактивная схема показывает конкретное место хранения книги. Полный план первого этажа доступен в нативной векторной карте.</p>
         </div>
-        <a class="map-back-link" href="home.html">← Вернуться в каталог</a>
+        <a class="map-lite-back" href="home.html">← Вернуться в каталог</a>
     </section>
 
-    <section class="exact-floor-card container" aria-labelledby="floorPlanTitle">
-        <div class="exact-floor-head">
-            <div>
-                <p class="map-eyebrow">Точный план</p>
-                <h2 id="floorPlanTitle">Первый этаж Тушинского комплекса</h2>
-            </div>
-            <div class="exact-floor-controls" role="group" aria-label="Управление масштабом карты">
-                <button id="exactFloorZoomOut" type="button" aria-label="Отдалить карту">−</button>
-                <output id="exactFloorZoomValue" aria-live="polite">100%</output>
-                <button id="exactFloorZoomIn" type="button" aria-label="Приблизить карту">+</button>
-                <button id="exactFloorFit" class="exact-floor-fit" type="button">Показать весь этаж</button>
-                <button id="exactFloorRoom125" class="exact-floor-primary" type="button">К кабинету 125</button>
-            </div>
-        </div>
+    <div id="mapLiteStatus" class="map-lite-status" role="status">Загружаем расположение книг…</div>
+    <div id="mapLiteError" class="map-lite-error hidden" role="alert"></div>
 
-        <div id="exactFloorViewport" class="exact-floor-viewport" tabindex="0" aria-label="План первого этажа. Карту можно прокручивать, приближать и отдалять.">
-            <div id="exactFloorPlan" class="exact-floor-canvas">
-                <img src="img/tushino-floor-1.svg" alt="Верхняя часть плана первого этажа" draggable="false">
-                <img src="img/tushino-floor-2.svg" alt="Средняя верхняя часть плана первого этажа" draggable="false">
-                <img src="img/tushino-floor-3.svg" alt="Средняя нижняя часть плана первого этажа" draggable="false">
-                <img src="img/tushino-floor-4.svg" alt="Нижняя часть плана первого этажа" draggable="false">
-                <button id="room125ExactMarker" class="room-125-exact-marker" type="button" aria-label="Кабинет 125. В этом кабинете находится физический фонд BIBLIOTECH"><span>125</span></button>
+    <section id="mapLiteContent" class="map-lite-content hidden" aria-label="Схема мест хранения в кабинете 125">
+        <div class="map-lite-card">
+            <div class="map-lite-card-head">
+                <div>
+                    <p class="map-lite-eyebrow">Выбранная книга</p>
+                    <h2 id="mapLiteBookTitle">Карта фонда</h2>
+                    <p id="mapLiteBookMeta"></p>
+                </div>
+                <a id="openFullMapLink" class="map-lite-secondary" href="map.html">Открыть векторную карту этажа</a>
             </div>
-        </div>
 
-        <div class="room-125-card">
-            <div class="room-125-card-number">125</div>
-            <div>
-                <p class="map-eyebrow">Отмеченный кабинет</p>
-                <h3>Кабинет 125</h3>
-                <p>В этом кабинете находится физический фонд BIBLIOTECH.</p>
+            <div class="map-lite-grid">
+                <div class="map-lite-scene">
+                    <svg id="mapLiteSvg" viewBox="0 0 800 520" role="img" aria-label="Схема кабинета 125 с местами хранения книг"></svg>
+                    <p class="map-lite-note">Место выбранной книги выделяется красным. Нажмите на другое место, чтобы увидеть находящиеся там книги.</p>
+                </div>
+
+                <aside class="map-lite-sidebar">
+                    <p class="map-lite-eyebrow">Выбранное место</p>
+                    <h2 id="mapLiteLocationTitle">Место хранения</h2>
+                    <p id="mapLiteLocationNote"></p>
+                    <div id="mapLiteBooks" class="map-lite-books"></div>
+                </aside>
             </div>
         </div>
-        <p class="map-gesture-hint">Кнопка «Показать весь этаж» полностью отдаляет план. Для перемещения прокручивайте карту пальцем или мышью.</p>
     </section>
 </main>
 
 <button class="floating-theme-toggle" id="floatingThemeToggle" title="Сменить тему">◐</button>
-<script src="js/exact-floor-map.js" defer></script>
+<script>
+(function () {
+    try {
+        const rawSession = localStorage.getItem('bibliotech_current_user');
+        if (!rawSession) {
+            localStorage.setItem('bibliotech_post_login_url', window.location.pathname + window.location.search);
+            window.location.replace('index.html');
+        }
+    } catch (error) {
+        window.location.replace('index.html');
+    }
+})();
+</script>
+<script src="js/library-map-lite.js?v=20260713-storage-map-1" defer></script>
 <script src="js/pwa.js"></script>
 </body>
 </html>

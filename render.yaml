@@ -17,10 +17,6 @@ services:
           property: connectionString
       - key: GOOGLE_BOOKS_API_KEY
         sync: false
-      - key: GOOGLE_CUSTOM_SEARCH_API_KEY
-        sync: false
-      - key: GOOGLE_CUSTOM_SEARCH_CX
-        sync: false
 
 databases:
   - name: bibliotech-db

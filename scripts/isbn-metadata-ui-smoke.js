@@ -100,6 +100,7 @@ async function verifyDesktop(browser, auth, isbn, isbn10, title, staleIsbn, stal
     await page.locator('#openModalBtn').click();
     await page.waitForSelector('#bookModal.active');
     await page.waitForSelector('#bookIsbn', { state: 'visible' });
+    assert.equal((await page.locator('.isbn-provider').textContent()).trim(), 'Open Library → Google Books', 'removed Google Search provider is still visible');
     assert.equal(await page.locator('#bookPublicationYear').count(), 1, 'publication year field is missing');
     assert.equal(await page.locator('#bookPublisher').count(), 1, 'publisher field is missing');
     assert.equal(await page.locator('#bookGenre').count(), 1, 'genre field is missing');

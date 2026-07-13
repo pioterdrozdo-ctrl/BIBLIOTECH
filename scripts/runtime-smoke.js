@@ -155,44 +155,27 @@ async function verifyLanguageSwitch(browser) {
 }
 
 async function verifyMapPages(browser) {
-    const mobileRedirect = await browser.newPage({ viewport: { width: 390, height: 844 } });
-    await setSession(mobileRedirect, 'admin');
-    attachDiagnostics(mobileRedirect, 'map-mobile-redirect');
-    await mobileRedirect.goto(`${baseUrl}/map.html`, { waitUntil: 'domcontentloaded' });
-    await mobileRedirect.waitForURL(/\/map-lite\.html(?:\?|$)/);
-    await mobileRedirect.waitForSelector('#mapLiteSvg', { state: 'attached' });
-    assert.equal(await mobileRedirect.locator('#mapCanvasHost').count(), 0, 'Mobile map still created a WebGL canvas host');
-    assert.match(await mobileRedirect.locator('.map-lite-heading h1').textContent(), /Карта библиотеки/);
-
-    await mobileRedirect.locator('#mapLiteMenuButton').click();
-    assert.equal(
-        await mobileRedirect.locator('#mapLiteNav').evaluate(nav => nav.classList.contains('active')),
-        true,
-        '2D map mobile menu did not open'
-    );
-    assert.equal(await mobileRedirect.locator('#mapLiteNav a[href="home.html"]').isVisible(), true, '2D map catalog link is hidden');
-    assert.equal(await mobileRedirect.locator('#mapLiteNav a[href*="force3d=1"]').isVisible(), true, '2D map 3D link is hidden');
-    await mobileRedirect.keyboard.press('Escape');
-    assert.equal(
-        await mobileRedirect.locator('#mapLiteNav').evaluate(nav => nav.classList.contains('active')),
-        false,
-        '2D map mobile menu did not close on Escape'
-    );
-    await mobileRedirect.close();
-
     const mapPage = await browser.newPage({ viewport: { width: 390, height: 844 } });
     await setSession(mapPage, 'admin');
-    attachDiagnostics(mapPage, 'map-mobile-forced-3d');
-    const response = await mapPage.goto(`${baseUrl}/map.html?force3d=1`, { waitUntil: 'domcontentloaded' });
-    assert.equal(response?.status(), 200, 'Forced 3D map page failed to load');
-    await mapPage.waitForSelector('#mapNav', { state: 'attached' });
-    await mapPage.waitForFunction(() => document.querySelector('#mapNav a[href="map.html"]')?.textContent.trim() === 'Карта');
-    assertRussianNavigation(await readNavigation(mapPage, '#mapNav'), 'map-mobile-forced-3d');
-    assert.match(await mapPage.locator('.map-heading .map-eyebrow').textContent(), /Бета-функция/);
+    attachDiagnostics(mapPage, 'map-mobile-vector');
+    const response = await mapPage.goto(`${baseUrl}/map.html`, { waitUntil: 'domcontentloaded' });
+    assert.equal(response?.status(), 200, 'Vector map page failed to load');
+    await mapPage.waitForFunction(() => window.BibliotechExactFloorMap?.getState().semantic
+        && document.querySelectorAll('#semanticFloorSvg .semantic-room').length >= 70);
+    assert.equal(await mapPage.locator('#semanticFloorSvg').count(), 1, 'Semantic SVG map is missing');
+    assert.ok(await mapPage.locator('#semanticFloorSvg .semantic-room').count() >= 70, 'Semantic map has too few reconstructed rooms');
+    assert.equal(await mapPage.locator('#semanticFloorSvg image').count(), 0, 'Semantic map embeds a screenshot');
+    assert.equal(await mapPage.locator('#mapCanvasHost').count(), 0, 'Legacy WebGL canvas returned');
+    assert.equal(await mapPage.locator('.exact-floor-view-switcher [role="tab"]').count(), 4, 'Semantic map region switcher is incomplete');
+    assertRussianNavigation(await readNavigation(mapPage, '#mapNav'), 'map-mobile-vector');
 
     await mapPage.locator('#mapMenuButton').click();
     assert.equal(await mapPage.locator('#mapNav').evaluate(nav => nav.classList.contains('active')), true, 'Map mobile menu did not open');
-    await mapPage.waitForFunction(() => document.getElementById('mapCurrentUser')?.title === 'Открыть полноценный профиль');
+    await mapPage.keyboard.press('Escape');
+    assert.equal(await mapPage.locator('#mapNav').evaluate(nav => nav.classList.contains('active')), false, 'Map mobile menu did not close on Escape');
+    await mapPage.locator('[data-floor-view="room125"]').click();
+    assert.equal(await mapPage.locator('[data-floor-view="room125"]').getAttribute('aria-selected'), 'true', 'Room 125 view did not open');
+    await mapPage.locator('#mapMenuButton').click();
     await mapPage.locator('#mapCurrentUser').click();
     await mapPage.waitForURL(/\/home\.html#profile$/);
     await mapPage.close();
@@ -205,20 +188,26 @@ async function verifyMapPages(browser) {
 
     const bookMapPage = await browser.newPage({ viewport: { width: 390, height: 844 } });
     await setSession(bookMapPage, 'admin');
-    attachDiagnostics(bookMapPage, 'map-book-deep-link');
+    attachDiagnostics(bookMapPage, 'storage-map-book-deep-link');
     await bookMapPage.goto(`${baseUrl}/map-lite.html?book=${encodeURIComponent(targetBook.id)}`, { waitUntil: 'domcontentloaded' });
     await bookMapPage.waitForSelector('#mapLiteContent:not(.hidden)');
     assert.match(await bookMapPage.locator('.map-lite-heading h1').textContent(), /Место книги на карте/);
+    assert.ok(await bookMapPage.locator('#mapLiteSvg .map-lite-storage').count() > 0, 'Storage map has no interactive locations');
+    assert.equal(await bookMapPage.locator('img[src*="tushino-floor-"]').count(), 0, 'Storage map still references removed screenshot assets');
     assert.equal(
         await bookMapPage.locator('.map-lite-back').getAttribute('href'),
         `home.html?book=${targetBook.id}`,
         'Map back link lost the selected book'
     );
-    assert.match(
+    assert.equal(
         await bookMapPage.locator('#openFullMapLink').getAttribute('href'),
-        /force3d=1/,
-        'Full map link does not explicitly enable 3D mode'
+        `map.html?book=${targetBook.id}`,
+        'Storage map did not preserve the selected book in the vector map link'
     );
+    await bookMapPage.locator('#mapLiteMenuButton').click();
+    assert.equal(await bookMapPage.locator('#mapLiteNav a[href="map.html"]').isVisible(), true, 'Vector floor map link is hidden');
+    await bookMapPage.keyboard.press('Escape');
+    assert.equal(await bookMapPage.locator('#mapLiteNav').evaluate(nav => nav.classList.contains('active')), false, 'Storage map menu did not close on Escape');
     await bookMapPage.close();
 }
 
@@ -243,7 +232,7 @@ async function verifyMapPages(browser) {
 
     assert.deepEqual(criticalFailures, [], `Critical resource failures:\n${criticalFailures.join('\n')}`);
     assert.deepEqual(pageErrors, [], `Browser JavaScript errors:\n${pageErrors.join('\n')}`);
-    console.log('Runtime smoke check OK: login, navigation, language switching, safe mobile map, 2D menu, 3D opt-in and book links work.');
+        console.log('Runtime smoke check OK: login, navigation, language switching, semantic themed map, storage map and book links work.');
 })().catch(error => {
     console.error(error.stack || error);
     process.exit(1);

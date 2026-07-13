@@ -22,23 +22,57 @@
 .exact-floor-viewport:focus-visible,
 .room-125-exact-marker:focus-visible { outline: none; box-shadow: var(--focus); }
 
-.exact-floor-viewport { position: relative; height: min(76vh, 840px); min-height: 520px; overflow: auto; border: 1px solid color-mix(in srgb, var(--border) 78%, var(--accent)); border-radius: 18px; background: #eef1f5; overscroll-behavior: contain; scrollbar-width: thin; touch-action: pan-x pan-y; }
-.exact-floor-canvas { position: relative; width: 691px; height: 1103px; margin: auto; background: #eef1f5; }
-.exact-floor-canvas img { display: block; width: 100%; height: auto; margin: 0; border: 0; pointer-events: none; user-select: none; -webkit-user-drag: none; }
-.exact-floor-canvas img + img { margin-top: 0; }
+.exact-floor-view-switcher { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0 0 12px; padding: 5px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface-muted); }
+.exact-floor-view-switcher button { min-height: 42px; padding: 8px 10px; border: 1px solid transparent; border-radius: 11px; background: transparent; color: var(--muted); cursor: pointer; font: inherit; font-size: 12px; font-weight: 850; }
+.exact-floor-view-switcher button:hover { color: var(--text); }
+.exact-floor-view-switcher button.is-active { border-color: color-mix(in srgb, var(--accent) 42%, var(--border)); background: var(--surface); color: var(--accent-strong, var(--accent)); box-shadow: var(--shadow-soft); }
+.exact-floor-view-switcher button:focus-visible { outline: none; box-shadow: var(--focus); }
 
-.room-125-exact-marker { position: absolute; left: 88.4%; top: 49.7%; width: 8%; height: 4.9%; padding: 0; border: 3px solid #df2435; border-radius: 5px; background: rgba(223, 36, 53, .14); box-shadow: 0 0 0 4px rgba(223, 36, 53, .13); cursor: pointer; }
-.room-125-exact-marker::before { content: ''; position: absolute; right: 100%; top: 50%; width: 40%; height: 3px; transform: translateY(-50%); background: #df2435; }
-.room-125-exact-marker::after { content: 'КАБИНЕТ 125'; position: absolute; right: calc(100% + 34%); top: 50%; padding: 6px 8px; transform: translateY(-50%); border: 2px solid #fff; border-radius: 9px; background: #df2435; color: #fff; box-shadow: 0 6px 16px rgba(100, 0, 10, .25); font: 900 10px/1.1 Inter, system-ui, sans-serif; letter-spacing: .04em; white-space: nowrap; }
-.room-125-exact-marker span { position: absolute; inset: 0; display: grid; place-items: center; color: #a7101d; font-size: 13px; font-weight: 950; }
+.exact-floor-viewport { position: relative; height: min(76vh, 840px); min-height: 520px; overflow: auto; border: 1px solid color-mix(in srgb, var(--border) 78%, var(--accent)); border-radius: 18px; background: #eef1f5; cursor: grab; overscroll-behavior: contain; scrollbar-width: thin; touch-action: pan-x pan-y; user-select: none; }
+.exact-floor-viewport.is-dragging { cursor: grabbing; }
+.exact-floor-source-chip { position: sticky; top: 12px; left: 12px; z-index: 4; display: inline-flex; width: max-content; max-width: calc(100% - 24px); margin: 12px 0 -46px 12px; padding: 7px 10px; border: 1px solid rgba(255,255,255,.72); border-radius: 999px; background: rgba(22, 93, 156, .9); color: #fff; box-shadow: 0 8px 20px rgba(25, 70, 110, .18); font-size: 10px; font-weight: 900; letter-spacing: .04em; pointer-events: none; }
+.exact-floor-canvas { position: relative; width: 1400px; height: 980px; margin: auto; overflow: hidden; background: var(--bg-soft); }
+.semantic-floor-svg { --map-ground: color-mix(in srgb, var(--bg-soft) 86%, var(--surface)); --map-road: color-mix(in srgb, var(--surface) 72%, var(--border)); --map-room: color-mix(in srgb, var(--accent) 7%, var(--surface)); --map-corridor: color-mix(in srgb, var(--accent) 15%, var(--surface)); --map-line: color-mix(in srgb, var(--accent-strong, var(--accent)) 82%, var(--text)); position: absolute; inset: 0; display: block; width: 100%; height: 100%; background: var(--map-ground); color: var(--text); }
+.semantic-map-ground { fill: var(--map-ground); }
+.semantic-map-road { fill: none; stroke: var(--map-road); stroke-linecap: round; stroke-linejoin: round; }
+.semantic-map-road--main { stroke-width: 42; }
+.semantic-map-road--service { stroke-width: 18; }
+.semantic-map-lawn { fill: color-mix(in srgb, var(--accent) 5%, var(--map-ground)); stroke: color-mix(in srgb, var(--accent) 18%, transparent); stroke-width: 2; }
+.semantic-building-shell { fill: var(--surface); stroke: var(--map-line); stroke-width: 5; stroke-linejoin: round; }
+.semantic-corridor { fill: var(--map-corridor); stroke: color-mix(in srgb, var(--map-line) 58%, transparent); stroke-width: 2; }
+.semantic-room-shape { fill: var(--map-room); stroke: var(--map-line); stroke-width: 2; transition: fill .18s ease, stroke .18s ease; }
+.semantic-room-number { fill: var(--muted); font: 750 12px/1 Inter, system-ui, sans-serif; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+.semantic-room--target .semantic-room-shape { fill: color-mix(in srgb, var(--danger) 18%, var(--surface)); stroke: var(--danger); stroke-width: 5; }
+.semantic-room--target .semantic-room-number { fill: var(--danger); font-size: 18px; font-weight: 950; }
+.semantic-map-label { fill: var(--muted); font: 800 16px/1 Inter, system-ui, sans-serif; letter-spacing: .04em; text-anchor: middle; }
+.semantic-building-label { fill: var(--map-line); font: 900 14px/1 Inter, system-ui, sans-serif; letter-spacing: .08em; text-anchor: middle; }
+.semantic-stair line { stroke: var(--map-line); stroke-width: 2; }
+.semantic-entrance { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.semantic-bus { fill: var(--surface); stroke: var(--map-line); stroke-width: 3; }
+.semantic-bus-detail { fill: var(--map-line); }
+
+.room-125-exact-marker { position: absolute; left: 82.6%; top: 64.9%; width: 11%; height: 7.2%; padding: 0; border: 3px solid var(--danger); border-radius: 5px; background: color-mix(in srgb, var(--danger) 13%, transparent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 13%, transparent); cursor: pointer; }
+.exact-floor-canvas:not([data-active-view="room125"]) .room-125-exact-marker { display: none; }
+.room-125-exact-marker::before { content: ''; position: absolute; right: 100%; top: 50%; width: 40%; height: 3px; transform: translateY(-50%); background: var(--danger); }
+.room-125-exact-marker::after { content: 'КАБИНЕТ 125'; position: absolute; right: calc(100% + 34%); top: 50%; padding: 6px 8px; transform: translateY(-50%); border: 2px solid var(--surface); border-radius: 9px; background: var(--danger); color: var(--surface); box-shadow: 0 6px 16px color-mix(in srgb, var(--danger) 30%, transparent); font: 900 10px/1.1 Inter, system-ui, sans-serif; letter-spacing: .04em; white-space: nowrap; }
+.room-125-exact-marker span { position: absolute; inset: 0; display: grid; place-items: center; color: var(--danger); font-size: 13px; font-weight: 950; }
 .room-125-exact-marker.is-active { animation: room125Pulse .8s ease; }
 @keyframes room125Pulse { 0%, 100% { box-shadow: 0 0 0 4px rgba(223, 36, 53, .13); } 50% { box-shadow: 0 0 0 16px rgba(223, 36, 53, .28); } }
+
+.exact-floor-view-caption { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 13px; align-items: start; margin-top: 12px; padding: 13px 15px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface-muted); }
+.exact-floor-view-caption > span { display: inline-flex; min-height: 30px; align-items: center; padding: 5px 9px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 12%, var(--surface)); color: var(--accent-strong, var(--accent)); font-size: 10px; font-weight: 900; white-space: nowrap; }
+.exact-floor-view-caption h3 { margin: 1px 0 4px; font-size: 16px; }
+.exact-floor-view-caption p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 
 .room-125-card { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; margin-top: 16px; padding: 15px 17px; border: 1px solid color-mix(in srgb, #df2435 42%, var(--border)); border-radius: 17px; background: color-mix(in srgb, #df2435 7%, var(--surface)); }
 .room-125-card-number { display: grid; width: 58px; height: 58px; place-items: center; border-radius: 16px; background: #df2435; color: #fff; font-size: 20px; font-weight: 950; box-shadow: 0 9px 22px rgba(150, 18, 30, .23); }
 .room-125-card h3 { margin: 3px 0 4px; font-size: 21px; }
 .room-125-card p { margin: 0; color: var(--muted); }
 .room-125-card .map-eyebrow { color: #c31d2b; }
+.target-book-map-message { margin-top: 8px !important; padding: 9px 11px; border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); border-radius: 11px; background: color-mix(in srgb, var(--accent) 8%, var(--surface)); color: var(--text) !important; font-size: 12px; font-weight: 750; }
+.room-125-storage-link { display: inline-flex; margin-top: 9px; color: var(--accent-strong, var(--accent)); font-size: 13px; font-weight: 850; text-decoration: none; }
+.room-125-storage-link:hover { text-decoration: underline; }
+.room-125-storage-link:focus-visible { outline: none; border-radius: 5px; box-shadow: var(--focus); }
 .map-gesture-hint { margin: 11px 2px 0; color: var(--muted); font-size: 13px; }
 
 @media (max-width: 900px) {
@@ -53,6 +87,7 @@
     .map-back-link { width: 100%; text-align: center; }
     .exact-floor-card { padding: 11px; border-radius: 18px; }
     .exact-floor-head { padding: 4px 3px 0; }
+    .exact-floor-view-switcher { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .exact-floor-controls { display: grid; grid-template-columns: 46px 62px 46px 1fr; }
     .exact-floor-controls .exact-floor-fit,
     .exact-floor-controls .exact-floor-primary { grid-column: 1 / -1; }
@@ -70,6 +105,7 @@
     .room-125-card { grid-template-columns: 46px minmax(0, 1fr); gap: 10px; }
     .room-125-card-number { width: 46px; height: 46px; font-size: 17px; }
     .room-125-card h3 { font-size: 19px; }
+    .exact-floor-view-caption { grid-template-columns: 1fr; gap: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
