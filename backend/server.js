@@ -24,6 +24,9 @@ const catalogListRoutes = require('./routes/catalogList');
 const storageLocationRoutes = require('./routes/storageLocations');
 const libraryMapRoutes = require('./routes/libraryMap');
 const rentalRoutes = require('./routes/rentals');
+const inventoryRoutes = require('./routes/inventory');
+const documentRoutes = require('./routes/documents');
+const passkeyRoutes = require('./routes/passkeys');
 const pool = require('./db/pool');
 
 const app = express();
@@ -78,7 +81,7 @@ const homeCriticalScripts = [
     '/js/profile-customization-modal.js?v=20260710-profile-customize-modal-1',
     '/js/profile-settings-modal.js?v=20260710-profile-settings-2',
     '/js/account-settings-close-guard.js?v=20260710-account-settings-close-1',
-    '/js/profile-security.js?v=20260710-profile-security-modal-1',
+    '/js/profile-security.js?v=20260713-passkey-security-1',
     '/js/account-settings-features.js?v=20260710-account-settings-1',
     '/js/modal-visual-fix.js?v=20260710-modal-visual-fix-2',
     '/js/card-rent-safe.js?v=20260710-card-rent-refined-2',
@@ -142,9 +145,9 @@ function injectCriticalUiAssets(html, { home = false } = {}) {
     if (scriptTags) {
         const pwaPattern = /<script src="(?:\/)?js\/pwa\.js(?:\?[^\"]*)?"><\/script>/;
         if (pwaPattern.test(html)) {
-            html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260713-critical-ui-13"></script>`);
+            html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260713-critical-ui-14"></script>`);
         } else {
-            html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260713-critical-ui-13"></script>\n</body>`);
+            html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260713-critical-ui-14"></script>\n</body>`);
         }
     }
 
@@ -251,6 +254,7 @@ app.use(express.static(frontendPath, {
 
 app.use('/api', limiter);
 app.use('/api/auth', sessionAuthRoutes);
+app.use('/api/auth', passkeyRoutes);
 app.use('/api/auth', securityRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', passwordResetEmailRoutes);
@@ -265,6 +269,8 @@ app.use('/api/stats', statsRoutes);
 app.use('/api/storage-locations', storageLocationRoutes);
 app.use('/api/library-map', libraryMapRoutes);
 app.use('/api/rentals', rentalRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/api/documents', documentRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({

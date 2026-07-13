@@ -61,6 +61,30 @@
             }
             .security-option-card b { display: block; color: var(--text); }
             .security-option-card small { display: block; margin-top: 3px; color: var(--muted); line-height: 1.35; }
+            .passkey-card { align-items: start; }
+            .passkey-list {
+                grid-column: 1 / -1;
+                display: grid;
+                gap: 7px;
+            }
+            .passkey-item {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                align-items: center;
+                gap: 10px;
+                padding: 9px 10px;
+                border: 1px solid var(--border);
+                border-radius: 11px;
+                background: var(--surface);
+            }
+            .passkey-item b { font-size: 13px; }
+            .passkey-item small { font-size: 11px; }
+            .passkey-item button {
+                min-height: 34px !important;
+                padding: 6px 9px !important;
+                border-radius: 9px !important;
+            }
+            .passkey-empty { color: var(--muted); font-size: 12px; }
             .security-switch {
                 position: relative;
                 width: 54px;
@@ -200,6 +224,11 @@
                         <div><b>Отключить 2FA</b><small>Для отключения нужен текущий код из приложения.</small></div>
                         <div class="twofa-actions"><input id="twofaDisableCode" inputmode="numeric" placeholder="Код 2FA"><button class="security-danger" id="twofaDisableBtn" type="button">Отключить</button></div>
                     </div>
+                    <div class="security-option-card passkey-card" id="passkeyCard">
+                        <div><b>Passkey и Windows Hello</b><small>Входите по отпечатку, распознаванию лица или PIN устройства. Обычный пароль останется доступен.</small></div>
+                        <button class="security-primary" id="registerPasskeyBtn" type="button">Добавить passkey</button>
+                        <div class="passkey-list" id="passkeyList"><span class="passkey-empty">Загрузка...</span></div>
+                    </div>
                     <div class="security-option-card">
                         <div><b>Запоминать вход</b><small>Оставаться в аккаунте на этом устройстве дольше.</small></div>
                         <button class="security-switch" id="rememberSessionToggle" type="button" aria-label="Запоминать вход"></button>
@@ -255,6 +284,132 @@
         }
     }
 
+    function decodeBase64Url(value) {
+        const base64 = String(value).replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(value.length / 4) * 4, '=');
+        const binary = atob(base64);
+        return Uint8Array.from(binary, char => char.charCodeAt(0));
+    }
+
+    function encodeBase64Url(value) {
+        const bytes = new Uint8Array(value);
+        let binary = '';
+        bytes.forEach(byte => { binary += String.fromCharCode(byte); });
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    }
+
+    function publicKeyCreationOptions(options) {
+        return {
+            ...options,
+            challenge: decodeBase64Url(options.challenge),
+            user: { ...options.user, id: decodeBase64Url(options.user.id) },
+            excludeCredentials: (options.excludeCredentials || []).map(item => ({ ...item, id: decodeBase64Url(item.id) }))
+        };
+    }
+
+    function serializeRegistration(credential) {
+        return {
+            id: credential.id,
+            rawId: encodeBase64Url(credential.rawId),
+            type: credential.type,
+            authenticatorAttachment: credential.authenticatorAttachment || null,
+            clientExtensionResults: credential.getClientExtensionResults?.() || {},
+            response: {
+                clientDataJSON: encodeBase64Url(credential.response.clientDataJSON),
+                attestationObject: encodeBase64Url(credential.response.attestationObject),
+                transports: credential.response.getTransports?.() || []
+            }
+        };
+    }
+
+    function renderPasskeys(passkeys = []) {
+        const list = document.getElementById('passkeyList');
+        const button = document.getElementById('registerPasskeyBtn');
+        const supported = Boolean(window.PublicKeyCredential && navigator.credentials?.create);
+        if (button) {
+            button.disabled = !supported;
+            button.textContent = supported ? 'Добавить passkey' : 'Не поддерживается';
+        }
+        if (!list) return;
+        if (!supported) {
+            list.innerHTML = '<span class="passkey-empty">На этом устройстве WebAuthn недоступен. Пароль и 2FA продолжают работать.</span>';
+            return;
+        }
+        list.innerHTML = passkeys.map(item => `
+            <div class="passkey-item">
+                <div><b>${escapeHtml(item.name || 'Passkey')}</b><small>${item.backedUp ? 'Синхронизируемый' : 'Привязан к устройству'} · добавлен ${new Date(item.createdAt).toLocaleDateString('ru-RU')}</small></div>
+                <button class="security-danger" type="button" data-passkey-delete="${Number(item.id)}">Удалить</button>
+            </div>
+        `).join('') || '<span class="passkey-empty">Passkey пока не добавлены.</span>';
+    }
+
+    function escapeHtml(value = '') {
+        return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+    }
+
+    async function loadPasskeys() {
+        try {
+            const response = await fetch(`${API_URL}/auth/passkeys`, { headers: tokenHeaders() });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'load failed');
+            renderPasskeys(data.passkeys || []);
+        } catch {
+            renderPasskeys([]);
+        }
+    }
+
+    async function registerPasskey() {
+        const button = document.getElementById('registerPasskeyBtn');
+        if (!window.PublicKeyCredential || !navigator.credentials?.create) return setMessage('Passkey не поддерживается этим браузером.', 'error');
+        if (button) {
+            button.disabled = true;
+            button.textContent = 'Подтвердите на устройстве...';
+        }
+        try {
+            const optionsResponse = await fetch(`${API_URL}/auth/passkeys/register/options`, { method: 'POST', headers: tokenHeaders() });
+            const optionsData = await optionsResponse.json();
+            if (!optionsResponse.ok) throw new Error(optionsData.error || 'Не удалось начать регистрацию');
+            const credential = await navigator.credentials.create({ publicKey: publicKeyCreationOptions(optionsData.options) });
+            if (!credential) throw new Error('Passkey не создан');
+            const platform = navigator.userAgentData?.platform || navigator.platform || 'Это устройство';
+            const verifyResponse = await fetch(`${API_URL}/auth/passkeys/register/verify`, {
+                method: 'POST',
+                headers: tokenHeaders(),
+                body: JSON.stringify({
+                    flowId: optionsData.flowId,
+                    name: `${platform} · ${new Date().toLocaleDateString('ru-RU')}`,
+                    credential: serializeRegistration(credential)
+                })
+            });
+            const verifyData = await verifyResponse.json();
+            if (!verifyResponse.ok) throw new Error(verifyData.error || 'Passkey не подтверждён');
+            await loadPasskeys();
+            setMessage('Passkey добавлен. Теперь можно входить без пароля.', 'ok');
+        } catch (error) {
+            if (error?.name === 'NotAllowedError') setMessage('Добавление passkey отменено.', 'error');
+            else setMessage(error.message || 'Не удалось добавить passkey.', 'error');
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.textContent = 'Добавить passkey';
+            }
+        }
+    }
+
+    async function deletePasskey(passkeyId) {
+        if (!confirm('Удалить этот passkey? Вход по паролю останется доступен.')) return;
+        try {
+            const response = await fetch(`${API_URL}/auth/passkeys/${encodeURIComponent(passkeyId)}`, {
+                method: 'DELETE', headers: tokenHeaders()
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'delete failed');
+            await loadPasskeys();
+            setMessage('Passkey удалён.', 'ok');
+        } catch {
+            setMessage('Не удалось удалить passkey.', 'error');
+        }
+    }
+
     async function loadSecuritySettings() {
         injectStyles();
         if (!ensurePanel()) return;
@@ -269,6 +424,7 @@
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'load failed');
             renderSettings(data.settings || {});
+            await loadPasskeys();
             setMessage('');
         } catch {
             setMessage('Не удалось загрузить настройки безопасности.', 'error');
@@ -355,6 +511,11 @@
         panel.querySelector('#twofaStartBtn')?.addEventListener('click', startTwoFactorSetup);
         panel.querySelector('#twofaEnableBtn')?.addEventListener('click', enableTwoFactor);
         panel.querySelector('#twofaDisableBtn')?.addEventListener('click', disableTwoFactor);
+        panel.querySelector('#registerPasskeyBtn')?.addEventListener('click', registerPasskey);
+        panel.querySelector('#passkeyList')?.addEventListener('click', event => {
+            const button = event.target.closest('[data-passkey-delete]');
+            if (button) deletePasskey(button.dataset.passkeyDelete);
+        });
         panel.querySelector('#rememberSessionToggle')?.addEventListener('click', event => {
             event.currentTarget.classList.toggle('active');
             saveOptions();

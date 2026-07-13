@@ -1,0 +1,456 @@
+.library-operations-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(320px, .8fr);
+    gap: 18px;
+    margin-top: 18px;
+    margin-bottom: 18px;
+    align-items: start;
+}
+
+.library-operation-panel {
+    min-width: 0;
+    padding: 22px;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    box-shadow: var(--shadow-soft);
+}
+
+.library-operation-head,
+.inventory-session-title,
+.inventory-history-head,
+.inventory-camera-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.library-operation-head h2,
+.inventory-camera-head h2 {
+    margin: 3px 0 6px;
+    color: var(--text);
+}
+
+.library-operation-head p {
+    max-width: 760px;
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.operation-status-pill {
+    flex: 0 0 auto;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: var(--surface-muted);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.operation-status-pill.active {
+    background: var(--ok-soft);
+    color: var(--ok);
+}
+
+.operation-status-pill.completed {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.inventory-start-form,
+.document-builder {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, .65fr) auto;
+    gap: 10px;
+    align-items: end;
+    margin-top: 18px;
+}
+
+.inventory-start-form label,
+.document-builder label,
+.inventory-scan-bar {
+    display: grid;
+    gap: 6px;
+}
+
+.inventory-start-form label > span,
+.document-builder label > span,
+.inventory-scan-bar > label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.library-operation-panel input,
+.library-operation-panel select,
+.library-operation-panel textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-soft);
+    color: var(--text);
+    font: inherit;
+    outline: none;
+}
+
+.library-operation-panel textarea {
+    min-height: 104px;
+    resize: vertical;
+    line-height: 1.45;
+}
+
+.library-operation-panel input:focus,
+.library-operation-panel select:focus,
+.library-operation-panel textarea:focus {
+    border-color: var(--accent);
+    box-shadow: var(--focus);
+}
+
+.operation-primary-btn,
+.operation-camera-btn,
+.operation-danger-btn,
+.inventory-session-actions button,
+.inventory-history-head button,
+.inventory-history-item button {
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.operation-primary-btn {
+    border-color: transparent;
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    color: var(--on-accent);
+}
+
+.operation-danger-btn {
+    border-color: color-mix(in srgb, var(--danger) 28%, transparent);
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.operation-camera-btn {
+    color: var(--accent);
+}
+
+.library-operation-panel button:disabled {
+    cursor: not-allowed;
+    opacity: .58;
+}
+
+.inventory-workspace {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.inventory-session-title b {
+    display: block;
+    color: var(--text);
+    font-size: 17px;
+}
+
+.inventory-session-title small {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+}
+
+.inventory-session-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.inventory-session-actions button {
+    min-height: 38px;
+    padding: 8px 10px;
+}
+
+.inventory-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin: 14px 0;
+}
+
+.inventory-summary-card {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-soft);
+}
+
+.inventory-summary-card b {
+    display: block;
+    color: var(--text);
+    font-size: 20px;
+}
+
+.inventory-summary-card span {
+    display: block;
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.inventory-summary-card.danger b { color: var(--danger); }
+.inventory-summary-card.ok b { color: var(--ok); }
+
+.inventory-scan-bar > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+}
+
+.inventory-feedback {
+    min-height: 24px;
+    margin-top: 9px;
+    padding: 0 2px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.inventory-feedback.ok { color: var(--ok); }
+.inventory-feedback.warning { color: #b57519; }
+.inventory-feedback.error { color: var(--danger); }
+
+.inventory-result-columns {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.inventory-result-columns > section {
+    min-width: 0;
+    padding: 11px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-soft);
+}
+
+.inventory-result-columns h3 {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 0 8px;
+    color: var(--text);
+    font-size: 13px;
+}
+
+.inventory-result-columns h3 span {
+    min-width: 22px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: var(--surface-muted);
+    text-align: center;
+}
+
+.inventory-result-list {
+    display: grid;
+    gap: 6px;
+    max-height: 250px;
+    overflow: auto;
+    scrollbar-width: thin;
+}
+
+.inventory-result-item {
+    padding: 8px 9px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.inventory-result-item b,
+.inventory-result-item span,
+.inventory-result-item small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.inventory-result-item b { color: var(--text); font-size: 12px; white-space: nowrap; }
+.inventory-result-item span,
+.inventory-result-item small { margin-top: 2px; color: var(--muted); font-size: 10px; }
+.inventory-result-empty { color: var(--muted); font-size: 11px; }
+
+.inventory-history {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.inventory-history-head {
+    align-items: center;
+}
+
+.inventory-history-head h3 {
+    margin: 0;
+    color: var(--text);
+    font-size: 14px;
+}
+
+.inventory-history-head button,
+.inventory-history-item button {
+    min-height: 34px;
+    padding: 6px 9px;
+    font-size: 11px;
+}
+
+.inventory-history-list {
+    display: grid;
+    gap: 7px;
+    margin-top: 9px;
+}
+
+.inventory-history-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg-soft);
+}
+
+.inventory-history-item b,
+.inventory-history-item small { display: block; }
+.inventory-history-item b { color: var(--text); font-size: 12px; }
+.inventory-history-item small { margin-top: 3px; color: var(--muted); font-size: 10px; }
+
+.document-builder {
+    grid-template-columns: 1fr;
+}
+
+.document-wide-field,
+.document-generate-btn,
+.document-builder-note,
+.documents-panel .inventory-feedback {
+    grid-column: 1 / -1;
+}
+
+.document-builder-note {
+    display: grid;
+    gap: 3px;
+    margin-top: 14px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--accent-soft);
+}
+
+.document-builder-note b { color: var(--accent); }
+.document-builder-note span { color: var(--muted); font-size: 12px; line-height: 1.4; }
+
+.admin-rental-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.admin-rental-pdf-btn {
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface);
+    color: var(--accent);
+    padding: 6px 9px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.inventory-camera-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: none;
+    place-items: center;
+    padding: 18px;
+    background: rgba(4, 13, 9, .72);
+    backdrop-filter: blur(10px);
+}
+
+.inventory-camera-modal.active { display: grid; }
+
+.inventory-camera-dialog {
+    width: min(94vw, 620px);
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.inventory-camera-head button {
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--bg-soft);
+    color: var(--text);
+    font-size: 25px;
+    cursor: pointer;
+}
+
+.inventory-camera-stage {
+    position: relative;
+    min-height: 340px;
+    margin: 14px 0;
+    overflow: hidden;
+    border-radius: 18px;
+    background: #08100c;
+}
+
+.inventory-camera-stage video {
+    width: 100%;
+    height: 100%;
+    min-height: 340px;
+    object-fit: cover;
+}
+
+.inventory-camera-stage span {
+    position: absolute;
+    left: 50%;
+    bottom: 16px;
+    translate: -50% 0;
+    width: max-content;
+    max-width: calc(100% - 28px);
+    padding: 8px 11px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, .62);
+    color: #fff;
+    font-size: 12px;
+    text-align: center;
+}
+
+@media (max-width: 1050px) {
+    .library-operations-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+    .library-operation-panel { padding: 16px; border-radius: 17px; }
+    .library-operation-head,
+    .inventory-session-title { flex-direction: column; }
+    .inventory-start-form,
+    .document-builder { grid-template-columns: 1fr; }
+    .document-wide-field,
+    .document-generate-btn { grid-column: auto; }
+    .inventory-summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .inventory-result-columns { grid-template-columns: 1fr; }
+    .inventory-result-list { max-height: 180px; }
+    .inventory-scan-bar > div { grid-template-columns: 1fr 1fr; }
+    .inventory-scan-bar input { grid-column: 1 / -1; }
+    .inventory-camera-stage,
+    .inventory-camera-stage video { min-height: 280px; }
+}

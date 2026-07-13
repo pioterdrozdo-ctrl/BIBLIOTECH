@@ -163,4 +163,9 @@ router.post('/login', async (req, res) => {
     }
 });
 
+router.issueToken = issueToken;
+router.publicUser = publicUser;
+router.recordLogin = recordLogin;
+router.isFrozen = isFrozen;
+
 module.exports = router;

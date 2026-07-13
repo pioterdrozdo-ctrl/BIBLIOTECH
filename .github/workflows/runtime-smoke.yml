@@ -16,6 +16,8 @@ on:
       - 'scripts/book-import-ui-smoke.js'
       - 'scripts/book-import-api-smoke.js'
       - 'scripts/account-api-smoke.js'
+      - 'scripts/check-library-operations.js'
+      - 'scripts/library-operations-api-smoke.js'
       - '.github/workflows/runtime-smoke.yml'
   push:
     branches: [main]
@@ -33,6 +35,8 @@ on:
       - 'scripts/book-import-ui-smoke.js'
       - 'scripts/book-import-api-smoke.js'
       - 'scripts/account-api-smoke.js'
+      - 'scripts/check-library-operations.js'
+      - 'scripts/library-operations-api-smoke.js'
 
 permissions:
   contents: read
@@ -48,6 +52,8 @@ jobs:
           node-version: '22'
       - name: Install application
         run: npm install
+      - name: Check library operations integration
+        run: node scripts/check-library-operations.js
       - name: Install browser test runtime
         run: |
           npm install --no-save playwright@1.52.0
@@ -124,6 +130,12 @@ jobs:
         run: |
           set -o pipefail
           node scripts/account-api-smoke.js 2>&1 | tee /tmp/runtime-artifacts/account-api-smoke.log
+      - name: Test inventory, PDF documents and passkey options
+        env:
+          SMOKE_BASE_URL: http://127.0.0.1:4173
+        run: |
+          set -o pipefail
+          node scripts/library-operations-api-smoke.js 2>&1 | tee /tmp/runtime-artifacts/library-operations-api-smoke.log
       - name: Upload runtime diagnostics
         if: always()
         uses: actions/upload-artifact@v4

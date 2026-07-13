@@ -15,6 +15,7 @@
     <title>Админ | BIBLIOTECH</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/book-import.css">
+    <link rel="stylesheet" href="css/library-operations.css?v=20260713-operations-1">
 </head>
 <body class="admin-page">
 <div class="wrapper">
@@ -60,6 +61,99 @@
                 <button class="admin-import-template-btn" id="downloadBookImportTemplateBtn" type="button">Скачать шаблон</button>
                 <button class="admin-import-open-btn" id="openBookImportBtn" type="button">Импортировать книги</button>
             </div>
+        </section>
+
+        <section class="container library-operations-grid" aria-label="Операции с фондом">
+            <article class="library-operation-panel inventory-panel" aria-labelledby="inventoryPanelTitle">
+                <div class="library-operation-head">
+                    <div>
+                        <span class="admin-import-kicker">Контроль фонда</span>
+                        <h2 id="inventoryPanelTitle">Инвентаризация</h2>
+                        <p>Сканируйте существующие QR без их изменения. Система найдёт пропуски, повторы и книги не на своём месте.</p>
+                    </div>
+                    <span class="operation-status-pill" id="inventoryStatusPill">Нет активной проверки</span>
+                </div>
+
+                <form class="inventory-start-form" id="inventoryStartForm">
+                    <label>
+                        <span>Название проверки</span>
+                        <input id="inventoryNameInput" type="text" maxlength="160" placeholder="Инвентаризация кабинета 125">
+                    </label>
+                    <label>
+                        <span>Зона</span>
+                        <select id="inventoryLocationSelect"><option value="">Весь фонд</option></select>
+                    </label>
+                    <button class="operation-primary-btn" type="submit">Начать</button>
+                </form>
+
+                <div class="inventory-workspace" id="inventoryWorkspace" hidden>
+                    <div class="inventory-session-title">
+                        <div><b id="inventorySessionName">Инвентаризация</b><small id="inventorySessionMeta">—</small></div>
+                        <div class="inventory-session-actions">
+                            <button id="inventoryReportBtn" type="button">PDF-отчёт</button>
+                            <button class="operation-danger-btn" id="inventoryCompleteBtn" type="button">Завершить</button>
+                        </div>
+                    </div>
+                    <div class="inventory-summary-grid" id="inventorySummaryGrid"></div>
+                    <div class="inventory-scan-bar">
+                        <label for="inventoryScanInput">QR, ISBN или ID книги</label>
+                        <div>
+                            <input id="inventoryScanInput" type="text" inputmode="text" autocomplete="off" placeholder="Отсканируйте или введите код">
+                            <button class="operation-camera-btn" id="inventoryCameraBtn" type="button">Камера</button>
+                            <button class="operation-primary-btn" id="inventoryScanBtn" type="button">Проверить</button>
+                        </div>
+                    </div>
+                    <div class="inventory-feedback" id="inventoryScanFeedback" role="status" aria-live="polite"></div>
+                    <div class="inventory-result-columns">
+                        <section><h3>Не найдено <span id="inventoryMissingCount">0</span></h3><div class="inventory-result-list" id="inventoryMissingList"></div></section>
+                        <section><h3>Не на месте <span id="inventoryMisplacedCount">0</span></h3><div class="inventory-result-list" id="inventoryMisplacedList"></div></section>
+                        <section><h3>Последние сканы</h3><div class="inventory-result-list" id="inventoryRecentScans"></div></section>
+                    </div>
+                </div>
+
+                <div class="inventory-history">
+                    <div class="inventory-history-head"><h3>Последние проверки</h3><button id="refreshInventoryBtn" type="button">Обновить</button></div>
+                    <div class="inventory-history-list" id="inventoryHistoryList"><span>Загрузка...</span></div>
+                </div>
+            </article>
+
+            <article class="library-operation-panel documents-panel" aria-labelledby="documentsPanelTitle">
+                <div class="library-operation-head">
+                    <div>
+                        <span class="admin-import-kicker">Печать и учёт</span>
+                        <h2 id="documentsPanelTitle">PDF-документы</h2>
+                        <p>Этикетки с текущими QR и проекты актов. Формирование документа не изменяет каталог.</p>
+                    </div>
+                    <span class="operation-status-pill">A4 / PDF</span>
+                </div>
+                <form class="document-builder" id="documentBuilderForm">
+                    <label>
+                        <span>Тип документа</span>
+                        <select id="documentTypeSelect">
+                            <option value="labels">QR-этикетки на корешки</option>
+                            <option value="writeoff">Проект акта списания</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Место хранения</span>
+                        <select id="documentLocationSelect"><option value="">Все места</option></select>
+                    </label>
+                    <label class="document-wide-field">
+                        <span>Коды выбранных книг</span>
+                        <textarea id="documentBookCodes" rows="4" placeholder="Один QR, ISBN или ID на строку. Оставьте пустым, чтобы напечатать этикетки всей выбранной зоны."></textarea>
+                    </label>
+                    <label class="document-wide-field" id="documentReasonField" hidden>
+                        <span>Основание для списания</span>
+                        <input id="documentReasonInput" type="text" maxlength="500" placeholder="Износ, повреждение, утрата...">
+                    </label>
+                    <button class="operation-primary-btn document-generate-btn" id="generateDocumentBtn" type="submit">Сформировать PDF</button>
+                </form>
+                <div class="document-builder-note">
+                    <b>Акты выдачи</b>
+                    <span>Кнопка PDF находится в строке каждой выдачи в журнале аренды ниже.</span>
+                </div>
+                <div class="inventory-feedback" id="documentBuilderMessage" role="status" aria-live="polite"></div>
+            </article>
         </section>
 
         <section class="container admin-users-panel">
@@ -147,6 +241,14 @@
     </main>
 
     <footer>© 2026 BIBLIOTECH. Все права защищены.</footer>
+</div>
+
+<div class="inventory-camera-modal" id="inventoryCameraModal" aria-hidden="true">
+    <section class="inventory-camera-dialog" role="dialog" aria-modal="true" aria-labelledby="inventoryCameraTitle">
+        <div class="inventory-camera-head"><div><span class="admin-import-kicker">Сканер фонда</span><h2 id="inventoryCameraTitle">Наведите камеру на QR</h2></div><button id="closeInventoryCameraBtn" type="button" aria-label="Закрыть">×</button></div>
+        <div class="inventory-camera-stage"><video id="inventoryCameraVideo" playsinline muted></video><canvas id="inventoryCameraCanvas" hidden></canvas><span id="inventoryCameraHint">Запрашиваем доступ к камере...</span></div>
+        <button class="operation-danger-btn" id="stopInventoryCameraBtn" type="button">Остановить камеру</button>
+    </section>
 </div>
 
 <div class="book-import-modal" id="bookImportModal" aria-hidden="true">
@@ -244,6 +346,8 @@
 
 <script src="js/admin.js"></script>
 <script src="js/book-import.js"></script>
+<script src="vendor/jsQR.js"></script>
+<script src="js/library-operations.js?v=20260713-operations-1"></script>
 <script src="js/pwa.js"></script>
 </body>
 </html>

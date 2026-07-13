@@ -429,7 +429,10 @@ async function loadRentals() {
                 <td>${escapeHtml(rental.username)}</td>
                 <td>${escapeHtml(formatAdminDateTime(rental.rented_at))}</td>
                 <td><span class="admin-role-badge ${rental.status === 'active' ? 'admin' : ''}">${rental.status === 'active' ? 'На руках' : 'Возвращена'}</span></td>
-                <td>${rental.status === 'active' ? `<button class="admin-return-btn" data-book="${escapeHtml(rental.book_id)}" data-rental="${escapeHtml(rental.id)}">Принять</button>` : '—'}</td>
+                <td><div class="admin-rental-actions">
+                    ${rental.status === 'active' ? `<button class="admin-return-btn" data-book="${escapeHtml(rental.book_id)}" data-rental="${escapeHtml(rental.id)}">Принять</button>` : ''}
+                    <button class="admin-rental-pdf-btn" type="button" data-rental-pdf="${escapeHtml(rental.id)}">PDF</button>
+                </div></td>
             </tr>
         `).join('') || '<tr><td colspan="6">Аренд пока нет</td></tr>';
     } catch (error) {
@@ -504,6 +507,8 @@ function initAdminPage() {
     document.getElementById('adminRentalsTableBody')?.addEventListener('click', event => {
         const button = event.target.closest('.admin-return-btn');
         if (button) returnRental(button.dataset.book, button.dataset.rental);
+        const pdfButton = event.target.closest('[data-rental-pdf]');
+        if (pdfButton) window.BibliotechDocuments?.downloadRentalAct?.(pdfButton.dataset.rentalPdf);
     });
     loadUsers();
     loadLocations();

@@ -100,7 +100,7 @@ assert.ok(server.includes("'/js/reservation-queue.js?v=20260710-reservation-queu
 assert.ok(server.includes("'/js/profile-reservations.js?v=20260710-profile-reservations-1'"), 'server does not preload profile reservations');
 assert.ok(server.includes("'/js/product-polish.js?v=20260710-product-polish-2'"), 'server does not preload updated product polish JavaScript');
 assert.ok(server.includes('<h1>Каталог библиотеки</h1>'), 'server does not replace the old hero title before first paint');
-assert.ok(server.includes('critical-ui-13'), 'initial HTML cache-busting was not updated');
+assert.ok(server.includes('critical-ui-14'), 'initial HTML cache-busting was not updated');
 assert.ok(server.includes("'Cache-Control', 'no-store, max-age=0'"), 'HTML can remain stale in the browser cache');
 
 assert.ok(catalogRoute.includes('b.cover_data_url'), 'catalog list must return book covers');

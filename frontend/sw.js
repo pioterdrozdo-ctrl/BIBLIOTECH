@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v43-admin-map';
+const CACHE_NAME = 'bibliotech-pwa-v44-passkeys-operations';
 const APP_SHELL = [
     '/',
     '/index.html',
@@ -16,6 +16,7 @@ const APP_SHELL = [
     '/css/book-metadata.css',
     '/css/reservation-queue.css',
     '/css/book-import.css',
+    '/css/library-operations.css',
     '/css/profile-twitter-restored.css',
     '/css/profile-customization-modal.css',
     '/css/profile-settings-modal.css',
@@ -25,6 +26,7 @@ const APP_SHELL = [
     '/css/commercial-polish.css',
     '/css/apple-polish.css',
     '/js/app.js',
+    '/js/passkey-login.js',
     '/js/script.js',
     '/js/catalog-fix.js',
     '/js/theme-bootstrap.js',
@@ -34,6 +36,7 @@ const APP_SHELL = [
     '/js/reservation-queue.js',
     '/js/admin.js',
     '/js/book-import.js',
+    '/js/library-operations.js',
     '/js/rentals-request-guard.js',
     '/js/profile-rentals.js',
     '/js/profile-reservations.js',

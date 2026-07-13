@@ -496,3 +496,23 @@ body.auth-page {
         transition-duration: 0.001ms !important;
     }
 }
+.passkey-login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    background: var(--surface, #fff) !important;
+    color: var(--text, #1e2521) !important;
+    border: 1px solid var(--border, rgba(31, 43, 36, .16)) !important;
+    box-shadow: none !important;
+}
+
+.passkey-login-btn:hover {
+    border-color: var(--accent, #2f7d5a) !important;
+    background: var(--accent-soft, #e2efe7) !important;
+}
+
+.passkey-login-btn:disabled {
+    cursor: wait;
+    opacity: .68;
+}

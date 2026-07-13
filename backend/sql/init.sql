@@ -150,6 +150,56 @@ CREATE TABLE IF NOT EXISTS account_notifications (
     UNIQUE (user_id, unique_key)
 );
 
+CREATE TABLE IF NOT EXISTS inventory_sessions (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(160) NOT NULL,
+    location_id INTEGER REFERENCES storage_locations(id) ON DELETE SET NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'active',
+    created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    created_by_username VARCHAR(80),
+    notes VARCHAR(500),
+    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS inventory_scans (
+    id SERIAL PRIMARY KEY,
+    session_id INTEGER NOT NULL REFERENCES inventory_sessions(id) ON DELETE CASCADE,
+    book_id INTEGER REFERENCES books(id) ON DELETE SET NULL,
+    scanned_code TEXT NOT NULL,
+    result VARCHAR(20) NOT NULL,
+    scanned_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    scanned_by_username VARCHAR(80),
+    scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS passkey_credentials (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    credential_id TEXT UNIQUE NOT NULL,
+    public_key BYTEA NOT NULL,
+    webauthn_user_id TEXT NOT NULL,
+    counter BIGINT NOT NULL DEFAULT 0,
+    transports JSONB NOT NULL DEFAULT '[]'::jsonb,
+    device_type VARCHAR(32),
+    backed_up BOOLEAN NOT NULL DEFAULT FALSE,
+    name VARCHAR(100) NOT NULL DEFAULT 'Passkey',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_used_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS passkey_challenges (
+    flow_id VARCHAR(80) PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    purpose VARCHAR(20) NOT NULL,
+    challenge TEXT NOT NULL,
+    webauthn_user_id TEXT,
+    origin TEXT NOT NULL,
+    rp_id VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL
+);
+
 -- Индексы
 CREATE INDEX IF NOT EXISTS idx_books_title ON books(title);
 CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);
@@ -173,6 +223,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_book_reservations_active_user_book
     ON book_reservations(book_id, user_id)
     WHERE status IN ('waiting', 'ready');
 CREATE INDEX IF NOT EXISTS idx_account_notifications_user ON account_notifications(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_inventory_sessions_started ON inventory_sessions(started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_inventory_scans_session ON inventory_scans(session_id, scanned_at DESC);
+CREATE INDEX IF NOT EXISTS idx_inventory_scans_book ON inventory_scans(session_id, book_id);
+CREATE INDEX IF NOT EXISTS idx_passkey_credentials_user ON passkey_credentials(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_passkey_challenges_expiry ON passkey_challenges(expires_at);
 CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique_idx ON users (LOWER(email)) WHERE email IS NOT NULL;
 
 -- Триггер для updated_at

@@ -27,10 +27,11 @@
 
         <div id="loginForm" class="form active" role="tabpanel" aria-labelledby="loginTab" tabindex="0">
             <label for="loginUsername">Имя пользователя</label>
-            <input type="text" id="loginUsername" name="username" autocomplete="username" placeholder="Имя пользователя">
+            <input type="text" id="loginUsername" name="username" autocomplete="username webauthn" placeholder="Имя пользователя">
             <label for="loginPassword">Пароль</label>
             <input type="password" id="loginPassword" name="password" autocomplete="current-password" placeholder="Пароль">
             <button type="button" onclick="login()">Войти</button>
+            <button class="passkey-login-btn" id="passkeyLoginBtn" type="button" hidden><span aria-hidden="true">◉</span> Войти по passkey</button>
             <button class="guest-btn" type="button" onclick="guestLogin()">Войти как гость</button>
             <button class="auth-link-btn" onclick="switchTab('reset')" type="button">Забыли пароль?</button>
             <div id="loginError" class="error" role="alert" aria-live="assertive"></div>
@@ -71,6 +72,7 @@
     </div>
 
     <script src="js/app.js"></script>
+    <script src="js/passkey-login.js?v=20260713-passkey-1"></script>
     <script src="js/auth-clear.js?v=20260709-search-style-1"></script>
     <script src="js/pwa.js"></script>
 </body>

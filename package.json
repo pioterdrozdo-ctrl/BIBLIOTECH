@@ -9,10 +9,12 @@
     "health": "node -e \"fetch('http://localhost:'+(process.env.PORT||3001)+'/api/health').then(r=>r.json()).then(console.log)\""
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "dependencies": {
+    "@simplewebauthn/server": "13.0.0",
     "cors": "^2.8.6",
+    "dejavu-fonts-ttf": "2.37.3",
     "dotenv": "^16.6.1",
     "exceljs": "^4.4.0",
     "express": "^4.22.2",
@@ -21,7 +23,9 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
     "nodemailer": "^6.10.1",
+    "pdfkit": "0.19.1",
     "pg": "^8.21.0",
+    "qrcode": "1.5.4",
     "three": "^0.185.1"
   }
 }
