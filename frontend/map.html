@@ -8,6 +8,7 @@
     <style>html[data-admin-map-access="pending"] body { visibility: hidden; }</style>
     <script src="js/admin-map-access.js?v=20260713-admin-map-1"></script>
     <script src="js/theme-bootstrap.js"></script>
+    <script src="js/interface-language.js?v=20260713-i18n-1" defer></script>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/library-3d-map.css?v=20260713-map-polish-2">
 </head>
@@ -144,36 +145,6 @@
     });
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape') setOpen(false);
-    });
-    const languageSwitcher = document.getElementById('languageSwitcher');
-    const languageMenu = document.getElementById('langMenu');
-    const languageButton = document.getElementById('langToggleBtn');
-    const setLanguageOpen = open => {
-        languageSwitcher?.classList.toggle('open', open);
-        languageMenu?.classList.toggle('active', open);
-        languageButton?.setAttribute('aria-expanded', String(open));
-    };
-    const currentLanguage = localStorage.getItem('bibliotech_language') || 'ru';
-    document.documentElement.lang = currentLanguage;
-    const languageCode = document.getElementById('langCurrentCode');
-    if (languageCode) languageCode.textContent = currentLanguage.toUpperCase();
-    document.querySelectorAll('.lang-option').forEach(option => {
-        option.classList.toggle('active', option.dataset.lang === currentLanguage);
-        option.addEventListener('click', () => {
-            const language = option.dataset.lang || 'ru';
-            localStorage.setItem('bibliotech_language', language);
-            document.documentElement.lang = language;
-            if (languageCode) languageCode.textContent = language.toUpperCase();
-            document.querySelectorAll('.lang-option').forEach(item => item.classList.toggle('active', item === option));
-            setLanguageOpen(false);
-        });
-    });
-    languageButton?.addEventListener('click', event => {
-        event.stopPropagation();
-        setLanguageOpen(!languageMenu?.classList.contains('active'));
-    });
-    document.addEventListener('click', event => {
-        if (!event.target.closest('#languageSwitcher')) setLanguageOpen(false);
     });
     document.getElementById('logoutBtn')?.addEventListener('click', event => {
         event.preventDefault();

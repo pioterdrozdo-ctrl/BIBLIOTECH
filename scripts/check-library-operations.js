@@ -22,6 +22,7 @@ const aboutPage = read('frontend/about.html');
 const securityUi = read('frontend/js/profile-security.js');
 const booksRoute = read('backend/routes/books.js');
 const serviceWorker = read('frontend/sw.js');
+const interfaceLanguage = read('frontend/js/interface-language.js');
 
 assert.ok(server.includes("app.use('/api/inventory', inventoryRoutes)"));
 assert.ok(server.includes("app.use('/api/documents', documentRoutes)"));
@@ -50,6 +51,8 @@ assert.ok(adminPage.includes('vendor/jsQR.js'));
 assert.ok(adminPage.includes('id="inventoryWorkspaceModal"'));
 assert.ok(adminPage.includes('id="documentsWorkspaceModal"'));
 assert.ok(adminPage.includes('data-admin-section="overview"'));
+assert.ok(adminPage.includes('id="languageSwitcher"'), 'admin page must keep the language control visible');
+assert.ok(adminPage.includes('js/interface-language.js'), 'admin page must load the shared language controller');
 assert.ok(adminWorkspaceUi.includes("sessionStorage.setItem('bibliotech-admin-section'"));
 assert.ok(adminWorkspaceCss.includes('.admin-command-grid'));
 assert.ok(operationsUi.includes('navigator.mediaDevices.getUserMedia'));
@@ -73,5 +76,9 @@ assert.ok(serviceWorker.includes("'/js/library-operations.js'"));
 assert.ok(serviceWorker.includes("'/css/library-operations.css'"));
 assert.ok(serviceWorker.includes("'/js/admin-workspace.js'"));
 assert.ok(serviceWorker.includes("'/css/admin-workspace.css'"));
+assert.ok(serviceWorker.includes("'/js/interface-language.js'"));
+assert.ok(interfaceLanguage.includes('window.BibliotechI18n'));
+assert.ok(interfaceLanguage.includes('MutationObserver'), 'dynamic admin content must be translated after it opens');
+assert.ok(interfaceLanguage.includes("adminHeading: 'Manage BIBLIOTECH'"));
 
 console.log('Library operations check OK: inventory, link-based printed QR labels, admin workspaces and passkeys are integrated without rewriting stored QR codes.');

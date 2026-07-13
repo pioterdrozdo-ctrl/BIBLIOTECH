@@ -1087,9 +1087,9 @@ function applyLanguage(lang = localStorage.getItem(LANGUAGE_KEY) || 'ru') {
     document.documentElement.lang = lang;
     const t = { ...(I18N[lang] || I18N.ru), ...getLangPack(lang) };
 
-    setSmartText('nav li:nth-child(1) a', 'navHome');
-    setSmartText('nav li:nth-child(2) a', 'navStats');
-    setSmartText('nav li:nth-child(3) a', 'navAbout');
+    setSmartText('nav a[href^="home.html"]', 'navHome');
+    setSmartText('nav a[href^="stats.html"]', 'navStats');
+    setSmartText('nav a[href^="about.html"]', 'navAbout');
     setSmartText('#logoutBtn', 'logout');
     setSmartText('.hero--info h2', 'heroWelcome');
     setSmartHTML('.hero--info h1', 'heroTitle');
@@ -1153,7 +1153,16 @@ function setupLanguageSwitcher() {
     document.querySelectorAll('.lang-option').forEach(option => option.addEventListener('click', () => {
         applyLanguage(option.dataset.lang);
         menu?.classList.remove('active'); wrap?.classList.remove('open');
-        notify('Язык интерфейса обновлён');
+        const languageUpdatedMessages = {
+            ru: 'Язык интерфейса обновлён',
+            en: 'Interface language updated',
+            uk: 'Мову інтерфейсу оновлено',
+            de: 'Oberflächensprache aktualisiert',
+            kk: 'Интерфейс тілі жаңартылды',
+            es: 'Idioma de la interfaz actualizado',
+            zh: '界面语言已更新'
+        };
+        notify(languageUpdatedMessages[option.dataset.lang] || languageUpdatedMessages.ru);
     }));
     document.addEventListener('click', (e) => { if (wrap && !wrap.contains(e.target)) { menu?.classList.remove('active'); wrap.classList.remove('open'); } });
 }

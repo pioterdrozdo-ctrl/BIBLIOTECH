@@ -12,6 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="BIBLIOTECH">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <script src="js/theme-bootstrap.js"></script>
+    <script src="js/interface-language.js?v=20260713-i18n-1" defer></script>
     <title>Админ | BIBLIOTECH</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/book-import.css">
@@ -32,6 +33,24 @@
                         <li><a href="stats.html">Статистика</a></li>
                         <li><a href="about.html">О нас</a></li>
                         <li class="admin-nav-item active"><a href="admin.html" aria-current="page">Админ</a></li>
+                        <li class="nav-language-item">
+                            <div class="language-switcher" id="languageSwitcher">
+                                <button class="language-current" id="langToggleBtn" type="button" aria-label="Выбрать язык" aria-expanded="false">
+                                    <span class="lang-globe">🌐</span>
+                                    <span class="lang-current-code" id="langCurrentCode">RU</span>
+                                    <span class="lang-arrow">⌄</span>
+                                </button>
+                                <div id="langMenu" class="lang-menu">
+                                    <button class="lang-option active" type="button" data-lang="ru"><span>🇷🇺</span><b>Русский</b><small>RU</small></button>
+                                    <button class="lang-option" type="button" data-lang="en"><span>🇬🇧</span><b>English</b><small>EN</small></button>
+                                    <button class="lang-option" type="button" data-lang="uk"><span>🇺🇦</span><b>Українська</b><small>UK</small></button>
+                                    <button class="lang-option" type="button" data-lang="de"><span>🇩🇪</span><b>Deutsch</b><small>DE</small></button>
+                                    <button class="lang-option" type="button" data-lang="kk"><span>🇰🇿</span><b>Қазақша</b><small>KK</small></button>
+                                    <button class="lang-option" type="button" data-lang="es"><span>🇪🇸</span><b>Español</b><small>ES</small></button>
+                                    <button class="lang-option" type="button" data-lang="zh"><span>🇨🇳</span><b>中文</b><small>ZH</small></button>
+                                </div>
+                            </div>
+                        </li>
                         <li><button class="user-pill profile-pill" id="currentUserPill" type="button">Админ</button></li>
                         <li class="btn"><a href="#" id="logoutBtn">Выйти</a></li>
                     </ul>

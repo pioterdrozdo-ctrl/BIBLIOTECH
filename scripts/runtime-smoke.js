@@ -45,7 +45,10 @@ function attachDiagnostics(page, label) {
 
 async function setSession(page, role = 'admin') {
     await page.addInitScript(({ role, token }) => {
-        localStorage.setItem('bibliotech_language', 'ru');
+        if (!sessionStorage.getItem('bibliotech_smoke_language_seeded')) {
+            localStorage.setItem('bibliotech_language', 'ru');
+            sessionStorage.setItem('bibliotech_smoke_language_seeded', '1');
+        }
         localStorage.setItem('bibliotech_current_user', JSON.stringify({
             id: role === 'admin' ? 1 : 2,
             username: role === 'admin' ? 'Smoke Admin' : 'Smoke User',
@@ -199,9 +202,23 @@ async function verifyLanguageSwitch(browser) {
         { home: 'Home', map: 'Map', stats: 'Statistics', about: 'About', admin: 'Admin' },
         'Language switch corrupted navigation order'
     );
+    await page.waitForFunction(() => document.querySelector('.stats-hero h1')?.textContent.includes('Library statistics'));
+    assert.match(await page.locator('.insight-card').first().textContent(), /Total books/, 'Statistics content was not translated');
+
+    await page.goto(`${baseUrl}/admin.html`, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('[data-admin-section="overview"]', { state: 'visible' });
+    assert.equal(await page.locator('#languageSwitcher').count(), 1, 'Admin language switcher is missing');
+    await page.locator('#menuIcon').click();
+    await page.waitForSelector('#languageSwitcher', { state: 'visible' });
+    assert.equal(await page.locator('#languageSwitcher').isVisible(), true, 'Admin language switcher is hidden in the mobile menu');
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#langCurrentCode').textContent(), 'EN', 'Selected language did not persist on admin page');
+    await page.waitForFunction(() => document.querySelector('.admin-hero h1')?.textContent.trim() === 'Manage BIBLIOTECH');
+    assert.equal(await page.locator('[data-admin-section-target="overview"]').textContent(), 'Overview', 'Admin section navigation was not translated');
+    assert.match(await page.locator('[data-admin-section="overview"]').textContent(), /Import books/, 'Admin workspace content was not translated');
 
     await page.evaluate(() => document.querySelector('.lang-option[data-lang="ru"]')?.click());
-    await page.waitForFunction(() => document.querySelector('#navMenu a[href="map.html"]')?.textContent.trim() === 'Карта');
+    await page.waitForFunction(() => document.querySelector('.admin-hero h1')?.textContent.trim() === 'Управление BIBLIOTECH');
     assertRussianNavigation(await readNavigation(page, '#navMenu'), 'language-switch-back');
     await page.close();
 }
