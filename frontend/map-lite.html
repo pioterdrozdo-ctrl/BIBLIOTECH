@@ -2,14 +2,138 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="0; url=map.html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#f5f5f7">
     <title>Карта первого этажа — BIBLIOTECH</title>
-    <script>
-        window.location.replace(new URL('map.html', window.location.href).href);
-    </script>
+    <script src="js/theme-bootstrap.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/library-3d-map.css">
 </head>
-<body>
-    <p><a href="map.html">Открыть карту первого этажа</a></p>
+<body class="library-map-page">
+<header>
+    <div class="container">
+        <div class="header-inner">
+            <a class="NAHODKI brand-logo" href="home.html"><img src="img/appicon-system-v2.png" alt="Логотип BIBLIOTECH"><span>BIBLIOTECH</span></a>
+            <nav aria-label="Навигация карты">
+                <ul>
+                    <li><a href="home.html">Каталог</a></li>
+                    <li class="active"><a href="map-lite.html" aria-current="page">Карта</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<main class="map-main">
+    <section class="map-heading container" aria-labelledby="mapLiteTitle">
+        <div>
+            <p class="map-eyebrow">Корпус Тушино · 1 этаж</p>
+            <h1 id="mapLiteTitle">Карта первого этажа</h1>
+            <p>Кабинет 125 с физическим фондом библиотеки отмечен синим цветом.</p>
+        </div>
+        <a class="map-back-link" href="home.html">← Вернуться в каталог</a>
+    </section>
+
+    <section class="floor-map-card container" aria-label="План первого этажа Тушинского комплекса">
+        <div class="floor-map-top">
+            <div>
+                <p class="map-eyebrow">Тушинский комплекс</p>
+                <h2>Схема первого этажа</h2>
+            </div>
+            <div class="room-125-badge"><span aria-hidden="true"></span>Кабинет 125</div>
+        </div>
+
+        <div class="floor-plan-scroll" tabindex="0">
+            <svg class="tushino-floor-plan" viewBox="0 0 760 900" role="img" aria-labelledby="litePlanTitle litePlanDesc">
+                <title id="litePlanTitle">Первый этаж Тушинского комплекса</title>
+                <desc id="litePlanDesc">Схема здания с выделенным кабинетом 125 в правом крыле.</desc>
+                <rect class="plan-background" x="10" y="10" width="740" height="880" rx="24"/>
+
+                <path class="building-shell" d="M40 45H430V260H345V225H270V260H195V225H120V260H40Z"/>
+                <rect class="corridor" x="85" y="92" width="300" height="90" rx="8"/>
+                <rect class="room" x="48" y="53" width="68" height="34"/><text class="room-label" x="82" y="70">119</text>
+                <rect class="room" x="122" y="53" width="68" height="34"/><text class="room-label" x="156" y="70">118</text>
+                <rect class="room" x="196" y="53" width="92" height="34"/><text class="room-label" x="242" y="70">2</text>
+                <rect class="room" x="294" y="53" width="92" height="34"/><text class="room-label" x="340" y="70">3</text>
+                <rect class="room" x="48" y="96" width="32" height="32"/><text class="room-label tiny" x="64" y="112">116</text>
+                <rect class="room" x="48" y="132" width="32" height="32"/><text class="room-label tiny" x="64" y="148">115</text>
+                <rect class="room" x="90" y="96" width="82" height="72"/><text class="room-label" x="131" y="132">157</text>
+                <rect class="room" x="180" y="96" width="94" height="72"/><text class="room-label" x="227" y="132">2</text>
+                <rect class="room" x="282" y="96" width="94" height="72"/><text class="room-label" x="329" y="132">3</text>
+                <rect class="room" x="180" y="190" width="94" height="60"/><text class="room-label" x="227" y="220">1</text>
+                <rect class="room" x="282" y="190" width="94" height="60"/><text class="room-label" x="329" y="220">4</text>
+
+                <path class="building-shell" d="M455 45H570V260H455Z"/>
+                <rect class="corridor" x="490" y="53" width="45" height="198"/>
+                <rect class="room" x="462" y="53" width="24" height="34"/><text class="room-label tiny" x="474" y="70">104</text>
+                <rect class="room" x="462" y="91" width="24" height="34"/><text class="room-label tiny" x="474" y="108">103</text>
+                <rect class="room" x="462" y="129" width="24" height="34"/><text class="room-label tiny" x="474" y="146">102</text>
+                <rect class="room" x="539" y="53" width="24" height="34"/><text class="room-label tiny" x="551" y="70">109</text>
+                <rect class="room" x="539" y="91" width="24" height="34"/><text class="room-label tiny" x="551" y="108">108</text>
+                <rect class="room" x="539" y="129" width="24" height="34"/><text class="room-label tiny" x="551" y="146">107</text>
+
+                <ellipse class="courtyard" cx="305" cy="400" rx="205" ry="125"/>
+                <path class="courtyard-path" d="M160 370c72-58 238-62 319 18 37 37 45 84 20 125"/>
+
+                <path class="building-shell" d="M610 120H720V600H690V646H650V600H610Z"/>
+                <rect class="corridor" x="644" y="128" width="35" height="462"/>
+                <rect class="room" x="616" y="128" width="24" height="38"/><text class="room-label tiny" x="628" y="147">192</text>
+                <rect class="room" x="683" y="128" width="31" height="38"/><text class="room-label tiny" x="698" y="147">148</text>
+                <rect class="room" x="616" y="170" width="24" height="42"/><text class="room-label tiny" x="628" y="191">116</text>
+                <rect class="room" x="683" y="170" width="31" height="82"/><text class="room-label" x="698" y="211">117</text>
+                <rect class="room" x="616" y="216" width="24" height="42"/><text class="room-label tiny" x="628" y="237">115</text>
+                <rect class="room" x="616" y="262" width="24" height="52"/><text class="room-label tiny" x="628" y="288">113</text>
+                <rect class="room" x="683" y="256" width="31" height="82"/><text class="room-label" x="698" y="297">118</text>
+                <rect class="room" x="616" y="318" width="24" height="52"/><text class="room-label tiny" x="628" y="344">112</text>
+                <rect class="room" x="683" y="342" width="31" height="46"/><text class="room-label tiny" x="698" y="365">119</text>
+                <rect class="room" x="616" y="374" width="24" height="52"/><text class="room-label tiny" x="628" y="400">111</text>
+                <rect class="room" x="683" y="392" width="31" height="46"/><text class="room-label tiny" x="698" y="415">120</text>
+                <rect class="room" x="616" y="430" width="24" height="34"/><text class="room-label tiny" x="628" y="447">110</text>
+                <rect class="room" x="683" y="442" width="31" height="40"/><text class="room-label tiny" x="698" y="462">121</text>
+                <rect class="room" x="616" y="468" width="24" height="34"/><text class="room-label tiny" x="628" y="485">109</text>
+                <rect class="room" x="683" y="486" width="31" height="40"/><text class="room-label tiny" x="698" y="506">122</text>
+                <rect class="room" x="616" y="506" width="24" height="34"/><text class="room-label tiny" x="628" y="523">108</text>
+                <rect class="room" x="683" y="530" width="31" height="60"/><text class="room-label tiny" x="698" y="560">123</text>
+                <rect class="room room-125" x="648" y="600" width="66" height="46" rx="7"/>
+                <text class="room-125-label" x="681" y="621">125</text>
+                <text class="room-125-sub" x="681" y="637">БИБЛИОТЕКА</text>
+                <path class="callout-line" d="M648 624H560V680"/>
+                <g class="callout" transform="translate(408 678)"><rect width="184" height="58" rx="16"/><text x="92" y="25">КАБИНЕТ 125</text><text class="callout-small" x="92" y="43">физический фонд</text></g>
+
+                <path class="building-shell" d="M430 560H600L625 590V700H560L525 665H430Z"/>
+                <circle class="rotunda" cx="650" cy="714" r="56"/>
+                <text class="zone-label" x="515" y="620">ВЕСТИБЮЛЬ</text>
+                <text class="zone-label" x="650" y="718">ХОЛЛ</text>
+
+                <path class="building-shell" d="M40 640H430V855H40Z M430 680H520L565 725V855H430Z" fill-rule="evenodd"/>
+                <rect class="corridor" x="110" y="750" width="400" height="40" rx="8"/>
+                <rect class="room" x="48" y="648" width="82" height="66"/><text class="room-label" x="89" y="681">138</text>
+                <rect class="room" x="48" y="718" width="82" height="54"/><text class="room-label" x="89" y="745">129</text>
+                <rect class="room" x="48" y="796" width="112" height="46"/><text class="room-label" x="104" y="819">128</text>
+                <rect class="room" x="138" y="648" width="46" height="34"/><text class="room-label tiny" x="161" y="665">145</text>
+                <rect class="room" x="188" y="648" width="46" height="34"/><text class="room-label tiny" x="211" y="665">146</text>
+                <rect class="room" x="238" y="648" width="46" height="34"/><text class="room-label tiny" x="261" y="665">147</text>
+                <rect class="room" x="138" y="686" width="146" height="60"/><text class="room-label" x="211" y="716">155</text>
+                <rect class="room" x="290" y="648" width="78" height="98"/><text class="room-label" x="329" y="697">137</text>
+                <rect class="room" x="372" y="648" width="78" height="98"/><text class="room-label" x="411" y="697">138</text>
+                <rect class="room" x="164" y="796" width="54" height="48"/><text class="room-label" x="191" y="820">135</text>
+                <rect class="room" x="222" y="796" width="54" height="48"/><text class="room-label" x="249" y="820">130</text>
+                <rect class="room" x="280" y="796" width="54" height="48"/><text class="room-label" x="307" y="820">131</text>
+                <rect class="room" x="338" y="796" width="54" height="48"/><text class="room-label" x="365" y="820">132</text>
+                <rect class="room" x="396" y="796" width="54" height="48"/><text class="room-label" x="423" y="820">133</text>
+                <rect class="room" x="454" y="796" width="54" height="48"/><text class="room-label" x="481" y="820">134</text>
+
+                <text class="complex-label" x="52" y="875">ТУШИНСКИЙ КОМПЛЕКС · ПЕРВЫЙ ЭТАЖ</text>
+            </svg>
+        </div>
+
+        <div class="floor-map-footer">
+            <p><strong>Кабинет 125</strong> находится в нижней части правого крыла рядом с центральным холлом.</p>
+        </div>
+    </section>
+</main>
+
+<button class="floating-theme-toggle" id="floatingThemeToggle" title="Сменить тему">◐</button>
+<script src="js/pwa.js"></script>
 </body>
 </html>
