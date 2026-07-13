@@ -205,6 +205,83 @@
         uploadFile: '上传文件', importBatchLimit: '每次最多导入 500 本书', checkRows: '检查各行', importPreviewHint: '提前显示错误和重复项', confirmImport: '确认', importTransactionHint: '所有行在一个事务中保存', addBooks: '添加图书'
     });
 
+    Object.assign(BASE, {
+        homeHeroTitle: 'Каталог библиотеки',
+        homeHeroLead: 'Поиск, выдача и учёт книг в одном месте.',
+        catalogOnline: 'Каталог онлайн',
+        commandSearch: 'Название, автор или ISBN',
+        booksMetric: 'Книг',
+        singleCatalog: 'в едином каталоге',
+        availabilityAccounting: 'с учётом наличия',
+        qrSearch: 'QR-поиск',
+        reservation: 'Бронирование',
+        analytics: 'Аналитика',
+        catalogManageLead: 'Поиск и управление книгами',
+        catalogSearch: 'Поиск',
+        catalogSearchPlaceholder: 'Название, автор или описание',
+        welcomeBanner: 'ДОБРО ПОЖАЛОВАТЬ В BIBLIOTECH',
+        welcomeTitle: 'Начните с того, что действительно полезно',
+        welcomeLead: 'Здесь не нужно разбираться в сложной системе. Три главных сценария доступны сразу.',
+        findBook: 'Найти книгу',
+        findBookHint: 'Введите название, автора или тему',
+        scanQr: 'Сканировать QR',
+        scanQrHint: 'Откройте карточку книги камерой',
+        customizeProfile: 'Настроить профиль',
+        customizeProfileHint: 'Аватар, обложка, безопасность и списки',
+        exploreMyself: 'Посмотреть самому',
+        openFullProfile: 'Открыть полноценный профиль',
+        lightMode: 'Светлая', darkMode: 'Тёмная', dayLibrary: 'дневная библиотека', nightLibrary: 'ночная библиотека',
+        lightTheme: 'Светлая тема', darkTheme: 'Тёмная тема'
+    });
+    Object.assign(PACKS.en, {
+        homeHeroTitle: 'Library catalog', homeHeroLead: 'Search, lending and book tracking in one place.', catalogOnline: 'Catalog online',
+        commandSearch: 'Title, author or ISBN', booksMetric: 'Books', singleCatalog: 'in one catalog', availabilityAccounting: 'with availability tracking',
+        qrSearch: 'QR search', reservation: 'Reservations', analytics: 'Analytics', catalogManageLead: 'Search and manage books', catalogSearch: 'Search',
+        catalogSearchPlaceholder: 'Title, author or description', welcomeBanner: 'WELCOME TO BIBLIOTECH', welcomeTitle: 'Start with what is genuinely useful',
+        welcomeLead: 'There is no complicated system to learn. The three main actions are ready immediately.', findBook: 'Find a book', findBookHint: 'Enter a title, author or topic',
+        scanQr: 'Scan QR', scanQrHint: 'Open a book card with the camera', customizeProfile: 'Customize profile', customizeProfileHint: 'Avatar, cover, security and lists',
+        exploreMyself: 'Explore myself', openFullProfile: 'Open full profile', lightMode: 'Light', darkMode: 'Dark', dayLibrary: 'day library', nightLibrary: 'night library', lightTheme: 'Light theme', darkTheme: 'Dark theme'
+    });
+    Object.assign(PACKS.uk, {
+        homeHeroTitle: 'Каталог бібліотеки', homeHeroLead: 'Пошук, видача та облік книг в одному місці.', catalogOnline: 'Каталог онлайн', commandSearch: 'Назва, автор або ISBN',
+        booksMetric: 'Книг', singleCatalog: 'в єдиному каталозі', availabilityAccounting: 'з урахуванням наявності', qrSearch: 'QR-пошук', reservation: 'Бронювання', analytics: 'Аналітика',
+        catalogManageLead: 'Пошук і керування книгами', catalogSearch: 'Пошук', catalogSearchPlaceholder: 'Назва, автор або опис', welcomeBanner: 'ЛАСКАВО ПРОСИМО ДО BIBLIOTECH',
+        welcomeTitle: 'Почніть із того, що справді корисно', welcomeLead: 'Не потрібно розбиратися у складній системі. Три головні сценарії доступні одразу.', findBook: 'Знайти книгу',
+        findBookHint: 'Введіть назву, автора або тему', scanQr: 'Сканувати QR', scanQrHint: 'Відкрийте картку книги камерою', customizeProfile: 'Налаштувати профіль',
+        customizeProfileHint: 'Аватар, обкладинка, безпека та списки', exploreMyself: 'Переглянути самостійно', openFullProfile: 'Відкрити повний профіль', lightMode: 'Світла', darkMode: 'Темна', dayLibrary: 'денна бібліотека', nightLibrary: 'нічна бібліотека', lightTheme: 'Світла тема', darkTheme: 'Темна тема'
+    });
+    Object.assign(PACKS.de, {
+        homeHeroTitle: 'Bibliothekskatalog', homeHeroLead: 'Suche, Ausleihe und Buchverwaltung an einem Ort.', catalogOnline: 'Katalog online', commandSearch: 'Titel, Autor oder ISBN',
+        booksMetric: 'Bücher', singleCatalog: 'in einem Katalog', availabilityAccounting: 'mit Verfügbarkeitsstatus', qrSearch: 'QR-Suche', reservation: 'Reservierungen', analytics: 'Analyse',
+        catalogManageLead: 'Bücher suchen und verwalten', catalogSearch: 'Suche', catalogSearchPlaceholder: 'Titel, Autor oder Beschreibung', welcomeBanner: 'WILLKOMMEN BEI BIBLIOTECH',
+        welcomeTitle: 'Beginnen Sie mit dem wirklich Nützlichen', welcomeLead: 'Kein kompliziertes System: Die drei wichtigsten Aktionen sind sofort verfügbar.', findBook: 'Buch finden',
+        findBookHint: 'Titel, Autor oder Thema eingeben', scanQr: 'QR scannen', scanQrHint: 'Buchkarte mit der Kamera öffnen', customizeProfile: 'Profil anpassen',
+        customizeProfileHint: 'Avatar, Titelbild, Sicherheit und Listen', exploreMyself: 'Selbst ansehen', openFullProfile: 'Vollständiges Profil öffnen', lightMode: 'Hell', darkMode: 'Dunkel', dayLibrary: 'Bibliothek am Tag', nightLibrary: 'Bibliothek bei Nacht', lightTheme: 'Helles Design', darkTheme: 'Dunkles Design'
+    });
+    Object.assign(PACKS.kk, {
+        homeHeroTitle: 'Кітапхана каталогы', homeHeroLead: 'Кітаптарды іздеу, беру және есепке алу бір жерде.', catalogOnline: 'Каталог онлайн', commandSearch: 'Атауы, авторы немесе ISBN',
+        booksMetric: 'Кітаптар', singleCatalog: 'бір каталогта', availabilityAccounting: 'қолжетімділікті есепке алумен', qrSearch: 'QR іздеу', reservation: 'Брондау', analytics: 'Талдау',
+        catalogManageLead: 'Кітаптарды іздеу және басқару', catalogSearch: 'Іздеу', catalogSearchPlaceholder: 'Атауы, авторы немесе сипаттамасы', welcomeBanner: 'BIBLIOTECH-ҚА ҚОШ КЕЛДІҢІЗ',
+        welcomeTitle: 'Шынымен пайдалы нәрседен бастаңыз', welcomeLead: 'Күрделі жүйені үйренудің қажеті жоқ. Үш негізгі әрекет бірден қолжетімді.', findBook: 'Кітапты табу',
+        findBookHint: 'Атауын, авторын немесе тақырыбын енгізіңіз', scanQr: 'QR сканерлеу', scanQrHint: 'Кітап картасын камерамен ашыңыз', customizeProfile: 'Профильді баптау',
+        customizeProfileHint: 'Аватар, мұқаба, қауіпсіздік және тізімдер', exploreMyself: 'Өзім көремін', openFullProfile: 'Толық профильді ашу', lightMode: 'Ашық', darkMode: 'Қараңғы', dayLibrary: 'күндізгі кітапхана', nightLibrary: 'түнгі кітапхана', lightTheme: 'Ашық тақырып', darkTheme: 'Қараңғы тақырып'
+    });
+    Object.assign(PACKS.es, {
+        homeHeroTitle: 'Catálogo de la biblioteca', homeHeroLead: 'Búsqueda, préstamo y control de libros en un solo lugar.', catalogOnline: 'Catálogo en línea', commandSearch: 'Título, autor o ISBN',
+        booksMetric: 'Libros', singleCatalog: 'en un solo catálogo', availabilityAccounting: 'con control de disponibilidad', qrSearch: 'Búsqueda QR', reservation: 'Reservas', analytics: 'Analítica',
+        catalogManageLead: 'Buscar y gestionar libros', catalogSearch: 'Buscar', catalogSearchPlaceholder: 'Título, autor o descripción', welcomeBanner: 'BIENVENIDO A BIBLIOTECH',
+        welcomeTitle: 'Empieza por lo realmente útil', welcomeLead: 'No hay un sistema complicado que aprender. Las tres acciones principales están disponibles de inmediato.', findBook: 'Buscar un libro',
+        findBookHint: 'Introduce título, autor o tema', scanQr: 'Escanear QR', scanQrHint: 'Abre la ficha con la cámara', customizeProfile: 'Personalizar perfil',
+        customizeProfileHint: 'Avatar, portada, seguridad y listas', exploreMyself: 'Explorar por mi cuenta', openFullProfile: 'Abrir perfil completo', lightMode: 'Claro', darkMode: 'Oscuro', dayLibrary: 'biblioteca de día', nightLibrary: 'biblioteca nocturna', lightTheme: 'Tema claro', darkTheme: 'Tema oscuro'
+    });
+    Object.assign(PACKS.zh, {
+        homeHeroTitle: '图书馆目录', homeHeroLead: '图书搜索、借阅和管理集中在一处。', catalogOnline: '目录在线', commandSearch: '书名、作者或 ISBN', booksMetric: '图书', singleCatalog: '统一目录',
+        availabilityAccounting: '含可借状态', qrSearch: '二维码搜索', reservation: '预约', analytics: '分析', catalogManageLead: '搜索和管理图书', catalogSearch: '搜索',
+        catalogSearchPlaceholder: '书名、作者或描述', welcomeBanner: '欢迎来到 BIBLIOTECH', welcomeTitle: '从真正有用的功能开始', welcomeLead: '无需学习复杂系统，三个主要操作立即可用。',
+        findBook: '查找图书', findBookHint: '输入书名、作者或主题', scanQr: '扫描二维码', scanQrHint: '用相机打开图书卡片', customizeProfile: '自定义个人资料',
+        customizeProfileHint: '头像、封面、安全和列表', exploreMyself: '自行浏览', openFullProfile: '打开完整个人资料', lightMode: '浅色', darkMode: '深色', dayLibrary: '日间图书馆', nightLibrary: '夜间图书馆', lightTheme: '浅色主题', darkTheme: '深色主题'
+    });
+
     var sourceToKey = new Map();
     Object.keys(BASE).forEach(function (key) {
         if (!sourceToKey.has(BASE[key])) sourceToKey.set(BASE[key], key);

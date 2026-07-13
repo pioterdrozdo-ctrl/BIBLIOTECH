@@ -474,7 +474,7 @@ async function updateDashboard() {
     const authorsBox = document.getElementById('topAuthors');
     if (authorsBox) {
         authorsBox.innerHTML = topAuthors.length
-            ? topAuthors.map(([name, count], index) => `<div class="author-row"><span>${index + 1}. ${escapeHtml(name)}</span><b>${count}</b></div>`).join('')
+            ? topAuthors.map(([name, count], index) => `<div class="author-row"><span data-user-content="book-author">${index + 1}. ${escapeHtml(name)}</span><b>${count}</b></div>`).join('')
             : 'Пока нет данных';
     }
 
@@ -490,7 +490,7 @@ function renderStats(books) {
     const available = state.books.filter(b => b.available).length;
     const copies = state.books.reduce((sum, b) => sum + (b.copies || 0), 0);
     const stats = $('#stats');
-    if (stats) stats.innerHTML = `Показано: <b>${books.length}</b> из <b>${total}</b> · В наличии: <b>${available}</b> · Экземпляров: <b>${copies}</b>`;
+    if (stats) stats.innerHTML = `${escapeHtml(tr('shown'))}: <b>${books.length}</b> ${escapeHtml(tr('of'))} <b>${total}</b> · ${escapeHtml(tr('availableCount'))}: <b>${available}</b> · ${escapeHtml(tr('copiesCount'))}: <b>${copies}</b>`;
 }
 
 function renderBooks(options = {}) {
@@ -513,18 +513,18 @@ function renderBooks(options = {}) {
         const locationText = formatLocation(getBookLocation(book));
         const rentalText = book.rentedByMe ? 'Закреплена за вами' : (book.activeRentalsCount ? `Аренда: ${book.activeRentalsCount}` : '');
         const controls = canManageBooks()
-            ? `<button class="delete-btn" data-id="${book.id}" title="Удалить книгу">🗑️ ${escapeHtml(tr('clearAll')).replace(' всё','')}</button>`
+            ? `<button class="delete-btn" data-id="${book.id}" title="${escapeHtml(tr('deleteBook'))}">🗑️ ${escapeHtml(tr('deleteBook'))}</button>`
             : `<span class="guest-note">${isGuest() ? escapeHtml(tr('guestView')) : 'Пользователь: просмотр и комментарии'}</span>`;
-        return `<div class="book-card ${state.search ? 'search-match-card' : ''}" data-id="${book.id}" tabindex="0" aria-label="${escapeHtml(`Открыть книгу: ${book.title}, ${book.author || 'автор не указан'}`)}">
+        return `<div class="book-card ${state.search ? 'search-match-card' : ''}" data-id="${book.id}" tabindex="0" aria-label="${escapeHtml(`${tr('openBook')}: ${book.title}, ${book.author || tr('unknownAuthor')}`)}">
             <div class="book-cover">${coverHtml}</div>
             <div class="book-info">
-                <div class="book-title">${highlight(book.title, state.search)}</div>
-                <div class="book-author">✍️ ${highlight(book.author || 'Автор не указан', state.search)}</div>
-                <div class="book-description">${highlight(book.description || 'Нет описания', state.search)}</div>
+                <div class="book-title" data-user-content="book-title">${highlight(book.title, state.search)}</div>
+                <div class="book-author" data-user-content="book-author">✍️ ${highlight(book.author || 'Автор не указан', state.search)}</div>
+                <div class="book-description" data-user-content="book-description">${highlight(book.description || 'Нет описания', state.search)}</div>
                 <div class="book-meta">
                     <span class="badge ${availableClass}">${availableText}</span>
-                    <span class="badge copies">📚 ${book.copies || 0} экз.</span>
-                    <span class="badge location-badge">📍 ${escapeHtml(locationText)}</span>
+                    <span class="badge copies">📚 ${book.copies || 0} ${escapeHtml(tr('copyAbbr'))}</span>
+                    <span class="badge location-badge" data-user-content="storage-location">📍 ${escapeHtml(locationText)}</span>
                     ${rentalText ? `<span class="badge rental-badge">🔖 ${escapeHtml(rentalText)}</span>` : ''}
                     <span class="badge date">📅 ${escapeHtml(book.dateAdded || 'Дата неизвестна')}</span>
                 </div>
@@ -545,16 +545,18 @@ function openBook(bookId) {
     const location = getBookLocation(book);
     const locationText = formatLocation(location);
     $('#viewTitle').textContent = book.title;
+    $('#viewTitle').dataset.userContent = 'book-title';
     $('#viewDescription').textContent = book.description || 'Нет описания';
-    const authorEl = $('#viewAuthorValue'); if (authorEl) authorEl.textContent = book.author || 'Автор не указан';
+    $('#viewDescription').dataset.userContent = 'book-description';
+    const authorEl = $('#viewAuthorValue'); if (authorEl) { authorEl.textContent = book.author || 'Автор не указан'; authorEl.dataset.userContent = 'book-author'; }
     const statusEl = $('#viewStatusValue'); if (statusEl) { statusEl.textContent = availableText; statusEl.className = 'detail-value status ' + (book.available ? 'ok' : 'bad'); }
     const addedEl = $('#viewAddedValue'); if (addedEl) addedEl.textContent = book.dateAdded || 'Дата неизвестна';
     const commEl = $('#viewCommentsValue'); if (commEl) commEl.textContent = commentsCount;
     $('#viewMeta').innerHTML = `
         <span class="badge">✍️ ${escapeHtml(book.author || 'Автор не указан')}</span>
         <span class="badge ${book.available ? '' : 'out'}">${escapeHtml(availableText)}</span>
-        <span class="badge copies">📚 ${book.copies || 0} экз.</span>
-        <span class="badge location-badge">📍 ${escapeHtml(locationText)}</span>
+        <span class="badge copies">📚 ${book.copies || 0} ${escapeHtml(tr('copyAbbr'))}</span>
+        <span class="badge location-badge" data-user-content="storage-location">📍 ${escapeHtml(locationText)}</span>
         ${book.rentedByMe ? '<span class="badge rental-badge">🔖 Закреплена за вами</span>' : ''}
         <span class="badge date">📅 ${escapeHtml(book.dateAdded || 'Дата неизвестна')}</span>`;
     $('#viewCopiesCount').textContent = book.copies || 0;
@@ -663,7 +665,7 @@ function renderComments(book) {
         list.innerHTML = book.comments.map((comment, index) => {
             const deleteAction = canDeleteComment(comment) ? `<button class="delete-comment-btn" data-idx="${index}">🗑️</button>` : '';
             return `<div class="comment-item">
-                <div class="comment-text">${escapeHtml(comment.text)}</div>
+                <div class="comment-text" data-user-content="comment">${escapeHtml(comment.text)}</div>
                 <span class="comment-date">📅 ${escapeHtml(comment.date || '')}</span>
                 ${deleteAction}
             </div>`;
@@ -1046,24 +1048,26 @@ const I18N = {
 const I18N_KEYS = {
     ru: {
         navHome:'Главная', navStats:'Статистика', navAbout:'О нас', profile:'Профиль', logout:'Выйти',
-        heroWelcome:'ДОБРО ПОЖАЛОВАТЬ', heroTitle:'Книжный каталог\nBIBLIOTECH', heroText:'Откройте для себя мир книг. Ищите, читайте, комментируйте — всё в одном месте. Ваша личная библиотека всегда с вами.',
+        heroWelcome:'BIBLIOTECH', heroTitle:'Каталог библиотеки', heroText:'Поиск, выдача и учёт книг в одном месте.', openCatalog:'Открыть каталог', viewStats:'Посмотреть статистику',
         readersEyebrow:'Для читателей', readersTitle:'🌿 Пространство для выбора книги', readersText:'Здесь можно быстро понять, что почитать дальше: выбрать настроение, найти автора и сохранить интересные книги в каталоге.',
-        shelfTitle:'📚 Книжный шкаф', shelfSubtitle:'Каталог с фильтрами, поиском и комментариями', guestView:'Гость: доступен просмотр, поиск и фильтры',
-        addBook:'+ Добавить книгу', smartSearch:'🔍 Умный поиск', filterBtn:'Фильтры', qrBtn:'▣ Сканировать QR', all:'📚 Все', inStock:'✅ В наличии', outStock:'❌ Нет в наличии',
+        shelfTitle:'Каталог', shelfSubtitle:'Поиск и управление книгами', guestView:'Гость: доступен просмотр, поиск и фильтры',
+        addBook:'+ Добавить книгу', smartSearch:'Поиск', searchPlaceholder:'Название, автор или описание', filterBtn:'Фильтры', qrBtn:'▣ Сканировать QR', all:'📚 Все книги', inStock:'✅ В наличии', outStock:'❌ Нет в наличии',
         bestMatch:'Лучшее совпадение', send:'Отправить', close:'Закрыть', comments:'Комментарии', copies:'Количество копий', noComments:'Комментариев пока нет.', commentPlaceholder:'Написать комментарий...',
         bookDetails:'Карточка книги', bookStatus:'Статус', bookAuthor:'Автор', bookAdded:'Добавлена', readingHint:'Подсказка читателю', readingHintText:'Откройте описание, проверьте наличие и оставьте комментарий после прочтения.',
         modalAddTitle:'Добавить книгу', saveBook:'Сохранить книгу', cancel:'Отмена', titleLabel:'Название', authorLabel:'Автор', descriptionLabel:'Описание', copiesLabel:'Количество экземпляров', coverLabel:'Обложка',
         filterTitle:'Фильтры каталога', filterHint:'Можно выбрать несколько условий одновременно.', clearAll:'Очистить всё', applyFilters:'Применить', minCopies:'Минимум экземпляров', sortLabel:'Сортировка',
-        profileTitle:'Профиль читателя', avatarTitle:'Аватар', uploadAvatar:'Загрузить свою аватарку', chooseAvatar:'Выбрать готовую', saveProfile:'Сохранить профиль'
+        profileTitle:'Профиль читателя', avatarTitle:'Аватар', uploadAvatar:'Загрузить свою аватарку', chooseAvatar:'Выбрать готовую', saveProfile:'Сохранить профиль',
+        shown:'Показано', of:'из', availableCount:'В наличии', copiesCount:'Экземпляров', copyAbbr:'экз.', openBook:'Открыть книгу', unknownAuthor:'автор не указан', deleteBook:'Удалить',
+        adminManage:'🛡️ Админ: управление книгами', userManage:'👤 Пользователь: просмотр и комментарии', guestManage:'👀 Гость: просмотр, поиск и фильтры', voiceSearch:'Голосовой поиск'
     },
-    en: { navHome:'Home', navStats:'Statistics', navAbout:'About', profile:'Profile', logout:'Log out', heroWelcome:'WELCOME', heroTitle:'Book catalog\nBIBLIOTECH', heroText:'Discover books, search, read and comment — all in one place.', readersEyebrow:'For readers', readersTitle:'🌿 A space for choosing books', readersText:'Quickly choose what to read next: mood, author and useful notes.', shelfTitle:'📚 Bookshelf', shelfSubtitle:'Catalog with filters, search and comments', guestView:'Guest: browsing, search and filters are available', addBook:'+ Add book', smartSearch:'🔍 Smart search', filterBtn:'Filters', qrBtn:'▣ Scan QR', all:'📚 All', inStock:'✅ Available', outStock:'❌ Unavailable', bestMatch:'Best match', send:'Send', close:'Close', comments:'Comments', copies:'Copies', noComments:'No comments yet.', commentPlaceholder:'Write a comment...', bookDetails:'Book card', bookStatus:'Status', bookAuthor:'Author', bookAdded:'Added', readingHint:'Reader tip', readingHintText:'Read the description, check availability and leave a comment after reading.', modalAddTitle:'Add book', saveBook:'Save book', cancel:'Cancel', titleLabel:'Title', authorLabel:'Author', descriptionLabel:'Description', copiesLabel:'Number of copies', coverLabel:'Cover', filterTitle:'Catalog filters', filterHint:'You can combine several filters at once.', clearAll:'Clear all', applyFilters:'Apply', minCopies:'Minimum copies', sortLabel:'Sorting', profileTitle:'Reader profile', avatarTitle:'Avatar', uploadAvatar:'Upload avatar', chooseAvatar:'Choose preset', saveProfile:'Save profile' },
+    en: { navHome:'Home', navStats:'Statistics', navAbout:'About', profile:'Profile', logout:'Log out', heroWelcome:'BIBLIOTECH', heroTitle:'Library catalog', heroText:'Search, lending and book tracking in one place.', openCatalog:'Open catalog', viewStats:'View statistics', readersEyebrow:'For readers', readersTitle:'🌿 A space for choosing books', readersText:'Quickly choose what to read next: mood, author and useful notes.', shelfTitle:'Catalog', shelfSubtitle:'Search and manage books', guestView:'Guest: browsing, search and filters are available', addBook:'+ Add book', smartSearch:'Search', searchPlaceholder:'Title, author or description', filterBtn:'Filters', qrBtn:'▣ Scan QR', all:'📚 All books', inStock:'✅ Available', outStock:'❌ Unavailable', bestMatch:'Best match', send:'Send', close:'Close', comments:'Comments', copies:'Copies', noComments:'No comments yet.', commentPlaceholder:'Write a comment...', bookDetails:'Book card', bookStatus:'Status', bookAuthor:'Author', bookAdded:'Added', readingHint:'Reader tip', readingHintText:'Read the description, check availability and leave a comment after reading.', modalAddTitle:'Add book', saveBook:'Save book', cancel:'Cancel', titleLabel:'Title', authorLabel:'Author', descriptionLabel:'Description', copiesLabel:'Number of copies', coverLabel:'Cover', filterTitle:'Catalog filters', filterHint:'You can combine several filters at once.', clearAll:'Clear all', applyFilters:'Apply', minCopies:'Minimum copies', sortLabel:'Sorting', profileTitle:'Reader profile', avatarTitle:'Avatar', uploadAvatar:'Upload avatar', chooseAvatar:'Choose preset', saveProfile:'Save profile', shown:'Shown', of:'of', availableCount:'Available', copiesCount:'Copies', copyAbbr:'copies', openBook:'Open book', unknownAuthor:'author not specified', deleteBook:'Delete', adminManage:'🛡️ Admin: manage books', userManage:'👤 User: browsing and comments', guestManage:'👀 Guest: browsing, search and filters', voiceSearch:'Voice search' },
     uk: {}, de: {}, kk: {}, es: {}, zh: {}
 };
-I18N_KEYS.uk = { ...I18N_KEYS.ru, navHome:'Головна', navStats:'Статистика', navAbout:'Про нас', profile:'Профіль', logout:'Вийти', heroWelcome:'ЛАСКАВО ПРОСИМО', addBook:'+ Додати книгу', filterBtn:'Фільтри', qrBtn:'▣ Сканувати QR', comments:'Коментарі', copies:'Копії', send:'Надіслати', close:'Закрити', bookDetails:'Картка книги' };
-I18N_KEYS.de = { ...I18N_KEYS.en, navHome:'Startseite', navStats:'Statistik', navAbout:'Über uns', profile:'Profil', logout:'Abmelden', heroWelcome:'WILLKOMMEN', addBook:'+ Buch hinzufügen', filterBtn:'Filter', qrBtn:'▣ QR scannen', comments:'Kommentare', copies:'Exemplare', send:'Senden', close:'Schließen', bookDetails:'Buchkarte' };
-I18N_KEYS.kk = { ...I18N_KEYS.ru, navHome:'Басты бет', navStats:'Статистика', navAbout:'Біз туралы', profile:'Профиль', logout:'Шығу', addBook:'+ Кітап қосу', filterBtn:'Сүзгілер', qrBtn:'▣ QR сканерлеу', comments:'Пікірлер', copies:'Дана', send:'Жіберу', close:'Жабу', bookDetails:'Кітап картасы' };
-I18N_KEYS.es = { ...I18N_KEYS.en, navHome:'Inicio', navStats:'Estadística', navAbout:'Sobre nosotros', profile:'Perfil', logout:'Salir', heroWelcome:'BIENVENIDO', heroTitle:'Catálogo de libros\nBIBLIOTECH', heroText:'Descubre libros, busca, lee y comenta — todo en un solo lugar.', addBook:'+ Añadir libro', smartSearch:'🔍 Búsqueda inteligente', filterBtn:'Filtros', qrBtn:'▣ Escanear QR', comments:'Comentarios', copies:'Copias', send:'Enviar', close:'Cerrar', bookDetails:'Ficha del libro', bookAuthor:'Autor', bookStatus:'Estado', bookAdded:'Añadido' };
-I18N_KEYS.zh = { ...I18N_KEYS.en, navHome:'首页', navStats:'统计', navAbout:'关于我们', profile:'个人资料', logout:'退出', heroWelcome:'欢迎', heroTitle:'图书目录\nBIBLIOTECH', heroText:'发现图书、搜索、阅读和评论，一站完成。', addBook:'+ 添加图书', smartSearch:'🔍 智能搜索', filterBtn:'筛选', qrBtn:'▣ 扫描二维码', comments:'评论', copies:'册数', send:'发送', close:'关闭', bookDetails:'图书卡片', bookAuthor:'作者', bookStatus:'状态', bookAdded:'添加日期' };
+I18N_KEYS.uk = { ...I18N_KEYS.ru, navHome:'Головна', navStats:'Статистика', navAbout:'Про нас', profile:'Профіль', logout:'Вийти', heroTitle:'Каталог бібліотеки', heroText:'Пошук, видача та облік книг в одному місці.', openCatalog:'Відкрити каталог', viewStats:'Переглянути статистику', shelfTitle:'Каталог', shelfSubtitle:'Пошук і керування книгами', smartSearch:'Пошук', searchPlaceholder:'Назва, автор або опис', all:'📚 Усі книги', addBook:'+ Додати книгу', filterBtn:'Фільтри', qrBtn:'▣ Сканувати QR', comments:'Коментарі', copies:'Копії', send:'Надіслати', close:'Закрити', bookDetails:'Картка книги', shown:'Показано', of:'з', availableCount:'У наявності', copiesCount:'Примірників', copyAbbr:'прим.', openBook:'Відкрити книгу', unknownAuthor:'автора не вказано', deleteBook:'Видалити', adminManage:'🛡️ Адмін: керування книгами', userManage:'👤 Користувач: перегляд і коментарі', guestManage:'👀 Гість: перегляд, пошук і фільтри', voiceSearch:'Голосовий пошук' };
+I18N_KEYS.de = { ...I18N_KEYS.en, navHome:'Startseite', navStats:'Statistik', navAbout:'Über uns', profile:'Profil', logout:'Abmelden', heroTitle:'Bibliothekskatalog', heroText:'Suche, Ausleihe und Buchverwaltung an einem Ort.', openCatalog:'Katalog öffnen', viewStats:'Statistik ansehen', shelfTitle:'Katalog', shelfSubtitle:'Bücher suchen und verwalten', smartSearch:'Suche', searchPlaceholder:'Titel, Autor oder Beschreibung', all:'📚 Alle Bücher', addBook:'+ Buch hinzufügen', filterBtn:'Filter', qrBtn:'▣ QR scannen', comments:'Kommentare', copies:'Exemplare', send:'Senden', close:'Schließen', bookDetails:'Buchkarte', shown:'Angezeigt', of:'von', availableCount:'Verfügbar', copiesCount:'Exemplare', copyAbbr:'Ex.', openBook:'Buch öffnen', unknownAuthor:'Autor nicht angegeben', deleteBook:'Löschen', adminManage:'🛡️ Admin: Bücher verwalten', userManage:'👤 Benutzer: Ansicht und Kommentare', guestManage:'👀 Gast: Ansicht, Suche und Filter', voiceSearch:'Sprachsuche' };
+I18N_KEYS.kk = { ...I18N_KEYS.ru, navHome:'Басты бет', navStats:'Статистика', navAbout:'Біз туралы', profile:'Профиль', logout:'Шығу', heroTitle:'Кітапхана каталогы', heroText:'Кітаптарды іздеу, беру және есепке алу бір жерде.', openCatalog:'Каталогты ашу', viewStats:'Статистиканы көру', shelfTitle:'Каталог', shelfSubtitle:'Кітаптарды іздеу және басқару', smartSearch:'Іздеу', searchPlaceholder:'Атауы, авторы немесе сипаттамасы', all:'📚 Барлық кітаптар', addBook:'+ Кітап қосу', filterBtn:'Сүзгілер', qrBtn:'▣ QR сканерлеу', comments:'Пікірлер', copies:'Дана', send:'Жіберу', close:'Жабу', bookDetails:'Кітап картасы', shown:'Көрсетілді', of:'ішінен', availableCount:'Қолжетімді', copiesCount:'Дана', copyAbbr:'дана', openBook:'Кітапты ашу', unknownAuthor:'автор көрсетілмеген', deleteBook:'Жою', adminManage:'🛡️ Әкімші: кітаптарды басқару', userManage:'👤 Пайдаланушы: көру және пікірлер', guestManage:'👀 Қонақ: көру, іздеу және сүзгілер', voiceSearch:'Дауыспен іздеу' };
+I18N_KEYS.es = { ...I18N_KEYS.en, navHome:'Inicio', navStats:'Estadística', navAbout:'Sobre nosotros', profile:'Perfil', logout:'Salir', heroTitle:'Catálogo de la biblioteca', heroText:'Búsqueda, préstamo y control de libros en un solo lugar.', openCatalog:'Abrir catálogo', viewStats:'Ver estadísticas', shelfTitle:'Catálogo', shelfSubtitle:'Buscar y gestionar libros', smartSearch:'Buscar', searchPlaceholder:'Título, autor o descripción', all:'📚 Todos los libros', addBook:'+ Añadir libro', filterBtn:'Filtros', qrBtn:'▣ Escanear QR', comments:'Comentarios', copies:'Copias', send:'Enviar', close:'Cerrar', bookDetails:'Ficha del libro', bookAuthor:'Autor', bookStatus:'Estado', bookAdded:'Añadido', shown:'Mostrados', of:'de', availableCount:'Disponibles', copiesCount:'Ejemplares', copyAbbr:'ej.', openBook:'Abrir libro', unknownAuthor:'autor no indicado', deleteBook:'Eliminar', adminManage:'🛡️ Admin: gestionar libros', userManage:'👤 Usuario: consulta y comentarios', guestManage:'👀 Invitado: consulta, búsqueda y filtros', voiceSearch:'Búsqueda por voz' };
+I18N_KEYS.zh = { ...I18N_KEYS.en, navHome:'首页', navStats:'统计', navAbout:'关于我们', profile:'个人资料', logout:'退出', heroTitle:'图书馆目录', heroText:'图书搜索、借阅和管理集中在一处。', openCatalog:'打开目录', viewStats:'查看统计', shelfTitle:'目录', shelfSubtitle:'搜索和管理图书', smartSearch:'搜索', searchPlaceholder:'书名、作者或描述', all:'📚 全部图书', addBook:'+ 添加图书', filterBtn:'筛选', qrBtn:'▣ 扫描二维码', comments:'评论', copies:'册数', send:'发送', close:'关闭', bookDetails:'图书卡片', bookAuthor:'作者', bookStatus:'状态', bookAdded:'添加日期', shown:'显示', of:'共', availableCount:'可借', copiesCount:'册数', copyAbbr:'册', openBook:'打开图书', unknownAuthor:'未注明作者', deleteBook:'删除', adminManage:'🛡️ 管理员：管理图书', userManage:'👤 用户：浏览和评论', guestManage:'👀 访客：浏览、搜索和筛选', voiceSearch:'语音搜索' };
 
 function getLangPack(lang = localStorage.getItem(LANGUAGE_KEY) || 'ru') {
     return { ...(I18N_KEYS.ru || {}), ...(I18N_KEYS[lang] || {}), ...(I18N[lang] || {}) };
@@ -1094,6 +1098,8 @@ function applyLanguage(lang = localStorage.getItem(LANGUAGE_KEY) || 'ru') {
     setSmartText('.hero--info h2', 'heroWelcome');
     setSmartHTML('.hero--info h1', 'heroTitle');
     setSmartText('.hero--info p', 'heroText');
+    setSmartText('.product-hero-primary', 'openCatalog');
+    setSmartText('.product-hero-secondary', 'viewStats');
     setSmartText('#openAddBookBtnHero', 'addBook');
     setSmartText('.section-heading .eyebrow', 'readersEyebrow');
     setSmartText('.section-heading h2', 'readersTitle');
@@ -1105,9 +1111,11 @@ function applyLanguage(lang = localStorage.getItem(LANGUAGE_KEY) || 'ru') {
     setSmartPlaceholder('#searchInput', 'searchPlaceholder');
     setSmartText('#openSortModalBtn', 'filterBtn');
     setSmartText('#openQrScannerBtn', 'qrBtn');
-    setSmartText('.chip[data-filter="all"]', 'all');
-    setSmartText('.chip[data-filter="available"]', 'inStock');
-    setSmartText('.chip[data-filter="unavailable"]', 'outStock');
+    document.querySelectorAll('[data-filter="all"]').forEach(element => { element.textContent = tr('all'); });
+    document.querySelectorAll('[data-filter="available"]').forEach(element => { element.textContent = tr('inStock'); });
+    document.querySelectorAll('[data-filter="unavailable"]').forEach(element => { element.textContent = tr('outStock'); });
+    const voiceButton = document.getElementById('voiceSearchBtn'); if (voiceButton) { voiceButton.title = tr('voiceSearch'); voiceButton.setAttribute('aria-label', tr('voiceSearch')); }
+    const roleBanner = document.querySelector('.role-banner'); if (roleBanner) roleBanner.textContent = tr(roleBanner.classList.contains('admin') ? 'adminManage' : roleBanner.classList.contains('user') ? 'userManage' : 'guestManage');
     setSmartText('footer', 'footer');
     setSmartText('.voice-kicker', 'voiceKicker');
     setSmartText('#voiceStatus', 'voiceStatus');
@@ -1149,6 +1157,12 @@ function setupLanguageSwitcher() {
     const menu = document.getElementById('langMenu');
     const wrap = document.getElementById('languageSwitcher');
     applyLanguage();
+    if (window.BibliotechI18n) {
+        window.addEventListener('bibliotech:languagechange', event => {
+            applyLanguage(event.detail?.language || localStorage.getItem(LANGUAGE_KEY) || 'ru');
+        });
+        return;
+    }
     btn?.addEventListener('click', (e) => { e.stopPropagation(); menu?.classList.toggle('active'); wrap?.classList.toggle('open'); });
     document.querySelectorAll('.lang-option').forEach(option => option.addEventListener('click', () => {
         applyLanguage(option.dataset.lang);
@@ -1707,9 +1721,9 @@ function updateActiveFiltersUI() {
     const bar = document.getElementById('activeFilterBar');
     const badge = document.getElementById('filterCountBadge');
     const labels = [];
-    if (state.filter === 'available') labels.push('✅ В наличии');
-    else if (state.filter === 'unavailable') labels.push('❌ Нет в наличии');
-    else labels.push('📚 Все книги');
+    if (state.filter === 'available') labels.push(tr('inStock'));
+    else if (state.filter === 'unavailable') labels.push(tr('outStock'));
+    else labels.push(tr('all'));
     if (state.sort && state.sort !== 'relevance') {
         const sortNames = { 'title-asc':'Название А–Я', 'title-desc':'Название Я–А', 'author-asc':'Автор А–Я', 'date-newest':'Новые', 'date-oldest':'Старые', 'available-first':'Доступные первыми', 'copies-desc':'Больше копий', 'copies-asc':'Меньше копий' };
         labels.push('↕ ' + (sortNames[state.sort] || state.sort));
@@ -1946,11 +1960,7 @@ function setupGuestMode() {
     const header = $('.header-actions');
     const oldBanner = $('.role-banner, .guest-banner');
     oldBanner?.remove();
-    const bannerText = role === 'admin'
-        ? '🛡️ Админ: управление книгами'
-        : role === 'user'
-            ? '👤 Пользователь: просмотр и комментарии'
-            : '👀 Гость: просмотр, поиск и фильтры';
+    const bannerText = tr(role === 'admin' ? 'adminManage' : role === 'user' ? 'userManage' : 'guestManage');
     if (header) header.insertAdjacentHTML('afterbegin', `<span class="role-banner ${role}">${bannerText}</span>`);
     updateAdminPanel();
 }

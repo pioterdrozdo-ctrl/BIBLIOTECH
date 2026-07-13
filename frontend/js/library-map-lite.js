@@ -108,6 +108,7 @@
         }
 
         elements.title.textContent = state.targetBook.title;
+        elements.title.dataset.userContent = 'book-title';
         elements.meta.textContent = [
             state.targetBook.author || 'Автор не указан',
             state.targetBook.available && Number(state.targetBook.copies || 0) > 0 ? 'В наличии' : 'Сейчас недоступна'
@@ -146,8 +147,10 @@
             card.className = `map-lite-book${Number(book.id) === Number(bookId) ? ' target' : ''}`;
             const title = document.createElement('b');
             title.textContent = book.title;
+            title.dataset.userContent = 'book-title';
             const author = document.createElement('span');
             author.textContent = book.author || 'Автор не указан';
+            author.dataset.userContent = 'book-author';
             const availability = document.createElement('small');
             availability.textContent = book.available && Number(book.copies || 0) > 0
                 ? `В наличии · ${Number(book.copies || 0)} экз.`

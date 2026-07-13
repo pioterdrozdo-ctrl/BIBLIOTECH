@@ -279,8 +279,8 @@
             <div class="profile-rental-card">
                 <div class="profile-rental-cover">${rentalCover(rental)}</div>
                 <div class="profile-rental-main">
-                    <b>${escapeHtml(rental.book_title || 'Книга')}</b>
-                    <small>${escapeHtml(rental.book_author || 'Автор не указан')}</small>
+                    <b data-user-content="book-title">${escapeHtml(rental.book_title || 'Книга')}</b>
+                    <small data-user-content="book-author">${escapeHtml(rental.book_author || 'Автор не указан')}</small>
                     <small>Взята: ${escapeHtml(formatDateTime(rental.rented_at))}</small>
                     ${active ? '' : `<small>Возвращена: ${escapeHtml(formatDateTime(rental.returned_at))}</small>`}
                     ${canOpen ? `<button class="profile-rental-open" type="button" data-open-book-id="${escapeHtml(rental.book_id)}">Открыть карточку</button>` : ''}

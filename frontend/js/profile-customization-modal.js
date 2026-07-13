@@ -167,6 +167,7 @@
         if (profileTop) profileTop.style.setProperty('--profile-banner-background', css);
         if (bio) {
             bio.textContent = value.bio || '';
+            bio.dataset.userContent = 'profile-bio';
             bio.hidden = !value.bio;
         }
 

@@ -150,8 +150,8 @@
             <article class="profile-reservation-card ${ready ? 'ready' : 'waiting'}">
                 <div class="profile-reservation-cover">${coverHtml(reservation)}</div>
                 <div class="profile-reservation-main">
-                    <b>${escapeHtml(reservation.book_title || 'Книга')}</b>
-                    <small>${escapeHtml(reservation.book_author || 'Автор не указан')}</small>
+                    <b data-user-content="book-title">${escapeHtml(reservation.book_title || 'Книга')}</b>
+                    <small data-user-content="book-author">${escapeHtml(reservation.book_author || 'Автор не указан')}</small>
                     <small>${escapeHtml(details)}</small>
                     <div class="profile-reservation-actions">
                         <button type="button" data-open-reservation-book="${escapeHtml(reservation.book_id)}">${ready ? 'Забрать книгу' : 'Открыть карточку'}</button>

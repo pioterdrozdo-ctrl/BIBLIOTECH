@@ -27,6 +27,7 @@ const rentalRoutes = require('./routes/rentals');
 const inventoryRoutes = require('./routes/inventory');
 const documentRoutes = require('./routes/documents');
 const passkeyRoutes = require('./routes/passkeys');
+const translateRoutes = require('./routes/translate');
 const pool = require('./db/pool');
 
 const app = express();
@@ -271,6 +272,7 @@ app.use('/api/library-map', libraryMapRoutes);
 app.use('/api/rentals', rentalRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api/translate', translateRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({

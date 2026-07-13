@@ -152,7 +152,7 @@ function renderRentalsHistory(rentals = []) {
     if (!rentals.length) return renderEmptyHistory('Истории аренды пока нет.');
     return rentals.map(rental => `
         <div class="admin-history-item">
-            <b>${escapeHtml(rental.book_title || 'Книга')}</b>
+            <b data-user-content="book-title">${escapeHtml(rental.book_title || 'Книга')}</b>
             <small>Взята: ${escapeHtml(formatAdminDateTime(rental.rented_at))}</small>
             <small>Возвращена: ${escapeHtml(formatAdminDateTime(rental.returned_at))}</small>
             <small>Статус: ${rental.status === 'active' ? 'на руках' : 'возвращена'}</small>
@@ -164,9 +164,9 @@ function renderCommentsHistory(comments = []) {
     if (!comments.length) return renderEmptyHistory('Комментариев пока нет.');
     return comments.map(comment => `
         <div class="admin-history-item">
-            <b>${escapeHtml(comment.book_title || 'Книга')}</b>
+            <b data-user-content="book-title">${escapeHtml(comment.book_title || 'Книга')}</b>
             <small>${escapeHtml(formatAdminDateTime(comment.created_at))}</small>
-            <small>${escapeHtml(comment.text || '')}</small>
+            <small data-user-content="comment">${escapeHtml(comment.text || '')}</small>
         </div>
     `).join('');
 }
@@ -425,7 +425,7 @@ async function loadRentals() {
         tbody.innerHTML = rentals.map(rental => `
             <tr>
                 <td>${escapeHtml(rental.id)}</td>
-                <td><b>${escapeHtml(rental.book_title)}</b></td>
+                <td><b data-user-content="book-title">${escapeHtml(rental.book_title)}</b></td>
                 <td>${escapeHtml(rental.username)}</td>
                 <td>${escapeHtml(formatAdminDateTime(rental.rented_at))}</td>
                 <td><span class="admin-role-badge ${rental.status === 'active' ? 'admin' : ''}">${rental.status === 'active' ? 'На руках' : 'Возвращена'}</span></td>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v47-interface-language';
+const CACHE_NAME = 'bibliotech-pwa-v48-content-translation';
 const APP_SHELL = [
     '/',
     '/index.html',
@@ -28,6 +28,7 @@ const APP_SHELL = [
     '/css/apple-polish.css',
     '/js/app.js',
     '/js/interface-language.js',
+    '/js/content-translation.js',
     '/js/passkey-login.js',
     '/js/script.js',
     '/js/catalog-fix.js',
