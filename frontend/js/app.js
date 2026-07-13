@@ -55,11 +55,13 @@ function showResetStep(step = 'email') {
 }
 
 function switchTab(tab) {
+    if (tab !== 'login') window.stopAutomaticPasskey?.();
     document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
     setActiveAuthTab(tab);
 
     if (tab === 'login') {
         document.getElementById('loginForm')?.classList.add('active');
+        window.startAutomaticPasskey?.();
     } else if (tab === 'register') {
         document.getElementById('registerForm')?.classList.add('active');
     } else if (tab === 'reset') {
@@ -82,6 +84,8 @@ async function login() {
         return;
     }
 
+    window.stopAutomaticPasskey?.();
+
     try {
         const response = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
@@ -92,6 +96,7 @@ async function login() {
         const data = await response.json();
         if (!response.ok) {
             errorDiv.textContent = data.message || data.error || 'Ошибка входа';
+            window.startAutomaticPasskey?.();
             return;
         }
 
@@ -103,6 +108,7 @@ async function login() {
     } catch (err) {
         errorDiv.textContent = 'Ошибка соединения с сервером';
         console.error(err);
+        window.startAutomaticPasskey?.();
     }
 }
 

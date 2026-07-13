@@ -86,6 +86,8 @@ async function verifyLoginPage(browser) {
         assert.equal(await page.locator('.auth-product-story').count(), 0, `${label}: removed promotional block returned`);
         assert.equal(await page.locator('.auth-product-shell').count(), 0, `${label}: empty promotional shell remained`);
         assert.equal(await page.locator('.auth-container').isVisible(), true, `${label}: login form is not visible`);
+        assert.equal(await page.locator('#passkeyLoginBtn, .passkey-login-btn').count(), 0, `${label}: separate passkey login button returned`);
+        assert.match(await page.locator('#loginUsername').getAttribute('autocomplete') || '', /\bwebauthn\b/, `${label}: automatic passkey autocomplete is missing`);
         assert.equal(await page.locator('link[href*="product-polish.css"]').count(), 1, `${label}: product CSS is duplicated`);
 
         if (viewport.width < 600) {
@@ -94,6 +96,41 @@ async function verifyLoginPage(browser) {
         }
         await page.close();
     }
+}
+
+async function verifyAutomaticPasskey(browser) {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    attachDiagnostics(page, 'automatic-passkey');
+    await page.addInitScript(() => {
+        class ConditionalPasskeyCredential {}
+        ConditionalPasskeyCredential.isConditionalMediationAvailable = async () => true;
+        Object.defineProperty(window, 'PublicKeyCredential', {
+            configurable: true,
+            value: ConditionalPasskeyCredential
+        });
+        Object.defineProperty(navigator, 'credentials', {
+            configurable: true,
+            value: {
+                get(options) {
+                    window.__automaticPasskeyRequest = {
+                        mediation: options.mediation,
+                        hasChallenge: options.publicKey?.challenge instanceof Uint8Array,
+                        hasAbortSignal: Boolean(options.signal)
+                    };
+                    return new Promise(() => {});
+                }
+            }
+        });
+    });
+    await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => Boolean(window.__automaticPasskeyRequest));
+    assert.deepEqual(await page.evaluate(() => window.__automaticPasskeyRequest), {
+        mediation: 'conditional',
+        hasChallenge: true,
+        hasAbortSignal: true
+    }, 'Passkey did not start automatically with conditional mediation');
+    assert.equal(await page.locator('#passkeyLoginBtn, .passkey-login-btn').count(), 0, 'Automatic passkey flow rendered a button');
+    await page.close();
 }
 
 async function readNavigation(page, navSelector) {
@@ -238,6 +275,7 @@ async function verifyMapPages(browser) {
 
     try {
         await verifyLoginPage(browser);
+        await verifyAutomaticPasskey(browser);
         await verifyStandardPageNavigation(browser, '/home.html', 'home.html#top');
         await verifyStandardPageNavigation(browser, '/stats.html', 'stats.html');
         await verifyStandardPageNavigation(browser, '/about.html', 'about.html');

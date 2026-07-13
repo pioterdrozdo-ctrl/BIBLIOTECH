@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v45-admin-workspace';
+const CACHE_NAME = 'bibliotech-pwa-v46-automatic-passkey';
 const APP_SHELL = [
     '/',
     '/index.html',
