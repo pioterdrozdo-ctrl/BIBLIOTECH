@@ -5,6 +5,7 @@
     let pendingMetadata = null;
     let appliedIsbn = '';
     let lookupController = null;
+    let lookupRequestId = 0;
 
     function byId(id) {
         return document.getElementById(id);
@@ -16,8 +17,47 @@
         }[character]));
     }
 
-    function normalizeIsbn(value) {
+    function cleanIsbn(value) {
         return String(value || '').toUpperCase().replace(/[^0-9X]/g, '');
+    }
+
+    function isValidIsbn10(isbn) {
+        if (!/^\d{9}[\dX]$/.test(isbn)) return false;
+        return isbn.split('').reduce((total, char, index) => {
+            return total + (char === 'X' ? 10 : Number(char)) * (10 - index);
+        }, 0) % 11 === 0;
+    }
+
+    function isValidIsbn13(isbn) {
+        if (!/^\d{13}$/.test(isbn)) return false;
+        const sum = isbn.slice(0, 12).split('').reduce((total, char, index) => {
+            return total + Number(char) * (index % 2 === 0 ? 1 : 3);
+        }, 0);
+        return (10 - (sum % 10)) % 10 === Number(isbn[12]);
+    }
+
+    function isbn10To13(value) {
+        const isbn10 = cleanIsbn(value);
+        if (!isValidIsbn10(isbn10)) return isbn10;
+        const body = `978${isbn10.slice(0, 9)}`;
+        const sum = body.split('').reduce((total, char, index) => {
+            return total + Number(char) * (index % 2 === 0 ? 1 : 3);
+        }, 0);
+        return `${body}${(10 - (sum % 10)) % 10}`;
+    }
+
+    function isbn13To10(value) {
+        const isbn13 = cleanIsbn(value);
+        if (!/^978\d{10}$/.test(isbn13) || !isValidIsbn13(isbn13)) return '';
+        const body = isbn13.slice(3, 12);
+        const sum = body.split('').reduce((total, char, index) => total + Number(char) * (10 - index), 0);
+        const checkValue = (11 - (sum % 11)) % 11;
+        return `${body}${checkValue === 10 ? 'X' : checkValue}`;
+    }
+
+    function normalizeIsbn(value) {
+        const isbn = cleanIsbn(value);
+        return isbn.length === 10 && isValidIsbn10(isbn) ? isbn10To13(isbn) : isbn;
     }
 
     function appState() {
@@ -45,6 +85,20 @@
         return String(byId(id)?.value || '').trim();
     }
 
+    function setLookupLoading(isLoading) {
+        const button = byId('lookupBookIsbnBtn');
+        if (!button) return;
+        button.disabled = isLoading;
+        button.textContent = isLoading ? 'Ищем…' : 'Найти данные';
+    }
+
+    function cancelActiveLookup() {
+        lookupRequestId += 1;
+        lookupController?.abort();
+        lookupController = null;
+        setLookupLoading(false);
+    }
+
     function mountFormFields() {
         const form = byId('bookForm');
         const titleGroup = byId('bookTitle')?.closest('.form-group');
@@ -57,9 +111,9 @@
             <div class="isbn-assistant-head">
                 <div>
                     <b>ISBN и данные издания</b>
-                    <span>Введите ISBN-10 или ISBN-13. Данные можно проверить до сохранения.</span>
+                    <span>Введите ISBN-10 или ISBN-13. ISBN-10 автоматически преобразуется в ISBN-13.</span>
                 </div>
-                <span class="isbn-provider">Open Library</span>
+                <span class="isbn-provider">Open Library → Google Books → Google Search</span>
             </div>
             <div class="isbn-lookup-row">
                 <label class="isbn-input-field">
@@ -98,7 +152,9 @@
         descriptionGroup.parentNode.insertBefore(metadataGrid, descriptionGroup);
 
         byId('lookupBookIsbnBtn')?.addEventListener('click', lookupIsbn);
-        byId('bookIsbn')?.addEventListener('input', () => {
+        const isbnInput = byId('bookIsbn');
+        isbnInput?.addEventListener('input', () => {
+            if (lookupController) cancelActiveLookup();
             const current = normalizeIsbn(getInputValue('bookIsbn'));
             if (current !== appliedIsbn) {
                 pendingMetadata = null;
@@ -109,11 +165,24 @@
                 setStatus(current ? 'Нажмите «Найти данные», чтобы проверить ISBN.' : '');
             }
         });
+        isbnInput?.addEventListener('keydown', event => {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            lookupIsbn();
+        });
         form.addEventListener('submit', saveBookWithMetadata, true);
     }
 
     function metadataLine(label, value) {
         return value ? `<div><span>${escapeHtml(label)}</span><b>${escapeHtml(value)}</b></div>` : '';
+    }
+
+    function metadataProviderLabel(source) {
+        return {
+            openlibrary: 'Open Library',
+            googlebooks: 'Google Books',
+            googlecustomsearch: 'Google Search'
+        }[String(source || '').toLowerCase()] || 'внешний источник';
     }
 
     function renderLookupPreview(metadata) {
@@ -126,7 +195,7 @@
             <div class="isbn-preview-main">
                 <div class="isbn-preview-cover">${cover}</div>
                 <div class="isbn-preview-copy">
-                    <span class="isbn-preview-kicker">Найденное издание</span>
+                    <span class="isbn-preview-kicker">Найдено: ${escapeHtml(metadataProviderLabel(metadata.source))}</span>
                     <h3>${escapeHtml(metadata.title || 'Без названия')}</h3>
                     <p>${escapeHtml(metadata.author || 'Автор не указан')}</p>
                     <div class="isbn-preview-meta">
@@ -159,14 +228,13 @@
             byId('bookIsbn')?.focus();
             return;
         }
+        setInputValue('bookIsbn', isbn);
 
         lookupController?.abort();
-        lookupController = new AbortController();
-        const button = byId('lookupBookIsbnBtn');
-        if (button) {
-            button.disabled = true;
-            button.textContent = 'Ищем…';
-        }
+        const controller = new AbortController();
+        const requestId = ++lookupRequestId;
+        lookupController = controller;
+        setLookupLoading(true);
         setStatus('Проверяем ISBN и ищем сведения об издании…', 'loading');
         const preview = byId('bookIsbnPreview');
         if (preview) preview.hidden = true;
@@ -174,23 +242,23 @@
         try {
             const response = await fetch(`${API_URL}/book-metadata/isbn/${encodeURIComponent(isbn)}`, {
                 headers: { Authorization: token() ? `Bearer ${token()}` : '' },
-                signal: lookupController.signal
+                signal: controller.signal
             });
             const payload = await response.json().catch(() => ({}));
             if (!response.ok) throw new Error(payload.error || 'Не удалось получить данные по ISBN.');
+            if (requestId !== lookupRequestId || controller.signal.aborted) return;
             pendingMetadata = payload.metadata;
             setInputValue('bookIsbn', pendingMetadata.isbn || isbn);
             renderLookupPreview(pendingMetadata);
             setStatus('Данные найдены. Проверьте их и нажмите «Применить данные».', 'success');
         } catch (error) {
-            if (error.name === 'AbortError') return;
+            if (error.name === 'AbortError' || requestId !== lookupRequestId) return;
             pendingMetadata = null;
             setStatus(error.message || 'Не удалось получить данные по ISBN.', 'error');
         } finally {
-            lookupController = null;
-            if (button) {
-                button.disabled = false;
-                button.textContent = 'Найти данные';
+            if (lookupController === controller) {
+                lookupController = null;
+                setLookupLoading(false);
             }
         }
     }
@@ -206,7 +274,7 @@
         setInputValue('bookPublisher', metadata.publisher);
         setInputValue('bookGenre', metadata.genre);
         setInputValue('bookLanguage', metadata.language);
-        setInputValue('bookMetadataSource', metadata.source || 'openlibrary');
+        setInputValue('bookMetadataSource', metadata.source || null);
         setInputValue('bookMetadataSourceUrl', metadata.sourceUrl || '');
         appliedIsbn = normalizeIsbn(metadata.isbn);
 
@@ -325,15 +393,17 @@
     }
 
     function fillMetadataForm(book = null) {
+        if (lookupController) cancelActiveLookup();
         const metadata = metadataFromBook(book || {});
-        setInputValue('bookIsbn', metadata.isbn);
+        const canonicalIsbn = normalizeIsbn(metadata.isbn);
+        setInputValue('bookIsbn', canonicalIsbn);
         setInputValue('bookPublicationYear', metadata.publicationYear);
         setInputValue('bookPublisher', metadata.publisher);
         setInputValue('bookGenre', metadata.genre);
         setInputValue('bookLanguage', metadata.language);
         setInputValue('bookMetadataSource', metadata.metadataSource);
         setInputValue('bookMetadataSourceUrl', metadata.metadataSourceUrl);
-        appliedIsbn = normalizeIsbn(metadata.isbn);
+        appliedIsbn = canonicalIsbn;
         pendingMetadata = null;
         const preview = byId('bookIsbnPreview');
         if (preview) preview.hidden = true;
@@ -341,6 +411,7 @@
     }
 
     function resetMetadataForm() {
+        if (lookupController) cancelActiveLookup();
         ['bookIsbn', 'bookPublicationYear', 'bookPublisher', 'bookGenre', 'bookLanguage', 'bookMetadataSource', 'bookMetadataSourceUrl']
             .forEach(id => setInputValue(id, ''));
         appliedIsbn = '';
@@ -361,7 +432,7 @@
         }
         if (!section) return;
         const fields = [
-            ['ISBN', book.isbn],
+            ['ISBN', normalizeIsbn(book.isbn)],
             ['Год', book.publicationYear ?? book.publication_year],
             ['Издательство', book.publisher],
             ['Жанр', book.genre],
@@ -401,7 +472,7 @@
                 const base = original(book, query);
                 const normalizedQuery = typeof normalizeText === 'function' ? normalizeText(query) : String(query || '').toLowerCase();
                 if (!normalizedQuery) return base;
-                const metadata = [book.isbn, book.publicationYear, book.publisher, book.genre, book.language]
+                const metadata = [book.isbn, isbn13To10(book.isbn), book.publicationYear, book.publisher, book.genre, book.language]
                     .map(value => typeof normalizeText === 'function' ? normalizeText(value || '') : String(value || '').toLowerCase())
                     .join(' ');
                 if (metadata.includes(normalizedQuery)) return Math.max(base, 90);

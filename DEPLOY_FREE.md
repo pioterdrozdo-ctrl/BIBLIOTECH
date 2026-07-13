@@ -39,6 +39,14 @@ cloudflared tunnel --url http://localhost:3001
 - случайное значение `JWT_SECRET`;
 - `DATABASE_URL` из созданной базы PostgreSQL.
 
+Для каскадного поиска книг по ISBN можно дополнительно задать:
+
+- `GOOGLE_BOOKS_API_KEY` — ключ Google Books API;
+- `GOOGLE_CUSTOM_SEARCH_API_KEY` — ключ Google Custom Search JSON API;
+- `GOOGLE_CUSTOM_SEARCH_CX` — идентификатор поисковой системы Programmable Search Engine.
+
+Ключи используются только сервером и не передаются в браузер. Без настроенного Custom Search поиск продолжит работать через Open Library и Google Books, а затем предложит ручное заполнение.
+
 При запуске сервер применяет `backend/sql/init.sql`, создаёт недостающие таблицы и добавляет тестовую учётную запись администратора.
 
 Тестовый вход:

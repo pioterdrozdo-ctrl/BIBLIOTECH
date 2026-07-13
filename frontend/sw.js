@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v34-floor-plan';
+const CACHE_NAME = 'bibliotech-pwa-v36-isbn-provider-cascade';
 const APP_SHELL = [
     '/',
     '/index.html',

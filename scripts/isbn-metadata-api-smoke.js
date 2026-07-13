@@ -23,6 +23,13 @@ function makeIsbn13(seed) {
     return body + String((10 - (sum % 10)) % 10);
 }
 
+function toIsbn10(isbn13) {
+    const body = isbn13.slice(3, 12);
+    const sum = body.split('').reduce((total, digit, index) => total + Number(digit) * (10 - index), 0);
+    const checkValue = (11 - (sum % 11)) % 11;
+    return body + (checkValue === 10 ? 'X' : String(checkValue));
+}
+
 (async () => {
     const login = await request('/api/auth/login', {
         method: 'POST',
@@ -32,6 +39,7 @@ function makeIsbn13(seed) {
     const token = login.payload.token;
     const stamp = Date.now();
     const isbn = makeIsbn13(stamp);
+    const isbn10 = toIsbn10(isbn);
     const title = `ISBN API ${stamp}`;
 
     const unauthorized = await request('/api/book-metadata/isbn/9780140328721');
@@ -50,7 +58,7 @@ function makeIsbn13(seed) {
             description: 'Книга для проверки библиографических полей.',
             copies: 2,
             available: true,
-            isbn,
+            isbn: isbn10,
             publicationYear: 2024,
             publisher: 'BIBLIOTECH Press',
             genre: 'Техническая литература',
@@ -66,10 +74,10 @@ function makeIsbn13(seed) {
     assert.equal(created.payload.genre, 'Техническая литература');
     assert.equal(created.payload.language, 'Русский');
 
-    const catalogSearch = await request(`/api/books?search=${encodeURIComponent(isbn)}`, { token });
+    const catalogSearch = await request(`/api/books?search=${encodeURIComponent(isbn10)}`, { token });
     assert.equal(catalogSearch.response.status, 200);
     const found = catalogSearch.payload.find(book => Number(book.id) === Number(created.payload.id));
-    assert.ok(found, 'Catalog search cannot find a book by ISBN');
+    assert.ok(found, 'Catalog search cannot find a canonical ISBN-13 book by its ISBN-10');
     assert.equal(found.publisher, 'BIBLIOTECH Press');
 
     const updated = await request(`/api/book-metadata/books/${created.payload.id}`, {

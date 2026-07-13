@@ -64,12 +64,12 @@ const homeCriticalStyles = [
     '/css/profile-settings-modal.css?v=20260710-profile-settings-1',
     '/css/account-settings-features.css?v=20260710-account-settings-1',
     '/css/home-minimal.css?v=20260710-home-minimal-1',
-    '/css/book-metadata.css?v=20260710-book-metadata-1',
+    '/css/book-metadata.css?v=20260713-book-metadata-3',
     '/css/reservation-queue.css?v=20260710-reservation-queue-1'
 ];
 
 const homeCriticalScripts = [
-    '/js/book-metadata.js?v=20260710-book-metadata-1',
+    '/js/book-metadata.js?v=20260713-book-metadata-3',
     '/js/reservation-queue.js?v=20260710-reservation-queue-1',
     '/js/rentals-request-guard.js?v=20260710-rentals-guard-1',
     '/js/profile-rentals.js?v=20260709-profile-rentals-1',
@@ -82,7 +82,7 @@ const homeCriticalScripts = [
     '/js/account-settings-features.js?v=20260710-account-settings-1',
     '/js/modal-visual-fix.js?v=20260710-modal-visual-fix-2',
     '/js/card-rent-safe.js?v=20260710-card-rent-refined-2',
-    '/js/comment-clear-fix.js?v=20260710-comment-clear-1'
+    '/js/comment-clear-fix.js?v=20260713-comment-clear-2'
 ];
 
 function buildManifest(themeName = 'light') {

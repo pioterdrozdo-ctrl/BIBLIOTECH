@@ -1,15 +1,19 @@
 'use strict';
 
 const localStore = require('./localStore');
+const { normalizeIsbn, isbn13To10, validateIsbn } = require('./isbnMetadata');
 
 if (!localStore.__bookMetadataFallbackRegistered) {
     const originalGetBooks = localStore.getBooks.bind(localStore);
 
     localStore.getBooks = function getBooksWithMetadataSearch(query = {}, user = null) {
         const search = String(query.search || '').trim().toLowerCase();
-        if (!search) return originalGetBooks(query, user);
+        const books = originalGetBooks(search ? { ...query, search: '' } : query, user)
+            .map(book => ({ ...book, isbn: normalizeIsbn(book.isbn) || null }));
+        if (!search) return books;
 
-        const books = originalGetBooks({ ...query, search: '' }, user);
+        const canonicalSearch = validateIsbn(search) ? normalizeIsbn(search) : '';
+        const legacySearch = canonicalSearch ? isbn13To10(canonicalSearch) : '';
         return books.filter(book => [
             book.title,
             book.author,
@@ -26,7 +30,9 @@ if (!localStore.__bookMetadataFallbackRegistered) {
             book.location?.place_code,
             book.location?.note,
             ...(book.comments || []).map(comment => comment.text)
-        ].join(' ').toLowerCase().includes(search));
+        ].join(' ').toLowerCase().includes(search)
+            || (canonicalSearch && normalizeIsbn(book.isbn) === canonicalSearch)
+            || (legacySearch && isbn13To10(book.isbn) === legacySearch));
     };
 
     localStore.__bookMetadataFallbackRegistered = true;

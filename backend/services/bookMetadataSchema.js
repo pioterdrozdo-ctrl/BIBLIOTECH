@@ -1,6 +1,36 @@
 'use strict';
 
 const pool = require('../db/pool');
+const { normalizeIsbn, validateIsbn } = require('./isbnMetadata');
+
+let legacyIsbnNormalizationComplete = false;
+
+async function normalizeLegacyIsbns(client) {
+    if (legacyIsbnNormalizationComplete) return;
+    const result = await client.query(`
+        SELECT id, isbn
+        FROM books
+        WHERE isbn IS NOT NULL
+          AND char_length(isbn) = 10
+    `);
+    for (const book of result.rows || []) {
+        if (!validateIsbn(book.isbn)) continue;
+        const canonicalIsbn = normalizeIsbn(book.isbn);
+        if (!canonicalIsbn || canonicalIsbn === book.isbn) continue;
+        await client.query(`
+            UPDATE books
+            SET isbn = $1
+            WHERE id = $2
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM books AS duplicate
+                  WHERE duplicate.id <> $2
+                    AND duplicate.isbn = $1
+              )
+        `, [canonicalIsbn, book.id]);
+    }
+    legacyIsbnNormalizationComplete = true;
+}
 
 async function ensureBookMetadataSchema(client = pool) {
     await client.query(`
@@ -20,6 +50,7 @@ async function ensureBookMetadataSchema(client = pool) {
         CREATE INDEX IF NOT EXISTS idx_books_genre ON books(genre);
         CREATE INDEX IF NOT EXISTS idx_books_language ON books(language);
     `);
+    await normalizeLegacyIsbns(client);
 }
 
-module.exports = { ensureBookMetadataSchema };
+module.exports = { ensureBookMetadataSchema, normalizeLegacyIsbns };

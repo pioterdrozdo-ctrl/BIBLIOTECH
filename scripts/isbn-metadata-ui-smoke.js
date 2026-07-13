@@ -24,6 +24,13 @@ function makeIsbn13(seed) {
     return body + String((10 - (sum % 10)) % 10);
 }
 
+function toIsbn10(isbn13) {
+    const body = isbn13.slice(3, 12);
+    const sum = body.split('').reduce((total, digit, index) => total + Number(digit) * (10 - index), 0);
+    const checkValue = (11 - (sum % 11)) % 11;
+    return body + (checkValue === 10 ? 'X' : String(checkValue));
+}
+
 async function login() {
     const result = await request('/api/auth/login', {
         method: 'POST',
@@ -41,43 +48,48 @@ async function seedPage(page, auth) {
     }, { auth });
 }
 
-async function installLookupMock(page, isbn, title) {
-    await page.addInitScript(({ isbn, title }) => {
+async function installLookupMock(page, isbn, title, staleIsbn, staleTitle) {
+    await page.addInitScript(({ isbn, title, staleIsbn, staleTitle }) => {
         const originalFetch = window.fetch.bind(window);
         window.fetch = function bibliotechTestFetch(input, init) {
             const url = typeof input === 'string' ? input : input?.url || '';
-            if (url.includes(`/api/book-metadata/isbn/${isbn}`)) {
-                return Promise.resolve(new Response(JSON.stringify({
+            const requestedIsbn = url.match(/\/api\/book-metadata\/isbn\/([^/?#]+)/)?.[1];
+            const isCurrent = requestedIsbn === isbn;
+            const isStale = requestedIsbn === staleIsbn;
+            if (isCurrent || isStale) {
+                const responseTitle = isStale ? staleTitle : title;
+                const delay = isStale ? 240 : 10;
+                return new Promise(resolve => setTimeout(() => resolve(new Response(JSON.stringify({
                     message: 'Данные найдены. Проверьте их перед сохранением книги.',
                     metadata: {
-                        isbn,
-                        title,
+                        isbn: requestedIsbn,
+                        title: responseTitle,
                         author: 'Roald Dahl',
                         description: 'A clever fox protects his family.',
                         publisher: 'Puffin',
                         publicationYear: 1988,
                         genre: 'Children’s fiction, Foxes',
                         language: 'Английский',
-                        coverDataURL: 'https://covers.openlibrary.org/b/id/123-L.jpg',
-                        source: 'openlibrary',
-                        sourceUrl: 'https://openlibrary.org/books/OL7353617M'
+                        coverDataURL: 'https://books.google.com/books/content?id=test',
+                        source: 'googlebooks',
+                        sourceUrl: 'https://books.google.com/books?id=test'
                     }
                 }), {
                     status: 200,
                     headers: { 'Content-Type': 'application/json' }
-                }));
+                })), delay));
             }
             return originalFetch(input, init);
         };
-    }, { isbn, title });
+    }, { isbn, title, staleIsbn, staleTitle });
 }
 
-async function verifyDesktop(browser, auth, isbn, title) {
+async function verifyDesktop(browser, auth, isbn, isbn10, title, staleIsbn, staleTitle) {
     const page = await browser.newPage({ viewport: { width: 1360, height: 900 } });
     const errors = [];
     page.on('pageerror', error => errors.push(error.stack || error.message));
     await seedPage(page, auth);
-    await installLookupMock(page, isbn, title);
+    await installLookupMock(page, isbn, title, staleIsbn, staleTitle);
 
     await page.goto(`${baseUrl}/home.html`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#currentUserPill', { state: 'visible' });
@@ -93,12 +105,33 @@ async function verifyDesktop(browser, auth, isbn, title) {
     assert.equal(await page.locator('#bookGenre').count(), 1, 'genre field is missing');
     assert.equal(await page.locator('#bookLanguage').count(), 1, 'language field is missing');
 
-    await page.locator('#bookIsbn').fill(isbn);
+    const scrollContainer = page.locator('#bookModal .modal-content');
+    const scrollMetrics = await scrollContainer.evaluate(element => ({
+        overflowY: getComputedStyle(element).overflowY,
+        clientHeight: element.clientHeight,
+        scrollHeight: element.scrollHeight
+    }));
+    assert.match(scrollMetrics.overflowY, /^(auto|scroll)$/i, `book modal cannot scroll: ${JSON.stringify(scrollMetrics)}`);
+    assert.ok(scrollMetrics.scrollHeight > scrollMetrics.clientHeight, 'book modal does not expose its overflowing form');
+    const scrolledTop = await scrollContainer.evaluate(element => {
+        element.scrollTop = element.scrollHeight;
+        return element.scrollTop;
+    });
+    assert.ok(scrolledTop > 0, 'book modal scrollTop remains locked');
+    await scrollContainer.evaluate(element => { element.scrollTop = 0; });
+
+    await page.locator('#bookIsbn').fill(staleIsbn);
+    await page.locator('#lookupBookIsbnBtn').click();
+    await page.locator('#bookIsbn').fill(isbn10);
     await page.locator('#lookupBookIsbnBtn').click();
     await page.waitForSelector('#bookIsbnPreview:not([hidden])');
     assert.equal(await page.locator('#bookIsbnPreview').getByText(title).count(), 1, 'lookup preview title is missing');
     assert.equal(await page.locator('#bookIsbnPreview').getByText('Roald Dahl').count(), 1, 'lookup preview author is missing');
+    assert.equal(await page.locator('#bookIsbnPreview').getByText('Найдено: Google Books').count(), 1, 'lookup preview does not show the winning provider');
     assert.equal(await page.locator('#applyIsbnMetadataBtn').isVisible(), true, 'apply metadata action is missing');
+    await page.waitForTimeout(320);
+    assert.equal(await page.locator('#bookIsbnPreview').getByText(staleTitle).count(), 0, 'a stale ISBN response replaced the latest result');
+    assert.equal(await page.locator('#bookIsbn').inputValue(), isbn, 'a stale ISBN response replaced the latest input');
 
     await page.locator('#applyIsbnMetadataBtn').click();
     assert.equal(await page.locator('#bookTitle').inputValue(), title);
@@ -107,7 +140,7 @@ async function verifyDesktop(browser, auth, isbn, title) {
     assert.equal(await page.locator('#bookPublisher').inputValue(), 'Puffin');
     assert.equal(await page.locator('#bookGenre').inputValue(), 'Children’s fiction, Foxes');
     assert.equal(await page.locator('#bookLanguage').inputValue(), 'Английский');
-    assert.equal(await page.locator('#bookMetadataSource').inputValue(), 'openlibrary');
+    assert.equal(await page.locator('#bookMetadataSource').inputValue(), 'googlebooks');
 
     await page.locator('#bookCopies').fill('2');
     await page.locator('#bookForm .submit-modal').click();
@@ -166,6 +199,13 @@ async function verifyMobile(browser, auth) {
     assert.ok(overflow.scrollWidth <= overflow.clientWidth + 1, `mobile ISBN assistant overflows horizontally: ${JSON.stringify(overflow)}`);
     assert.equal(await page.locator('#lookupBookIsbnBtn').isVisible(), true, 'mobile ISBN lookup button is not visible');
     assert.equal(await page.locator('.book-metadata-form-grid').isVisible(), true, 'mobile metadata fields are not visible');
+    const scroll = await page.locator('#bookModal .modal-content').evaluate(element => ({
+        overflowY: getComputedStyle(element).overflowY,
+        clientHeight: element.clientHeight,
+        scrollHeight: element.scrollHeight
+    }));
+    assert.match(scroll.overflowY, /^(auto|scroll)$/i, `mobile book modal cannot scroll: ${JSON.stringify(scroll)}`);
+    assert.ok(scroll.scrollHeight > scroll.clientHeight, 'mobile book form is not scrollable');
     await page.locator('#closeModalBtn').click();
     await page.close();
 }
@@ -174,13 +214,16 @@ async function verifyMobile(browser, auth) {
     const auth = await login();
     const stamp = Date.now();
     const isbn = makeIsbn13(stamp);
+    const isbn10 = toIsbn10(isbn);
+    const staleIsbn = makeIsbn13(stamp + 1);
     const title = `ISBN UI ${stamp}`;
+    const staleTitle = `Stale ISBN UI ${stamp}`;
     const browser = await chromium.launch({
         headless: true,
         ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH } : {})
     });
     try {
-        await verifyDesktop(browser, auth, isbn, title);
+        await verifyDesktop(browser, auth, isbn, isbn10, title, staleIsbn, staleTitle);
         await verifyMobile(browser, auth);
     } finally {
         await browser.close();

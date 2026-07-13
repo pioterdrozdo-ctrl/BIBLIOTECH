@@ -1,3 +1,20 @@
+#bookModal {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+#bookModal .modal-content {
+    min-height: 0;
+    max-height: min(88vh, 820px) !important;
+    max-height: min(88dvh, 820px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+}
+
 .isbn-assistant {
     margin-bottom: 16px;
     padding: 16px;
@@ -279,6 +296,11 @@
 }
 
 @media (max-width: 700px) {
+    #bookModal .modal-content {
+        max-height: calc(100vh - 18px) !important;
+        max-height: calc(100dvh - 18px) !important;
+    }
+
     .isbn-lookup-row,
     .book-metadata-form-grid {
         grid-template-columns: 1fr;

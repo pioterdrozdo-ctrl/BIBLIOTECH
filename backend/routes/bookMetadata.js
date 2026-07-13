@@ -6,7 +6,12 @@ const localBookMetadataStore = require('../services/localBookMetadataStore');
 const { authMiddleware, isAdmin } = require('../middleware/auth');
 const { buildBookQrCode, normalizeBookQrFields } = require('../utils/bookQr');
 const { ensureBookMetadataSchema } = require('../services/bookMetadataSchema');
-const { lookupIsbnMetadata, normalizeBookMetadataInput } = require('../services/isbnMetadata');
+const {
+    lookupIsbnMetadata,
+    normalizeBookMetadataInput,
+    normalizeIsbn,
+    isbn13To10
+} = require('../services/isbnMetadata');
 
 const router = express.Router();
 
@@ -22,6 +27,7 @@ function mapBook(book) {
     return {
         ...book,
         ...normalizeBookQrFields(book),
+        isbn: normalizeIsbn(book.isbn) || null,
         publicationYear: book.publication_year ?? null,
         metadataSource: book.metadata_source || null,
         metadataSourceUrl: book.metadata_source_url || null,
@@ -31,6 +37,23 @@ function mapBook(book) {
         coverDataURL: book.cover_data_url || book.coverDataURL || null,
         comments: Array.isArray(book.comments) ? book.comments : []
     };
+}
+
+async function assertUniqueIsbn(isbn, excludedBookId = null) {
+    if (!isbn) return;
+    const candidates = [...new Set([isbn, isbn13To10(isbn)].filter(Boolean))];
+    const result = await pool.query(`
+        SELECT id
+        FROM books
+        WHERE isbn::text = ANY($1::text[])
+          AND ($2::integer IS NULL OR id <> $2::integer)
+        LIMIT 1
+    `, [candidates, excludedBookId]);
+    if (!result.rows[0]) return;
+    const error = new Error('Книга с таким ISBN уже есть в каталоге.');
+    error.code = 'DUPLICATE_ISBN';
+    error.bookId = result.rows[0].id;
+    throw error;
 }
 
 async function fetchBook(bookId) {
@@ -99,6 +122,7 @@ router.post('/books', authMiddleware, isAdmin, async (req, res) => {
     try {
         const metadata = normalizeBookMetadataInput(req.body);
         await ensureBookMetadataSchema();
+        await assertUniqueIsbn(metadata.isbn);
         const copies = Math.max(0, Math.min(9999, Number(req.body.copies ?? 1) || 0));
         const available = req.body.available !== false && copies > 0;
         const locationId = req.body.locationId ?? req.body.location_id ?? null;
@@ -148,6 +172,9 @@ router.put('/books/:id', authMiddleware, isAdmin, async (req, res) => {
     try {
         const metadata = normalizeBookMetadataInput(req.body, { partial: true });
         await ensureBookMetadataSchema();
+        if (Object.prototype.hasOwnProperty.call(metadata, 'isbn')) {
+            await assertUniqueIsbn(metadata.isbn, Number(req.params.id));
+        }
         const locationProvided = Object.prototype.hasOwnProperty.call(req.body, 'locationId')
             || Object.prototype.hasOwnProperty.call(req.body, 'location_id');
         const coverProvided = Object.prototype.hasOwnProperty.call(req.body, 'coverDataURL')

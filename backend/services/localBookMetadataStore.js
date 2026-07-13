@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const localStore = require('./registerBookMetadataFallback');
-const { normalizeBookMetadataInput } = require('./isbnMetadata');
+const { normalizeBookMetadataInput, normalizeIsbn } = require('./isbnMetadata');
 
 function readStore() {
     return JSON.parse(fs.readFileSync(localStore.STORE_FILE, 'utf8'));
@@ -19,7 +19,7 @@ function writeStoreAtomic(store) {
 function ensureUniqueIsbn(store, isbn, excludedBookId = null) {
     if (!isbn) return;
     const duplicate = (store.books || []).find(book =>
-        String(book.isbn || '') === isbn
+        normalizeIsbn(book.isbn) === isbn
         && Number(book.id) !== Number(excludedBookId)
     );
     if (duplicate) {

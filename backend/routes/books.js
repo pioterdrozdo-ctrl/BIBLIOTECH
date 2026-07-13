@@ -3,6 +3,7 @@ const pool = require('../db/pool');
 const { authMiddleware, optionalAuthMiddleware, isAdmin } = require('../middleware/auth');
 const localStore = require('../services/localStore');
 const { buildBookQrCode, buildBookQrPayload, normalizeBookQrFields } = require('../utils/bookQr');
+const { normalizeIsbn } = require('../services/isbnMetadata');
 const router = express.Router();
 
 function mapBookResponse(book) {
@@ -20,6 +21,7 @@ function mapBookResponse(book) {
     return {
         ...book,
         ...qrFields,
+        isbn: normalizeIsbn(book.isbn) || null,
         location_id: book.location_id || null,
         locationId: book.location_id || null,
         location,

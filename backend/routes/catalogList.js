@@ -4,6 +4,7 @@ const localStore = require('../services/registerReservationFallback');
 const { optionalAuthMiddleware } = require('../middleware/auth');
 const { normalizeBookQrFields } = require('../utils/bookQr');
 const { ensureBookMetadataSchema } = require('../services/bookMetadataSchema');
+const { normalizeIsbn, isbn13To10, validateIsbn } = require('../services/isbnMetadata');
 const {
     ensureReservationSchema,
     reconcileReservationQueues,
@@ -29,6 +30,7 @@ function mapListBook(book) {
     return {
         ...bookData,
         ...normalizeBookQrFields(book),
+        isbn: normalizeIsbn(book.isbn) || null,
         publicationYear: book.publication_year ?? book.publicationYear ?? null,
         metadataSource: book.metadata_source || book.metadataSource || null,
         metadataSourceUrl: book.metadata_source_url || book.metadataSourceUrl || null,
@@ -117,23 +119,32 @@ router.get('/', optionalAuthMiddleware, async (req, res, next) => {
     let paramCounter = 2;
 
     if (search && search.trim()) {
+        const rawSearch = search.trim();
+        const canonicalIsbn = validateIsbn(rawSearch) ? normalizeIsbn(rawSearch) : '';
+        const isbnCandidates = [...new Set([canonicalIsbn, isbn13To10(canonicalIsbn)].filter(Boolean))];
+        const isbnConditions = isbnCandidates.map(candidate => {
+            const position = paramCounter++;
+            params.push(candidate);
+            return `b.isbn = $${position}`;
+        });
+        const textPosition = paramCounter++;
+        params.push(`%${rawSearch}%`);
         conditions.push(`(
-            b.title ILIKE $${paramCounter}
-            OR b.author ILIKE $${paramCounter}
-            OR b.description ILIKE $${paramCounter}
-            OR c.text ILIKE $${paramCounter}
-            OR b.qr_code ILIKE $${paramCounter}
-            OR b.isbn ILIKE $${paramCounter}
-            OR b.publisher ILIKE $${paramCounter}
-            OR b.genre ILIKE $${paramCounter}
-            OR b.language ILIKE $${paramCounter}
-            OR CAST(b.publication_year AS TEXT) ILIKE $${paramCounter}
-            OR l.shelf_code ILIKE $${paramCounter}
-            OR l.place_code ILIKE $${paramCounter}
-            OR l.note ILIKE $${paramCounter}
+            b.title ILIKE $${textPosition}
+            OR b.author ILIKE $${textPosition}
+            OR b.description ILIKE $${textPosition}
+            OR c.text ILIKE $${textPosition}
+            OR b.qr_code ILIKE $${textPosition}
+            OR b.isbn ILIKE $${textPosition}
+            OR b.publisher ILIKE $${textPosition}
+            OR b.genre ILIKE $${textPosition}
+            OR b.language ILIKE $${textPosition}
+            OR CAST(b.publication_year AS TEXT) ILIKE $${textPosition}
+            OR l.shelf_code ILIKE $${textPosition}
+            OR l.place_code ILIKE $${textPosition}
+            OR l.note ILIKE $${textPosition}
+            ${isbnConditions.length ? `OR ${isbnConditions.join(' OR ')}` : ''}
         )`);
-        params.push(`%${search}%`);
-        paramCounter++;
     }
 
     if (filter === 'available') conditions.push('b.available = true');

@@ -223,7 +223,7 @@
     }
 
     if (isHomePage) {
-        loadScript('js/book-metadata.js?v=20260710-book-metadata-1', '__bibliotechBookMetadataLoading');
+        loadScript('js/book-metadata.js?v=20260713-book-metadata-3', '__bibliotechBookMetadataLoading');
         loadScript('js/reservation-queue.js?v=20260710-reservation-queue-1', '__bibliotechReservationQueueLoading');
         loadScript('js/rentals-request-guard.js?v=20260710-rentals-guard-1', '__bibliotechRentalsRequestGuardLoading');
         loadScript('js/profile-rentals.js?v=20260709-profile-rentals-1', '__bibliotechProfileRentalsLoading');
@@ -237,7 +237,7 @@
         loadScript('js/account-settings-features.js?v=20260710-account-settings-1', '__bibliotechAccountSettingsFeaturesLoading');
         loadScript('js/modal-visual-fix.js?v=20260710-modal-visual-fix-2', '__bibliotechModalVisualFixLoading');
         loadScript('js/card-rent-safe.js?v=20260710-card-rent-refined-2', '__bibliotechCardRentSafeLoading');
-        loadScript('js/comment-clear-fix.js?v=20260710-comment-clear-1', '__bibliotechCommentClearFixLoading');
+        loadScript('js/comment-clear-fix.js?v=20260713-comment-clear-2', '__bibliotechCommentClearFixLoading');
     }
 
     loadStylesheet('css/ui-refresh.css?v=20260710-ui-refresh-1', '__bibliotechUiRefreshCss');
@@ -250,7 +250,7 @@
         loadStylesheet('css/profile-settings-modal.css?v=20260710-profile-settings-1', '__bibliotechProfileSettingsCss');
         loadStylesheet('css/account-settings-features.css?v=20260710-account-settings-1', '__bibliotechAccountSettingsFeaturesCss');
         loadStylesheet('css/home-minimal.css?v=20260710-home-minimal-1', '__bibliotechHomeMinimalCss');
-        loadStylesheet('css/book-metadata.css?v=20260710-book-metadata-1', '__bibliotechBookMetadataCss');
+        loadStylesheet('css/book-metadata.css?v=20260713-book-metadata-3', '__bibliotechBookMetadataCss');
         loadStylesheet('css/reservation-queue.css?v=20260710-reservation-queue-1', '__bibliotechReservationQueueCss');
     }
 
