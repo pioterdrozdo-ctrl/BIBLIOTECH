@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v41-map-polish';
+const CACHE_NAME = 'bibliotech-pwa-v42-header-refresh';
 const APP_SHELL = [
     '/',
     '/index.html',
@@ -87,6 +87,10 @@ self.addEventListener('activate', event => {
     );
 });
 
+self.addEventListener('message', event => {
+    if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 function isApiRequest(url) {
     return url.pathname.startsWith('/api/');
 }
@@ -102,7 +106,7 @@ function isStaticAsset(request) {
 async function networkFirst(request) {
     const cache = await caches.open(CACHE_NAME);
     try {
-        const response = await fetch(request);
+        const response = await fetch(request, { cache: 'no-store' });
         if (response && response.ok) cache.put(request, response.clone());
         return response;
     } catch {

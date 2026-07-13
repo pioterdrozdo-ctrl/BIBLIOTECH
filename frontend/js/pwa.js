@@ -258,14 +258,38 @@
     loadStylesheet('css/theme-mode-preview.css?v=20260710-theme-mode-preview-1', '__bibliotechThemeModePreviewCss');
     loadStylesheet('css/liquid-theme-toggle.css?v=20260710-liquid-theme-2', '__bibliotechLiquidThemeToggleCss');
     loadStylesheet('css/commercial-polish.css?v=20260710-commercial-polish-1', '__bibliotechCommercialPolishCss');
-    loadStylesheet('css/apple-polish.css?v=20260713-apple-polish-6', '__bibliotechApplePolishCss');
+    loadStylesheet('css/apple-polish.css?v=20260713-apple-polish-7', '__bibliotechApplePolishCss');
     loadStylesheet('css/stats-spacing-fix.css?v=20260711-stats-spacing-1', '__bibliotechStatsSpacingFixCss');
 
     if (!('serviceWorker' in navigator)) return;
 
+    var hadServiceWorkerController = Boolean(navigator.serviceWorker.controller);
+    var reloadingForServiceWorker = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (!hadServiceWorkerController) {
+            hadServiceWorkerController = true;
+            return;
+        }
+        if (reloadingForServiceWorker) return;
+        reloadingForServiceWorker = true;
+        window.location.reload();
+    });
+
     window.addEventListener('load', function () {
         navigator.serviceWorker.register('/sw.js', { scope: '/' })
-            .then(function (registration) { return registration.update(); })
+            .then(function (registration) {
+                if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                registration.addEventListener('updatefound', function () {
+                    var worker = registration.installing;
+                    if (!worker) return;
+                    worker.addEventListener('statechange', function () {
+                        if (worker.state === 'installed' && registration.waiting) {
+                            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                        }
+                    });
+                });
+                return registration.update();
+            })
             .catch(function (error) { console.warn('[BIBLIOTECH] Service worker registration failed:', error); });
     });
 })();

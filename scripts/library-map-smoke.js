@@ -70,11 +70,15 @@ async function checkDesktop(browser, errors) {
     const headerMetrics = await page.locator('#navMenu').evaluate(element => ({
         radius: parseFloat(getComputedStyle(element).borderRadius),
         language: Boolean(document.getElementById('languageSwitcher')),
-        logout: Boolean(document.getElementById('logoutBtn'))
+        logout: Boolean(document.getElementById('logoutBtn')),
+        items: element.querySelectorAll(':scope > ul > li').length,
+        rightInset: Math.round(element.getBoundingClientRect().right - element.querySelector(':scope > ul > li:last-child').getBoundingClientRect().right)
     }));
     assert.ok(headerMetrics.radius >= 12, 'desktop navigation panel is still square');
     assert.equal(headerMetrics.language, true, 'map header lost the shared language control');
     assert.equal(headerMetrics.logout, true, 'map header lost the shared logout control');
+    assert.equal(headerMetrics.items, 8, 'map header does not match the shared navigation structure');
+    assert.ok(headerMetrics.rightInset >= 7, 'last header item touches the rounded navigation edge');
 
     const shellOverlap = await page.evaluate(() => {
         const overlapArea = (first, second) => {

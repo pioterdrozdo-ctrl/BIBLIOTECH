@@ -77,7 +77,8 @@ assert.ok(pwa.includes('product-polish.js?v=20260710-product-polish-2'), 'PWA do
 assert.ok(pwa.includes('product-polish.css?v=20260710-product-polish-1'), 'PWA does not load product polish CSS');
 assert.ok(pwa.includes('home-minimal.css?v=20260710-home-minimal-1'), 'PWA does not load minimal home CSS');
 assert.ok(pwa.includes('commercial-polish.css?v=20260710-commercial-polish-1'), 'PWA does not load final commercial CSS');
-assert.ok(pwa.includes('apple-polish.css?v=20260713-apple-polish-6'), 'PWA does not load final Apple CSS');
+assert.ok(pwa.includes('apple-polish.css?v=20260713-apple-polish-7'), 'PWA does not load final Apple CSS');
+assert.ok(pwa.includes("addEventListener('controllerchange'"), 'PWA does not reload an open page after an update');
 assert.ok(!pwa.includes('hero-empty-space.css'), 'obsolete empty hero patch is still loaded');
 assert.ok(!pwa.includes('profile-hide-theme-badge.css'), 'theme status is still hidden by an obsolete patch');
 assert.ok(pwa.includes('book-metadata.js?v=20260713-book-metadata-4'), 'PWA does not load ISBN metadata JavaScript');
@@ -92,14 +93,15 @@ assert.ok(pwa.indexOf('commercial-polish.css') < pwa.indexOf('apple-polish.css')
 
 assert.ok(server.includes("'/css/home-minimal.css?v=20260710-home-minimal-1'"), 'server does not preload minimal home CSS');
 assert.ok(server.includes("'/css/commercial-polish.css?v=20260710-commercial-polish-1'"), 'server does not preload commercial CSS');
-assert.ok(server.includes("'/css/apple-polish.css?v=20260713-apple-polish-6'"), 'server does not preload Apple CSS');
+assert.ok(server.includes("'/css/apple-polish.css?v=20260713-apple-polish-7'"), 'server does not preload Apple CSS');
 assert.ok(server.includes("'/css/book-metadata.css?v=20260713-book-metadata-3'"), 'server does not preload ISBN metadata CSS');
 assert.ok(server.includes("'/css/reservation-queue.css?v=20260710-reservation-queue-1'"), 'server does not preload reservation CSS');
 assert.ok(server.includes("'/js/reservation-queue.js?v=20260710-reservation-queue-1'"), 'server does not preload reservation JavaScript');
 assert.ok(server.includes("'/js/profile-reservations.js?v=20260710-profile-reservations-1'"), 'server does not preload profile reservations');
 assert.ok(server.includes("'/js/product-polish.js?v=20260710-product-polish-2'"), 'server does not preload updated product polish JavaScript');
 assert.ok(server.includes('<h1>Каталог библиотеки</h1>'), 'server does not replace the old hero title before first paint');
-assert.ok(server.includes('critical-ui-11'), 'initial HTML cache-busting was not updated');
+assert.ok(server.includes('critical-ui-12'), 'initial HTML cache-busting was not updated');
+assert.ok(server.includes("'Cache-Control', 'no-store, max-age=0'"), 'HTML can remain stale in the browser cache');
 
 assert.ok(catalogRoute.includes('b.cover_data_url'), 'catalog list must return book covers');
 assert.ok(catalogRoute.includes('c.text ILIKE'), 'catalog search must include comment text');

@@ -55,7 +55,7 @@ const criticalUiScripts = [
 
 const finalUiStyles = [
     '/css/commercial-polish.css?v=20260710-commercial-polish-1',
-    '/css/apple-polish.css?v=20260713-apple-polish-6'
+    '/css/apple-polish.css?v=20260713-apple-polish-7'
 ];
 
 const homeCriticalStyles = [
@@ -142,9 +142,9 @@ function injectCriticalUiAssets(html, { home = false } = {}) {
     if (scriptTags) {
         const pwaPattern = /<script src="(?:\/)?js\/pwa\.js(?:\?[^\"]*)?"><\/script>/;
         if (pwaPattern.test(html)) {
-            html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-11"></script>`);
+            html = html.replace(pwaPattern, `${scriptTags}\n<script src="/js/pwa.js?v=20260713-critical-ui-12"></script>`);
         } else {
-            html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260710-critical-ui-11"></script>\n</body>`);
+            html = html.replace('</body>', `${scriptTags}\n<script src="/js/pwa.js?v=20260713-critical-ui-12"></script>\n</body>`);
         }
     }
 
@@ -187,7 +187,7 @@ function prepareFrontendHtml(fileName, { home = false } = {}) {
 function sendFrontendPage(fileName, options = {}) {
     return (req, res, next) => {
         try {
-            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Cache-Control', 'no-store, max-age=0');
             res.type('html');
             res.send(prepareFrontendHtml(fileName, options));
         } catch (error) {
