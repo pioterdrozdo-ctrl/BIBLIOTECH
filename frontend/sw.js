@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bibliotech-pwa-v48-content-translation';
+const CACHE_NAME = 'bibliotech-pwa-v49-admin-stability';
 const APP_SHELL = [
     '/',
     '/index.html',
