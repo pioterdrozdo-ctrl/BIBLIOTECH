@@ -124,6 +124,11 @@
     }
 
     function init() {
+        // Админка содержит постоянно обновляемые таблицы. Перевод пользовательских
+        // данных там создавал каскад MutationObserver и сетевых запросов.
+        // Статический интерфейс по-прежнему переводит interface-language.js.
+        if (document.body?.classList.contains('admin-page')) return;
+
         scheduleRefresh();
         window.addEventListener('bibliotech:languagechange', () => scheduleRefresh());
         observer = new MutationObserver(mutations => {
